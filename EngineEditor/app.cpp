@@ -21,13 +21,18 @@ namespace Engine {
 
     void FirstApp::run() {
         SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass()};
+        Camera camera{};
+        camera.setViewTarget(glm::vec3(-1.f, -2.f, -2.f), glm::vec3(0.f, 0.f, 2.5f));
 
         while (!lveWindow.shouldClose()) {
             glfwPollEvents();
+            float aspect = lveRenderer.getAspectRatio();
+            //camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
+            camera.setPerspectiveProjection(glm::radians(90.0f), aspect, 0.01, 1000.0f);
 
             if (auto commandBuffer = lveRenderer.beginFrame()) {
                 lveRenderer.beginSwapChainRenderPass(commandBuffer);
-                simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects);
+                simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
                 lveRenderer.endSwapChainRenderPass(commandBuffer);
                 lveRenderer.endFrame();
             }
@@ -99,7 +104,7 @@ namespace Engine {
 
         auto cube = GameObject::createGameObject();
         cube.model = model;
-        cube.transform.translation = {0.0f, 0.0f, 0.5f};
+        cube.transform.translation = {0.0f, 0.0f, 1.5f};
         cube.transform.scale = {0.5f, 0.5f, 0.5f};
         gameObjects.push_back(std::move(cube));
     }

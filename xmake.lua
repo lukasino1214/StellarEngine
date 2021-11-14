@@ -12,8 +12,7 @@ end
 
 set_optimize("fastest")
 
-packages = {"glad", "glfw", "glm", "spdlog", "yaml-cpp", "fmt", "tinyobjloader", "tinygltf", "vulkan", "entt", "stb","imguizmo"}
---packages = {"assimp"}
+packages = {"glfw", "glm", "spdlog", "yaml-cpp", "fmt", "tinyobjloader", "tinygltf", "vulkan", "entt", "stb","imguizmo"}
 
 add_requires(packages)
 

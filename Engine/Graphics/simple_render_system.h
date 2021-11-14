@@ -5,6 +5,7 @@
 #ifndef ENGINEEDITOR_SIMPLE_RENDER_SYSTEM_H
 #define ENGINEEDITOR_SIMPLE_RENDER_SYSTEM_H
 
+#include "camera.h"
 #include "device.h"
 #include "game_object.h"
 #include "pipeline.h"
@@ -22,7 +23,7 @@ namespace Engine {
         SimpleRenderSystem(const SimpleRenderSystem &) = delete;
         SimpleRenderSystem &operator=(const SimpleRenderSystem &) = delete;
 
-        void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject> &gameObjects);
+        void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject> &gameObjects, const Camera& camera);
 
     private:
         void createPipelineLayout();

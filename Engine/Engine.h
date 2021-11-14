@@ -20,5 +20,6 @@
 #include "Graphics/game_object.h"
 #include "Graphics/renderer.h"
 #include "Graphics/simple_render_system.h"
+#include "Graphics/camera.h"
 
 #endif //ENGINE_ENGINE_H
