@@ -17,5 +17,8 @@
 #include "Graphics/model.h"
 #include "Graphics/pipeline.h"
 #include "Graphics/swap_chain.h"
+#include "Graphics/game_object.h"
+#include "Graphics/renderer.h"
+#include "Graphics/simple_render_system.h"
 
 #endif //ENGINE_ENGINE_H

@@ -58,7 +58,7 @@ namespace Engine {
 
         void createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule);
 
-        Device& m_Device;
+        Device& lveDevice;
         VkPipeline graphicsPipeline;
         VkShaderModule vertShaderModule;
         VkShaderModule fragShaderModule;

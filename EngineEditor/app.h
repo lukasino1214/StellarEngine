@@ -26,22 +26,13 @@ namespace Engine {
         void run();
 
     private:
-        void loadModels();
-        void createPipelineLayout();
-        void createPipeline();
-        void createCommandBuffers();
-        void freeCommandBuffers();
-        void drawFrame();
-        void recreateSwapChain();
-        void recordCommandBuffer(int imageIndex);
+        void loadGameObjects();
 
         Window lveWindow{WIDTH, HEIGHT, "Stellar Engine"};
         Device lveDevice{lveWindow};
-        std::unique_ptr<SwapChain> lveSwapChain;
-        std::unique_ptr<Pipeline> lvePipeline;
-        VkPipelineLayout pipelineLayout;
-        std::vector<VkCommandBuffer> commandBuffers;
-        std::unique_ptr<Model> lveModel;
+        Renderer lveRenderer{lveWindow, lveDevice};
+
+        std::vector<GameObject> gameObjects;
     };
 }
 
