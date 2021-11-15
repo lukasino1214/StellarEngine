@@ -24,6 +24,7 @@ namespace Engine {
         Renderer &operator=(const Renderer &) = delete;
 
         VkRenderPass getSwapChainRenderPass() const { return lveSwapChain->getRenderPass(); }
+        uint32_t getImageCount() const { return lveSwapChain->imageCount(); }
         float getAspectRatio() const { return lveSwapChain->extentAspectRatio(); }
         bool isFrameInProgress() const { return isFrameStarted; }
 

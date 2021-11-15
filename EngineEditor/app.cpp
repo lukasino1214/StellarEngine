@@ -12,6 +12,7 @@
 #include <array>
 #include <cassert>
 #include <stdexcept>
+#include <chrono>
 
 namespace Engine {
 
@@ -22,16 +23,39 @@ namespace Engine {
     void FirstApp::run() {
         SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass()};
         Camera camera{};
-        camera.setViewTarget(glm::vec3(-1.f, -2.f, -2.f), glm::vec3(0.f, 0.f, 2.5f));
+        camera.setViewTarget(glm::vec3(-1.f, -1.f, -1.f), glm::vec3(0.f, 0.f, 2.5f));
+
+        Imgui lveImgui{lveWindow, lveDevice, lveRenderer.getSwapChainRenderPass(), lveRenderer.getImageCount()};
+
+        auto viewerObject = GameObject::createGameObject();
+        KeyboardMovementController cameraController{};
+
+        auto currentTime = std::chrono::high_resolution_clock::now();
 
         while (!lveWindow.shouldClose()) {
             glfwPollEvents();
+
+            auto newTime = std::chrono::high_resolution_clock::now();
+            float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+            currentTime = newTime;
+
+            cameraController.moveInPlaneXZ(lveWindow.getGLFWwindow(), frameTime, viewerObject);
+            camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
+
             float aspect = lveRenderer.getAspectRatio();
             //camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
             camera.setPerspectiveProjection(glm::radians(90.0f), aspect, 0.01, 1000.0f);
 
             if (auto commandBuffer = lveRenderer.beginFrame()) {
+                lveImgui.newFrame();
                 lveRenderer.beginSwapChainRenderPass(commandBuffer);
+                //lveImgui.runExample();
+                ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!" and append into it.
+
+                ImGui::Text(
+                        "This is some useful text.");  // Display some text (you can use a format strings too)
+                ImGui::End();
+                lveImgui.render(commandBuffer);
                 simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
                 lveRenderer.endSwapChainRenderPass(commandBuffer);
                 lveRenderer.endFrame();

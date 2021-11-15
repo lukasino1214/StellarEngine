@@ -21,5 +21,7 @@
 #include "Graphics/renderer.h"
 #include "Graphics/simple_render_system.h"
 #include "Graphics/camera.h"
+#include "Graphics/keyboard_movement_controller.h"
+#include "Graphics/imguiLayer.h"
 
 #endif //ENGINE_ENGINE_H

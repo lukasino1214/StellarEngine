@@ -47,6 +47,9 @@ namespace Engine {
         Device &operator=(Device &&) = delete;
 
         VkCommandPool getCommandPool() { return commandPool; }
+        VkInstance getInstance() { return instance; }
+        VkPhysicalDevice getPhysicalDevice() { return physicalDevice; }
+        uint32_t getGraphicsQueueFamily() { return findPhysicalQueueFamilies().graphicsFamily; }
         VkDevice device() { return device_; }
         VkSurfaceKHR surface() { return surface_; }
         VkQueue graphicsQueue() { return graphicsQueue_; }
