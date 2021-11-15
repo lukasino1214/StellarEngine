@@ -49,14 +49,13 @@ namespace Engine {
             if (auto commandBuffer = lveRenderer.beginFrame()) {
                 lveImgui.newFrame();
                 lveRenderer.beginSwapChainRenderPass(commandBuffer);
-                //lveImgui.runExample();
-                ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!" and append into it.
 
-                ImGui::Text(
-                        "This is some useful text.");  // Display some text (you can use a format strings too)
+                simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
+                ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!" and append into it.
+                ImGui::Text("This is some useful text.");  // Display some text (you can use a format strings too)
                 ImGui::End();
                 lveImgui.render(commandBuffer);
-                simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
+
                 lveRenderer.endSwapChainRenderPass(commandBuffer);
                 lveRenderer.endFrame();
             }
