@@ -59,7 +59,7 @@ namespace Engine {
         Camera camera{};
         camera.setViewTarget(glm::vec3(-1.f, -1.f, -1.f), glm::vec3(0.f, 0.f, 2.5f));
 
-        //Imgui lveImgui{lveWindow, lveDevice, lveRenderer.getSwapChainRenderPass(), lveRenderer.getImageCount()};
+        Imgui lveImgui{lveWindow, lveDevice, lveRenderer.getSwapChainRenderPass(), lveRenderer.getImageCount()};
 
         auto viewerObject = GameObject::createGameObject();
         KeyboardMovementController cameraController{};
@@ -77,32 +77,9 @@ namespace Engine {
             camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 
             float aspect = lveRenderer.getAspectRatio();
-            //camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
             camera.setPerspectiveProjection(glm::radians(90.0f), aspect, 0.01, 1000.0f);
 
             if (auto commandBuffer = lveRenderer.beginFrame()) {
-                /*int frameIndex = lveRenderer.getFrameIndex();
-                FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, camera};
-
-                // update
-                GlobalUbo ubo{};
-                ubo.projectionView = camera.getProjection() * camera.getView();
-                globalUboBuffer.writeToBuffer(&ubo, frameIndex);
-                globalUboBuffer.flushIndex(frameIndex);
-
-                // render
-                //lveImgui.newFrame();
-                lveRenderer.beginSwapChainRenderPass(commandBuffer);
-                simpleRenderSystem.renderGameObjects(frameInfo, gameObjects);
-                ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!" and append into it.
-                ImGui::Text("This is some useful text.");  // Display some text (you can use a format strings too)
-                ImGui::End();
-
-                lveImgui.render(commandBuffer);
-
-                lveRenderer.endSwapChainRenderPass(commandBuffer);
-                lveRenderer.endFrame();*/
-
                 int frameIndex = lveRenderer.getFrameIndex();
                 FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, camera, globalDescriptorSets[frameIndex]};
 
@@ -113,8 +90,15 @@ namespace Engine {
                 uboBuffers[frameIndex]->flush();
 
                 // render
+                lveImgui.newFrame();
                 lveRenderer.beginSwapChainRenderPass(commandBuffer);
                 simpleRenderSystem.renderGameObjects(frameInfo, gameObjects);
+
+                ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!" and append into it.
+                ImGui::Text("This is some useful text.");  // Display some text (you can use a format strings too)
+                ImGui::End();
+
+                lveImgui.render(commandBuffer);
                 lveRenderer.endSwapChainRenderPass(commandBuffer);
                 lveRenderer.endFrame();
 
