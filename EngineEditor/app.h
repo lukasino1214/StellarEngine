@@ -32,6 +32,7 @@ namespace Engine {
         Device lveDevice{lveWindow};
         Renderer lveRenderer{lveWindow, lveDevice};
 
+        std::unique_ptr<DescriptorPool> globalPool{};
         std::vector<GameObject> gameObjects;
     };
 }

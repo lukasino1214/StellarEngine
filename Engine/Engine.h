@@ -24,5 +24,6 @@
 #include "Graphics/keyboard_movement_controller.h"
 #include "Graphics/imguiLayer.h"
 #include "Graphics/buffer.h"
+#include "Graphics/descriptors.h"
 
 #endif //ENGINE_ENGINE_H

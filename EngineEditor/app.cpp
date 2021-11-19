@@ -21,7 +21,13 @@ namespace Engine {
         glm::vec3 lightDirection = glm::normalize(glm::vec3{1.0f, -3.0f, -1.0f});
     };
 
-    FirstApp::FirstApp() { loadGameObjects(); }
+    FirstApp::FirstApp() {
+        globalPool = DescriptorPool::Builder(lveDevice).setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT)
+                .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
+                //.addPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
+                .build();
+        loadGameObjects();
+    }
 
     FirstApp::~FirstApp() {}
 
@@ -37,7 +43,19 @@ namespace Engine {
             uboBuffers[i]->map();
         }
 
-        SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass()};
+        auto globalSetLayout = DescriptorSetLayout::Builder(lveDevice)
+                .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+                .build();
+
+        std::vector<VkDescriptorSet> globalDescriptorSets(SwapChain::MAX_FRAMES_IN_FLIGHT);
+        for(int i = 0; i < globalDescriptorSets.size(); i++) {
+            auto bufferInfo = uboBuffers[i]->descriptorInfo();
+            DescriptorWriter(*globalSetLayout, *globalPool)
+                .writeBuffer(0, &bufferInfo)
+                .build(globalDescriptorSets[i]);
+        }
+
+        SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
         Camera camera{};
         camera.setViewTarget(glm::vec3(-1.f, -1.f, -1.f), glm::vec3(0.f, 0.f, 2.5f));
 
@@ -86,7 +104,7 @@ namespace Engine {
                 lveRenderer.endFrame();*/
 
                 int frameIndex = lveRenderer.getFrameIndex();
-                FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, camera};
+                FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, camera, globalDescriptorSets[frameIndex]};
 
                 // update
                 GlobalUbo ubo{};
@@ -109,13 +127,13 @@ namespace Engine {
 
 
     void FirstApp::loadGameObjects() {
-        std::shared_ptr<Model> model = Model::createModelfromFile(lveDevice, "models/sniper.obj");
+        std::shared_ptr<Model> model = Model::createModelfromFile(lveDevice, "models/scifi_gun.obj");
 
         auto gameObj = GameObject::createGameObject();
         gameObj.model = model;
-        gameObj.transform.translation = {0.0f, 0.0f, 1.5f};
-        gameObj.transform.rotation = {glm::radians(180.0f), 0.0f, 0.0f};
-        gameObj.transform.scale = glm::vec3(3.0f);
+        gameObj.transform.translation = {0.0f, 5.0f, 6.5f};
+        gameObj.transform.rotation = {glm::radians(180.0f), glm::radians(90.0f), 0.0f};
+        gameObj.transform.scale = glm::vec3(1.0f);
         gameObjects.push_back(std::move(gameObj));
     }
 }
