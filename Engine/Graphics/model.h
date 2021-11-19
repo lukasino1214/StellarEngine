@@ -6,6 +6,7 @@
 #define ENGINEEDITOR_MODEL_H
 
 #include "device.h"
+#include "buffer.h"
 
 // libs
 #define GLM_FORCE_RADIANS
@@ -22,14 +23,14 @@ namespace Engine {
         struct Vertex {
             glm::vec3 position;
             glm::vec3 color;
-            glm::vec3 normals{};
+            glm::vec3 normal{};
             glm::vec2 uv{};
 
             static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
             static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
 
             bool operator==(const Vertex &other) const {
-                return position == other.position && color == other.color && normals == other.normals && uv == other.uv;
+                return position == other.position && color == other.color && normal == other.normal && uv == other.uv;
             }
         };
 
@@ -56,13 +57,11 @@ namespace Engine {
         void createIndexBuffers(const std::vector<uint32_t> &indices);
 
         Device &m_Device;
-        VkBuffer vertexBuffer;
-        VkDeviceMemory vertexBufferMemory;
+        std::unique_ptr<Buffer> vertexBuffer;
         uint32_t vertexCount;
 
         bool hasIndexBuffer = false;
-        VkBuffer indexBuffer;
-        VkDeviceMemory indexBufferMemory;
+        std::unique_ptr<Buffer> indexBuffer;
         uint32_t indexCount;
     };
 }
