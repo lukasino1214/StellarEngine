@@ -23,9 +23,9 @@ namespace Engine {
         Renderer(const Renderer &) = delete;
         Renderer &operator=(const Renderer &) = delete;
 
-        VkRenderPass getSwapChainRenderPass() const { return lveSwapChain->getRenderPass(); }
-        uint32_t getImageCount() const { return lveSwapChain->imageCount(); }
-        float getAspectRatio() const { return lveSwapChain->extentAspectRatio(); }
+        VkRenderPass getSwapChainRenderPass() const { return m_SwapChain->getRenderPass(); }
+        uint32_t getImageCount() const { return m_SwapChain->imageCount(); }
+        float getAspectRatio() const { return m_SwapChain->extentAspectRatio(); }
         bool isFrameInProgress() const { return isFrameStarted; }
 
         VkCommandBuffer getCurrentCommandBuffer() const {
@@ -48,9 +48,9 @@ namespace Engine {
         void freeCommandBuffers();
         void recreateSwapChain();
 
-        Window &lveWindow;
-        Device &lveDevice;
-        std::unique_ptr<SwapChain> lveSwapChain;
+        Window &m_Window;
+        Device &m_Device;
+        std::unique_ptr<SwapChain> m_SwapChain;
         std::vector<VkCommandBuffer> commandBuffers;
 
         uint32_t currentImageIndex;

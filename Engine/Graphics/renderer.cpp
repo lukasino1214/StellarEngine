@@ -14,8 +14,7 @@
 
 namespace Engine {
 
-    Renderer::Renderer(Window& window, Device& device)
-            : lveWindow{window}, lveDevice{device} {
+    Renderer::Renderer(Window& window, Device& device) : m_Window{window}, m_Device{device} {
         recreateSwapChain();
         createCommandBuffers();
     }
@@ -23,20 +22,20 @@ namespace Engine {
     Renderer::~Renderer() { freeCommandBuffers(); }
 
     void Renderer::recreateSwapChain() {
-        auto extent = lveWindow.getExtent();
+        auto extent = m_Window.getExtent();
         while (extent.width == 0 || extent.height == 0) {
-            extent = lveWindow.getExtent();
+            extent = m_Window.getExtent();
             glfwWaitEvents();
         }
-        vkDeviceWaitIdle(lveDevice.device());
+        vkDeviceWaitIdle(m_Device.device());
 
-        if (lveSwapChain == nullptr) {
-            lveSwapChain = std::make_unique<SwapChain>(lveDevice, extent);
+        if (m_SwapChain == nullptr) {
+            m_SwapChain = std::make_unique<SwapChain>(m_Device, extent);
         } else {
-            std::shared_ptr<SwapChain> oldSwapChain = std::move(lveSwapChain);
-            lveSwapChain = std::make_unique<SwapChain>(lveDevice, extent, oldSwapChain);
+            std::shared_ptr<SwapChain> oldSwapChain = std::move(m_SwapChain);
+            m_SwapChain = std::make_unique<SwapChain>(m_Device, extent, oldSwapChain);
 
-            if (!oldSwapChain->compareSwapFormats(*lveSwapChain.get())) {
+            if (!oldSwapChain->compareSwapFormats(*m_SwapChain.get())) {
                 throw std::runtime_error("Swap chain image(or depth) format has changed!");
             }
         }
@@ -48,10 +47,10 @@ namespace Engine {
         VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandPool = lveDevice.getCommandPool();
+        allocInfo.commandPool = m_Device.getCommandPool();
         allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
 
-        if (vkAllocateCommandBuffers(lveDevice.device(), &allocInfo, commandBuffers.data()) !=
+        if (vkAllocateCommandBuffers(m_Device.device(), &allocInfo, commandBuffers.data()) !=
             VK_SUCCESS) {
             throw std::runtime_error("failed to allocate command buffers!");
         }
@@ -59,8 +58,8 @@ namespace Engine {
 
     void Renderer::freeCommandBuffers() {
         vkFreeCommandBuffers(
-                lveDevice.device(),
-                lveDevice.getCommandPool(),
+                m_Device.device(),
+                m_Device.getCommandPool(),
                 static_cast<uint32_t>(commandBuffers.size()),
                 commandBuffers.data());
         commandBuffers.clear();
@@ -69,7 +68,7 @@ namespace Engine {
     VkCommandBuffer Renderer::beginFrame() {
         assert(!isFrameStarted && "Can't call beginFrame while already in progress");
 
-        auto result = lveSwapChain->acquireNextImage(&currentImageIndex);
+        auto result = m_SwapChain->acquireNextImage(&currentImageIndex);
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
             recreateSwapChain();
             return nullptr;
@@ -98,10 +97,10 @@ namespace Engine {
             throw std::runtime_error("failed to record command buffer!");
         }
 
-        auto result = lveSwapChain->submitCommandBuffers(&commandBuffer, &currentImageIndex);
+        auto result = m_SwapChain->submitCommandBuffers(&commandBuffer, &currentImageIndex);
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
-            lveWindow.wasWindowResized()) {
-            lveWindow.resetWindowResizedFlag();
+            m_Window.wasWindowResized()) {
+            m_Window.resetWindowResizedFlag();
             recreateSwapChain();
         } else if (result != VK_SUCCESS) {
             throw std::runtime_error("failed to present swap chain image!");
@@ -119,11 +118,11 @@ namespace Engine {
 
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = lveSwapChain->getRenderPass();
-        renderPassInfo.framebuffer = lveSwapChain->getFrameBuffer(currentImageIndex);
+        renderPassInfo.renderPass = m_SwapChain->getRenderPass();
+        renderPassInfo.framebuffer = m_SwapChain->getFrameBuffer(currentImageIndex);
 
         renderPassInfo.renderArea.offset = {0, 0};
-        renderPassInfo.renderArea.extent = lveSwapChain->getSwapChainExtent();
+        renderPassInfo.renderArea.extent = m_SwapChain->getSwapChainExtent();
 
         std::array<VkClearValue, 2> clearValues{};
         clearValues[0].color = {0.01f, 0.01f, 0.01f, 1.0f};
@@ -136,11 +135,11 @@ namespace Engine {
         VkViewport viewport{};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
-        viewport.width = static_cast<float>(lveSwapChain->getSwapChainExtent().width);
-        viewport.height = static_cast<float>(lveSwapChain->getSwapChainExtent().height);
+        viewport.width = static_cast<float>(m_SwapChain->getSwapChainExtent().width);
+        viewport.height = static_cast<float>(m_SwapChain->getSwapChainExtent().height);
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
-        VkRect2D scissor{{0, 0}, lveSwapChain->getSwapChainExtent()};
+        VkRect2D scissor{{0, 0}, m_SwapChain->getSwapChainExtent()};
         vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
     }

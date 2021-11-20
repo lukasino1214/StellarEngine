@@ -7,6 +7,8 @@
 
 #include "../Engine/Engine.h"
 
+#include "Panels/SceneHierarchyPanel.h"
+
 // std
 #include <memory>
 #include <vector>
@@ -26,14 +28,14 @@ namespace Engine {
         void run();
 
     private:
-        void loadGameObjects();
-
-        Window lveWindow{WIDTH, HEIGHT, "Stellar Engine"};
-        Device lveDevice{lveWindow};
-        Renderer lveRenderer{lveWindow, lveDevice};
+        Window m_Window{WIDTH, HEIGHT, "Stellar Engine"};
+        Device m_Device{m_Window};
+        Renderer m_Renderer{m_Window, m_Device};
 
         std::unique_ptr<DescriptorPool> globalPool{};
         std::vector<GameObject> gameObjects;
+        SceneHierarchyPanel HierarchyPanel;
+        Ref<Scene> m_ActiveScene;
     };
 }
 

@@ -4,7 +4,7 @@
 
 #include "model.h"
 
-#include "utils.h"
+#include "../Utils/utils.h"
 
 #define TINYOBJECTLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>

@@ -43,7 +43,7 @@ namespace Engine {
         //void runExample();
 
     private:
-        Device &lveDevice;
+        Device &m_Device;
 
         // We haven't yet covered descriptor pools in the tutorial series
         // so I'm just going to create one for just imgui and store it here for now.

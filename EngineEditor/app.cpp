@@ -12,21 +12,35 @@
 #include <array>
 #include <cassert>
 #include <stdexcept>
+#include <iostream>
 #include <chrono>
 
 namespace Engine {
 
     struct GlobalUbo {
         glm::mat4 projectionView{1.0f};
-        glm::vec3 lightDirection = glm::normalize(glm::vec3{1.0f, -3.0f, -1.0f});
+        glm::vec4 ambientLightColor{1.0f, 1.0f, 1.0f, 0.02f};
+        glm::vec3 lightPosition{-1.0f};
+        alignas(16) glm::vec4 lightColor{1.0f};
     };
 
     FirstApp::FirstApp() {
-        globalPool = DescriptorPool::Builder(lveDevice).setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT)
+        globalPool = DescriptorPool::Builder(m_Device)
+                .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT)
                 .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
-                //.addPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
                 .build();
-        loadGameObjects();
+
+        m_ActiveScene = CreateRef<Scene>();
+
+        Entity test = m_ActiveScene->CreateEntity("Test");
+        test.GetComponent<TransformComponentLegacy>().SetRotation({180.0f, 90.0f, 0.0f});
+        test.GetComponent<TransformComponentLegacy>().SetTranslation({0.0f, 5.0f, 3.5f});
+
+        std::shared_ptr<Model> model = Model::createModelfromFile(m_Device, "models/scifi_gun.obj");
+
+        test.AddComponent<ModelComponent>(model);
+
+        HierarchyPanel.SetContext(m_ActiveScene);
     }
 
     FirstApp::~FirstApp() {}
@@ -35,7 +49,7 @@ namespace Engine {
         std::vector<std::unique_ptr<Buffer>> uboBuffers(SwapChain::MAX_FRAMES_IN_FLIGHT);
         for (int i = 0; i < uboBuffers.size(); i++) {
             uboBuffers[i] = std::make_unique<Buffer>(
-                    lveDevice,
+                    m_Device,
                     sizeof(GlobalUbo),
                     1,
                     VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -43,7 +57,7 @@ namespace Engine {
             uboBuffers[i]->map();
         }
 
-        auto globalSetLayout = DescriptorSetLayout::Builder(lveDevice)
+        auto globalSetLayout = DescriptorSetLayout::Builder(m_Device)
                 .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
                 .build();
 
@@ -55,32 +69,34 @@ namespace Engine {
                 .build(globalDescriptorSets[i]);
         }
 
-        SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+        RenderSystem simpleRenderSystem{m_Device, m_Renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
         Camera camera{};
         camera.setViewTarget(glm::vec3(-1.f, -1.f, -1.f), glm::vec3(0.f, 0.f, 2.5f));
 
-        Imgui lveImgui{lveWindow, lveDevice, lveRenderer.getSwapChainRenderPass(), lveRenderer.getImageCount()};
+        Imgui lveImgui{m_Window, m_Device, m_Renderer.getSwapChainRenderPass(), m_Renderer.getImageCount()};
 
         auto viewerObject = GameObject::createGameObject();
         KeyboardMovementController cameraController{};
 
         auto currentTime = std::chrono::high_resolution_clock::now();
 
-        while (!lveWindow.shouldClose()) {
+        while (!m_Window.shouldClose()) {
             glfwPollEvents();
 
             auto newTime = std::chrono::high_resolution_clock::now();
             float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
             currentTime = newTime;
 
-            cameraController.moveInPlaneXZ(lveWindow.getGLFWwindow(), frameTime, viewerObject);
+            //std::cout << frameTime << std::endl;
+
+            cameraController.moveInPlaneXZ(m_Window.getGLFWwindow(), frameTime, viewerObject);
             camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 
-            float aspect = lveRenderer.getAspectRatio();
+            float aspect = m_Renderer.getAspectRatio();
             camera.setPerspectiveProjection(glm::radians(90.0f), aspect, 0.01, 1000.0f);
 
-            if (auto commandBuffer = lveRenderer.beginFrame()) {
-                int frameIndex = lveRenderer.getFrameIndex();
+            if (auto commandBuffer = m_Renderer.beginFrame()) {
+                int frameIndex = m_Renderer.getFrameIndex();
                 FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, camera, globalDescriptorSets[frameIndex]};
 
                 // update
@@ -91,33 +107,22 @@ namespace Engine {
 
                 // render
                 lveImgui.newFrame();
-                lveRenderer.beginSwapChainRenderPass(commandBuffer);
-                simpleRenderSystem.renderGameObjects(frameInfo, gameObjects);
+                m_Renderer.beginSwapChainRenderPass(commandBuffer);
+                simpleRenderSystem.renderGameObjects(frameInfo, m_ActiveScene);
 
-                ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!" and append into it.
-                ImGui::Text("This is some useful text.");  // Display some text (you can use a format strings too)
+                ImGui::Begin("Frame Info");
+                ImGui::Text("Frame Time: %f", frameTime);
                 ImGui::End();
 
+                HierarchyPanel.OnImGuiRender();
+
                 lveImgui.render(commandBuffer);
-                lveRenderer.endSwapChainRenderPass(commandBuffer);
-                lveRenderer.endFrame();
+                m_Renderer.endSwapChainRenderPass(commandBuffer);
+                m_Renderer.endFrame();
 
             }
         }
 
-        vkDeviceWaitIdle(lveDevice.device());
-    }
-
-
-
-    void FirstApp::loadGameObjects() {
-        std::shared_ptr<Model> model = Model::createModelfromFile(lveDevice, "models/scifi_gun.obj");
-
-        auto gameObj = GameObject::createGameObject();
-        gameObj.model = model;
-        gameObj.transform.translation = {0.0f, 5.0f, 6.5f};
-        gameObj.transform.rotation = {glm::radians(180.0f), glm::radians(90.0f), 0.0f};
-        gameObj.transform.scale = glm::vec3(1.0f);
-        gameObjects.push_back(std::move(gameObj));
+        vkDeviceWaitIdle(m_Device.device());
     }
 }

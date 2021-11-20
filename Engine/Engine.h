@@ -12,6 +12,7 @@
 #include "Core/Window.h"
 
 #include "Data/Scene.h"
+#include "Data/Entity.h"
 
 #include "Graphics/device.h"
 #include "Graphics/model.h"
@@ -19,11 +20,13 @@
 #include "Graphics/swap_chain.h"
 #include "Graphics/game_object.h"
 #include "Graphics/renderer.h"
-#include "Graphics/simple_render_system.h"
 #include "Graphics/camera.h"
 #include "Graphics/keyboard_movement_controller.h"
 #include "Graphics/imguiLayer.h"
 #include "Graphics/buffer.h"
 #include "Graphics/descriptors.h"
+
+#include "Rendering/render_system.h"
+
 
 #endif //ENGINE_ENGINE_H

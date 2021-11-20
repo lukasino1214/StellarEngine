@@ -14,19 +14,14 @@
 
 namespace Engine {
 
-    Pipeline::Pipeline(
-            Device& device,
-            const std::string& vertFilepath,
-            const std::string& fragFilepath,
-            const PipelineConfigInfo& configInfo)
-            : lveDevice{device} {
+    Pipeline::Pipeline(Device& device, const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo) : m_Device{device} {
         createGraphicsPipeline(vertFilepath, fragFilepath, configInfo);
     }
 
     Pipeline::~Pipeline() {
-        vkDestroyShaderModule(lveDevice.device(), vertShaderModule, nullptr);
-        vkDestroyShaderModule(lveDevice.device(), fragShaderModule, nullptr);
-        vkDestroyPipeline(lveDevice.device(), graphicsPipeline, nullptr);
+        vkDestroyShaderModule(m_Device.device(), vertShaderModule, nullptr);
+        vkDestroyShaderModule(m_Device.device(), fragShaderModule, nullptr);
+        vkDestroyPipeline(m_Device.device(), graphicsPipeline, nullptr);
     }
 
     std::vector<char> Pipeline::readFile(const std::string& filepath) {
@@ -110,7 +105,7 @@ namespace Engine {
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
         if (vkCreateGraphicsPipelines(
-                lveDevice.device(),
+                m_Device.device(),
                 VK_NULL_HANDLE,
                 1,
                 &pipelineInfo,
@@ -126,7 +121,7 @@ namespace Engine {
         createInfo.codeSize = code.size();
         createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
-        if (vkCreateShaderModule(lveDevice.device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS) {
+        if (vkCreateShaderModule(m_Device.device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS) {
             throw std::runtime_error("failed to create shader module");
         }
     }

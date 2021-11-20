@@ -7,8 +7,7 @@
 
 #include "../Core/UUID.h"
 #include "../Core/Base.h"
-
-//#include "../Renderer/Model.h"
+#include "../Graphics/model.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -44,18 +43,26 @@ namespace Engine {
         TransformComponentLegacy(const TransformComponentLegacy&) = default;
         TransformComponentLegacy(const glm::vec3& translation) : Translation(translation) {}
 
-        glm::mat4 GetTransform() const
-        {
-            glm::mat4 rotation = glm::toMat4(glm::quat(Rotation));
-
-            return glm::translate(glm::mat4(1.0f), Translation)
-                   * rotation
-                   * glm::scale(glm::mat4(1.0f), Scale);
-        }
-
         glm::vec3 GetTranslation() { return Translation; }
         glm::vec3 GetRotation() { return Rotation; }
         glm::vec3 GetScale() { return Scale; }
+
+        void SetTranslation(const glm::vec3& translation) { Translation = translation; }
+        void SetRotation(const glm::vec3& rotation) { Rotation = rotation; }
+        void SetScale(const glm::vec3& scale) { Scale = scale; }
+
+        glm::mat4 mat4();
+        glm::mat3 normalMatrix();
+    };
+
+    struct ModelComponent {
+        std::shared_ptr<Model> model{};
+
+        ModelComponent() = default;
+        //ModelComponent(const ModelComponent&) = default;
+        ModelComponent(const std::shared_ptr<Model>& bruh) { model = bruh; }
+
+        std::shared_ptr<Model> GetModel() { return model; }
     };
 }
 

@@ -1,4 +1,4 @@
-#include "simple_render_system.h"
+#include "render_system.h"
 
 // libs
 #define GLM_FORCE_RADIANS
@@ -18,17 +18,16 @@ namespace Engine {
         glm::mat4 normalMatrix{1.0f};
     };
 
-    SimpleRenderSystem::SimpleRenderSystem(Device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
-            : lveDevice{device} {
+    RenderSystem::RenderSystem(Device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout) : lveDevice{device} {
         createPipelineLayout(globalSetLayout);
         createPipeline(renderPass);
     }
 
-    SimpleRenderSystem::~SimpleRenderSystem() {
+    RenderSystem::~RenderSystem() {
         vkDestroyPipelineLayout(lveDevice.device(), pipelineLayout, nullptr);
     }
 
-    void SimpleRenderSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout) {
+    void RenderSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout) {
         VkPushConstantRange pushConstantRange{};
         pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
         pushConstantRange.offset = 0;
@@ -48,22 +47,18 @@ namespace Engine {
         }
     }
 
-    void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
+    void RenderSystem::createPipeline(VkRenderPass renderPass) {
         assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
 
         PipelineConfigInfo pipelineConfig{};
         Pipeline::defaultPipelineConfigInfo(pipelineConfig);
         pipelineConfig.renderPass = renderPass;
         pipelineConfig.pipelineLayout = pipelineLayout;
-        lvePipeline = std::make_unique<Pipeline>(
-                lveDevice,
-                "shaders/simple_shader.vert.spv",
-                "shaders/simple_shader.frag.spv",
-                pipelineConfig);
+        m_Pipeline = std::make_unique<Pipeline>(lveDevice, "shaders/simple_shader.vert.spv", "shaders/simple_shader.frag.spv", pipelineConfig);
     }
 
-    void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo, std::vector<GameObject> &gameObjects) {
-        lvePipeline->bind(frameInfo.commandBuffer);
+    void RenderSystem::renderGameObjects(FrameInfo &frameInfo, std::vector<GameObject> &gameObjects) {
+        m_Pipeline->bind(frameInfo.commandBuffer);
 
         for (auto& obj : gameObjects) {
             SimplePushConstantData push{};
@@ -82,6 +77,30 @@ namespace Engine {
             obj.model->bind(frameInfo.commandBuffer);
             obj.model->draw(frameInfo.commandBuffer);
         }
+    }
+
+    void RenderSystem::renderGameObjects(FrameInfo &frameInfo, Ref<Scene> &Scene) {
+        m_Pipeline->bind(frameInfo.commandBuffer);
+
+        Scene->m_Registry.each([&](auto entityID) {
+            Entity entity = { entityID, Scene.get() };
+            if (!entity)
+                return;
+
+            SimplePushConstantData push{};
+
+            auto Transform = entity.GetComponent<TransformComponentLegacy>();
+            push.modelMatrix = Transform.mat4();
+            push.normalMatrix = Transform.normalMatrix();
+
+            vkCmdBindDescriptorSets(frameInfo.commandBuffer,VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &frameInfo.globalDescriptorSet, 0,nullptr);
+            vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData), &push);
+
+            auto Model = entity.GetComponent<ModelComponent>().GetModel();
+            Model->bind(frameInfo.commandBuffer);
+            Model->draw(frameInfo.commandBuffer);
+        });
+
     }
 
 }  // namespace lve
