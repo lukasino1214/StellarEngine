@@ -40,8 +40,8 @@ int main() {
         app.run();
     } catch (const std::exception &e) {
         std::cerr << e.what() << '\n';
-        return EXIT_FAILURE;
+        return -1;
     }
 
-    return EXIT_SUCCESS;
+    return 0;
 }

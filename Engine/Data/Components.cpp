@@ -6,12 +6,12 @@
 
 namespace Engine {
     glm::mat4 TransformComponentLegacy::mat4() {
-        const float c3 = glm::cos(glm::radians(Rotation.z));
-        const float s3 = glm::sin(glm::radians(Rotation.z));
-        const float c2 = glm::cos(glm::radians(Rotation.x));
-        const float s2 = glm::sin(glm::radians(Rotation.x));
-        const float c1 = glm::cos(glm::radians(Rotation.y));
-        const float s1 = glm::sin(glm::radians(Rotation.y));
+        const float c3 = glm::cos(Rotation.z);
+        const float s3 = glm::sin(Rotation.z);
+        const float c2 = glm::cos(Rotation.x);
+        const float s2 = glm::sin(Rotation.x);
+        const float c1 = glm::cos(Rotation.y);
+        const float s1 = glm::sin(Rotation.y);
         return glm::mat4{
                 {
                         Scale.x * (c1 * c3 + s1 * s2 * s3),
@@ -35,12 +35,12 @@ namespace Engine {
     }
 
     glm::mat3 TransformComponentLegacy::normalMatrix() {
-        const float c3 = glm::cos(glm::radians(Rotation.z));
-        const float s3 = glm::sin(glm::radians(Rotation.z));
-        const float c2 = glm::cos(glm::radians(Rotation.x));
-        const float s2 = glm::sin(glm::radians(Rotation.x));
-        const float c1 = glm::cos(glm::radians(Rotation.y));
-        const float s1 = glm::sin(glm::radians(Rotation.y));
+        const float c3 = glm::cos(Rotation.z);
+        const float s3 = glm::sin(Rotation.z);
+        const float c2 = glm::cos(Rotation.x);
+        const float s2 = glm::sin(Rotation.x);
+        const float c1 = glm::cos(Rotation.y);
+        const float s1 = glm::sin(Rotation.y);
         const glm::vec3 invScale = 1.0f / Scale;
 
         return glm::mat3{

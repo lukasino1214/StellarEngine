@@ -33,7 +33,7 @@ namespace Engine {
         m_ActiveScene = CreateRef<Scene>();
 
         Entity test = m_ActiveScene->CreateEntity("Test");
-        test.GetComponent<TransformComponentLegacy>().SetRotation({180.0f, 90.0f, 0.0f});
+        test.GetComponent<TransformComponentLegacy>().SetRotation({glm::radians(180.0f), glm::radians(90.0f), 0.0f});
         test.GetComponent<TransformComponentLegacy>().SetTranslation({0.0f, 5.0f, 3.5f});
 
         std::shared_ptr<Model> model = Model::createModelfromFile(m_Device, "models/scifi_gun.obj");
@@ -86,8 +86,6 @@ namespace Engine {
             auto newTime = std::chrono::high_resolution_clock::now();
             float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
             currentTime = newTime;
-
-            //std::cout << frameTime << std::endl;
 
             cameraController.moveInPlaneXZ(m_Window.getGLFWwindow(), frameTime, viewerObject);
             camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
