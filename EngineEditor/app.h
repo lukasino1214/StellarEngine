@@ -28,6 +28,14 @@ namespace Engine {
         void run();
 
     private:
+
+        glm::vec3 projectUonV(const glm::vec3& u, const glm::vec3& v) {
+            glm::vec3 r = v * (glm::dot(u, v) / glm::dot(v, v));
+            return r;
+        }
+
+        bool startPhysics = false;
+
         Window m_Window{WIDTH, HEIGHT, "Stellar Engine"};
         Device m_Device{m_Window};
         Renderer m_Renderer{m_Window, m_Device};

@@ -64,6 +64,23 @@ namespace Engine {
 
         std::shared_ptr<Model> GetModel() { return model; }
     };
+
+    struct RigidBodyComponent {
+        glm::vec3 velocity = { 0.0f, 0.0f, 0.0f };
+        glm::vec3 acceleration = { 0.0f, 0.0f, 0.0f };
+        float mass = 1.0f;
+        float radius = 1.0f;
+        bool isStatic = true;
+
+        float getMass() { return mass; }
+        void setMass(const float& newMass) { mass = newMass; }
+
+        float getRadius() { return radius; }
+        void setRadius(const float& newRadius) { radius = newRadius; }
+
+        bool hasStatic() { return isStatic; }
+        void changeStatus(const bool& status) { isStatic = status; }
+    };
 }
 
 #endif //ENGINE_COMPONENTS_H

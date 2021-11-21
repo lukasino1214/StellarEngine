@@ -37,6 +37,7 @@ namespace Engine {
         friend class SceneSerializer;
         friend class SceneHierarchyPanel;
         friend class RenderSystem;
+        friend class FirstApp;
     };
 
 }

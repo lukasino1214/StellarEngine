@@ -30,8 +30,8 @@ namespace Engine {
                         Scale.z * (-s2),
                         Scale.z * (c1 * c2),
                         0.0f,
-                },
-                {Translation.x, Translation.y, Translation.z, 1.0f}};
+                }, // Ive add minus to Translation.y to make +y go up
+                {Translation.x, -Translation.y, Translation.z, 1.0f}};
     }
 
     glm::mat3 TransformComponentLegacy::normalMatrix() {
