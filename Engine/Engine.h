@@ -18,15 +18,14 @@
 #include "Graphics/model.h"
 #include "Graphics/pipeline.h"
 #include "Graphics/swap_chain.h"
-#include "Graphics/game_object.h"
 #include "Graphics/renderer.h"
-#include "Graphics/camera.h"
-#include "Graphics/keyboard_movement_controller.h"
+#include "Graphics/Camera.h"
 #include "Graphics/imguiLayer.h"
 #include "Graphics/buffer.h"
 #include "Graphics/descriptors.h"
 
-#include "Rendering/render_system.h"
+#include "System/render_system.h"
+#include "System/physics_system.h"
 
 
 #endif //ENGINE_ENGINE_H

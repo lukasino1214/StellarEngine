@@ -1,14 +1,14 @@
 //
-// Created by lukas on 14.11.21.
+// Created by lukas on 23.11.21.
 //
 
-#include "camera.h"
-
-// std
-#include <cassert>
-#include <limits>
+#include "Camera.h"
 
 namespace Engine {
+    /*Camera::Camera(glm::vec3 position) : m_Position(position) {
+        m_View = glm::lookAt(m_Position, m_Position + m_Orientation, m_Up);
+        m_Projection = glm::perspective(glm::radians(m_FOV), (float)m_Width / m_Height, nearPlane, farPlane);
+    }*/
 
     void Camera::setOrthographicProjection(float left, float right, float top, float bottom, float near, float far) {
         projectionMatrix = glm::mat4{1.0f};
@@ -55,13 +55,13 @@ namespace Engine {
         setViewDirection(position, target - position, up);
     }
 
-    void Camera::setViewYXZ(glm::vec3 position, glm::vec3 rotation) {
-        const float c3 = glm::cos(rotation.z);
-        const float s3 = glm::sin(rotation.z);
-        const float c2 = glm::cos(rotation.x);
-        const float s2 = glm::sin(rotation.x);
-        const float c1 = glm::cos(rotation.y);
-        const float s1 = glm::sin(rotation.y);
+    void Camera::setViewYXZ() {
+        const float c3 = glm::cos(m_Rotation.z);
+        const float s3 = glm::sin(m_Rotation.z);
+        const float c2 = glm::cos(m_Rotation.x);
+        const float s2 = glm::sin(m_Rotation.x);
+        const float c1 = glm::cos(m_Rotation.y);
+        const float s1 = glm::sin(m_Rotation.y);
         const glm::vec3 u{(c1 * c3 + s1 * s2 * s3), (c2 * s3), (c1 * s2 * s3 - c3 * s1)};
         const glm::vec3 v{(c3 * s1 * s2 - c1 * s3), (c2 * c3), (c1 * c3 * s2 + s1 * s3)};
         const glm::vec3 w{(c2 * s1), (-s2), (c1 * c2)};
@@ -75,8 +75,43 @@ namespace Engine {
         viewMatrix[0][2] = w.x;
         viewMatrix[1][2] = w.y;
         viewMatrix[2][2] = w.z;
-        viewMatrix[3][0] = -glm::dot(u, position);
-        viewMatrix[3][1] = -glm::dot(v, position);
-        viewMatrix[3][2] = -glm::dot(w, position);
+        viewMatrix[3][0] = -glm::dot(u, m_Position);
+        viewMatrix[3][1] = -glm::dot(v, m_Position);
+        viewMatrix[3][2] = -glm::dot(w, m_Position);
+    }
+
+    void Camera::Move(GLFWwindow* window, float dt) {
+        glm::vec3 rotate{0};
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) rotate.y += 1.f;
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) rotate.y -= 1.f;
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) rotate.x += 1.f;
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) rotate.x -= 1.f;
+
+        if (glm::dot(rotate, rotate) > std::numeric_limits<float>::epsilon()) {
+            m_Rotation += lookSpeed * dt * glm::normalize(rotate);
+        }
+
+        // limit pitch values between about +/- 85ish degrees
+        m_Rotation.x = glm::clamp(m_Rotation.x, -1.5f, 1.5f);
+        m_Rotation.y = glm::mod(m_Rotation.y, glm::two_pi<float>());
+
+        float yaw = m_Rotation.y;
+        const glm::vec3 forwardDir{sin(yaw), 0.f, cos(yaw)};
+        const glm::vec3 rightDir{forwardDir.z, 0.f, -forwardDir.x};
+        const glm::vec3 upDir{0.f, -1.f, 0.f};
+
+        glm::vec3 moveDir{0.f};
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) moveDir += forwardDir;
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) moveDir -= forwardDir;
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) moveDir += rightDir;
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) moveDir -= rightDir;
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) moveDir += upDir;
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) moveDir -= upDir;
+
+        if (glm::dot(moveDir, moveDir) > std::numeric_limits<float>::epsilon()) {
+            m_Position += moveSpeed * dt * glm::normalize(moveDir);
+        }
+
+        setViewYXZ();
     }
 }

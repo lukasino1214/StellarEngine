@@ -5,7 +5,7 @@
 #ifndef VENDOR_FRAME_INFO_H
 #define VENDOR_FRAME_INFO_H
 
-#include "camera.h"
+#include "Camera.h"
 
 #include <vulkan/vulkan.h>
 

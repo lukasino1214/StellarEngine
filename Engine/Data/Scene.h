@@ -38,6 +38,7 @@ namespace Engine {
         friend class SceneHierarchyPanel;
         friend class RenderSystem;
         friend class FirstApp;
+        friend class PhysicsSystem;
     };
 
 }

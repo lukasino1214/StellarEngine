@@ -57,29 +57,7 @@ namespace Engine {
         m_Pipeline = std::make_unique<Pipeline>(lveDevice, "assets/shaders/simple_shader.vert.spv", "assets/shaders/simple_shader.frag.spv", pipelineConfig);
     }
 
-    void RenderSystem::renderGameObjects(FrameInfo &frameInfo, std::vector<GameObject> &gameObjects) {
-        m_Pipeline->bind(frameInfo.commandBuffer);
-
-        for (auto& obj : gameObjects) {
-            SimplePushConstantData push{};
-            push.modelMatrix = obj.transform.mat4();
-            push.normalMatrix = obj.transform.normalMatrix();
-
-            vkCmdBindDescriptorSets(frameInfo.commandBuffer,VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &frameInfo.globalDescriptorSet, 0,nullptr);
-
-            vkCmdPushConstants(
-                    frameInfo.commandBuffer,
-                    pipelineLayout,
-                    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                    0,
-                    sizeof(SimplePushConstantData),
-                    &push);
-            obj.model->bind(frameInfo.commandBuffer);
-            obj.model->draw(frameInfo.commandBuffer);
-        }
-    }
-
-    void RenderSystem::renderGameObjects(FrameInfo &frameInfo, Ref<Scene> &Scene) {
+    void RenderSystem::renderGameObjects(FrameInfo &frameInfo, const Ref<Scene> &Scene) {
         m_Pipeline->bind(frameInfo.commandBuffer);
 
         Scene->m_Registry.each([&](auto entityID) {
