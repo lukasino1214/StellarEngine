@@ -24,6 +24,8 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      
+      - run: apt install clang
 
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
@@ -31,5 +33,6 @@ jobs:
         with:
            xmake-version: latest
       - run: |
+          xmake f --cc=clang --cxx=clang
           xmake -y
           man /home/runner/.config/.xmake/cache/packages/2111/v/vulkan-loader/1.2.189+1/installdir.failed/logs/install.txt
