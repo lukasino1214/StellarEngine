@@ -7,7 +7,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [archlinux-latest, ubuntu-latest, windows-latest]]
+        os: [archlinux-latest, ubuntu-latest, windows-latest]
         version: [latest, branch@master, branch@dev]
 
     runs-on: ${{ matrix.os }}
