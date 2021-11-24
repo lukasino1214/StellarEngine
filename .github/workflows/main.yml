@@ -24,13 +24,5 @@ jobs:
           submodules: true
       - name: prepare local xmake
         run: |
-          cp -rf . ../xmake-source
-      - uses: xmake-io/github-action-setup-xmake@v1
-        with:
-          xmake-version: local#../xmake-source
-
-      - name: Tests
-        env:
-          XMAKE_ROOT: y
-        run: |
           xmake -y
+      - uses: xmake-io/github-action-setup-xmake@v1
