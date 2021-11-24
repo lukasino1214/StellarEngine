@@ -33,5 +33,6 @@ jobs:
         with:
            xmake-version: latest
       - run: |
+          xmake require -y 
           xmake f --cc=clang --cxx=clang -y
           man /home/runner/.config/.xmake/cache/packages/2111/v/vulkan-loader/1.2.189+1/installdir.failed/logs/install.txt
