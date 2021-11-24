@@ -23,12 +23,18 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Prepare build tools
+      - name: Updating OS and installing dev tools and git
         run: |
-          pacman -Sy --noconfirm base-devel yay
+          pacman -Sy --noconfirm base-devel git
       - uses: actions/checkout@v2
         with:
           submodules: true
+      - name: Installing XMake
+        run: | 
+          sudo git clone https://aur.archlinux.org/yay-git.git
+          cd yay-git    
+          makepkg -si
+        
       - name: Installing XMake
         run: |
           yay -S --noconfirm xmake
