@@ -1,4 +1,4 @@
-name: Archlinux
+ name: Archlinux
 
 on:
   pull_request:
@@ -18,14 +18,19 @@ jobs:
     steps:
       - name: Prepare build tools
         run: |
-          pacman -Sy --noconfirm git base-devel perl make unzip
+          pacman -Sy --noconfirm --needed git base-devel perl make unzip
       - uses: actions/checkout@v2
         with:
           submodules: true
-      - uses: xmake-io/github-action-setup-xmake@master
-        with:
-          xmake-version: ${{ matrix.version }}
-      - name: Run tests
+      - name: prepare local xmake
         run: |
-          xmake --version
+          cp -rf . ../xmake-source
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: local#../xmake-source
+
+      - name: Tests
+        env:
+          XMAKE_ROOT: y
+        run: |
           xmake -y
