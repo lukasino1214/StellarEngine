@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
        #  os: [archlinux-latest, ubuntu-latest, windows-latest]
-        os: [archlinux-latest, ubuntu-latest]
+        os: [archlinux-latest]
         version: [latest, branch@master, branch@dev]
 
     runs-on: ${{ matrix.os }}
