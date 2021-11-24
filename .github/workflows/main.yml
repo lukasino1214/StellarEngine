@@ -29,15 +29,13 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: true
-      - name: Installing Yay
-        run: | 
-          git clone https://aur.archlinux.org/yay.git
-          cd yay  
-          sudo -u nobody makepkg -si
-        
-      - name: Installing XMake
-        run: |
-          yay -S --noconfirm xmake
+      - name: setup xmake
+          # You may pin to the exact commit or the version.
+        # uses: xmake-io/github-action-setup-xmake@3257c237ed5ec23f69fda4ab1f1ca96286b04ad5
+      - uses: xmake-io/github-action-setup-xmake@v1.0.12
+        with:
+          # The version to use. Should be a semver range or 'latest'. Or use [{repository}#]branch@{branch_name} to select a branch.
+          xmake-version: latest # default is latest
           
       - name: compilling
         run: |
