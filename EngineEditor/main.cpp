@@ -1,12 +1,11 @@
 #include "../Vendor/imgui/imgui.h"
 #include "../Vendor/imgui/imgui_impl_glfw.h"
-#include "../Vendor/imgui/imgui_impl_opengl3.h"
 #include "../Engine/Engine.h"
 
 #include "Panels/SceneHierarchyPanel.h"
 
 //#include <stdio.h>
-#include <glad/glad.h>
+// #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 using namespace Engine;

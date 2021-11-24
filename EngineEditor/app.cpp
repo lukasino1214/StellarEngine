@@ -152,7 +152,7 @@ namespace Engine {
                 m_Renderer.beginSwapChainRenderPass(commandBuffer);
                 simpleRenderSystem.renderGameObjects(frameInfo, m_ActiveScene);
 
-                ImGui::Begin("Frame Info");
+                ImGui::Begin("Scene Info and Control");
                 ImGui::Text("Frame Time: %f", frameTime);
                 ImGui::End();
 
