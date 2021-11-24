@@ -29,10 +29,10 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: true
-      - name: Installing XMake
+      - name: Installing Yay
         run: | 
-          sudo git clone https://aur.archlinux.org/yay-git.git
-          cd yay-git    
+          git clone https://aur.archlinux.org/yay.git
+          cd yay  
           makepkg -si
         
       - name: Installing XMake
