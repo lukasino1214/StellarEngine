@@ -1,31 +1,23 @@
-name: Archlinux
+name: test
 
 on:
-  pull_request:
-  push:
-  release:
-    types: [published]
+  - push
 
 jobs:
   build:
+    strategy:
+      matrix:
+       #  os: [archlinux-latest, ubuntu-latest, windows-latest]
+        os: [windows-latest]
+        version: [latest, branch@master, branch@dev]
 
-    container: archlinux:base-devel
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
-    concurrency:
-        group: ${{ github.head_ref }}-Archlinux
-        cancel-in-progress: true
     steps:
-      - name: Prepare build tools
-        run: |
-          pacman -Sy --noconfirm git base-devel perl make unzip
-          pacman -S --noconfirm unzip p7zip
-      - uses: actions/checkout@v2
-        with:
-          submodules: true
+      - uses: actions/checkout@v1
       - uses: xmake-io/github-action-setup-xmake@master
         with:
-          xmake-version: latest
+          xmake-version: ${{ matrix.version }}
       - name: Run tests
         run: |
           xmake --version
