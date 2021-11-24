@@ -33,7 +33,7 @@ jobs:
         run: | 
           git clone https://aur.archlinux.org/yay.git
           cd yay  
-          sudo nobody makepkg -si
+          sudo -u nobody makepkg -si
         
       - name: Installing XMake
         run: |
