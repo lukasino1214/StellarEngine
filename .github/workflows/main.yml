@@ -1,4 +1,4 @@
- name: Archlinux
+name: Archlinux
 
 on:
   pull_request:
