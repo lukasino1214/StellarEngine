@@ -9,11 +9,11 @@ const float G = 6.6742E-11;
 namespace Engine {
     void PhysicsSystem::Update(Ref<Scene> &scene, float deltaTime) {
         auto DoSphereOverlap = [](Entity entity, Entity target) {
-            auto transfrom1 = entity.GetComponent<TransformComponentLegacy>().GetTranslation();
-            auto transfrom2 = target.GetComponent<TransformComponentLegacy>().GetTranslation();
+            auto transfrom1 = entity.GetComponent<TransformComponent>().GetTranslation();
+            auto transfrom2 = target.GetComponent<TransformComponent>().GetTranslation();
 
-            auto radius1 = entity.GetComponent<RigidBodyComponent>().getRadius();
-            auto radius2 = target.GetComponent<RigidBodyComponent>().getRadius();
+            auto radius1 = entity.GetComponent<RigidBodyComponent>().radius;
+            auto radius2 = target.GetComponent<RigidBodyComponent>().radius;
 
             return glm::abs((transfrom2.x - transfrom1.x) * (transfrom2.x - transfrom1.x) + (transfrom2.y - transfrom1.y) * (transfrom2.y - transfrom1.y) + (transfrom2.z - transfrom1.z) * (transfrom2.z - transfrom1.z)) <= (radius1 + radius2) * (radius1 + radius2);
         };
@@ -30,8 +30,8 @@ namespace Engine {
                     return;
 
                 if(entity.GetComponent<IDComponent>().ID != target.GetComponent<IDComponent>().ID) {
-                    auto entity_t = entity.GetComponent<TransformComponentLegacy>().GetTranslation();
-                    auto target_t = target.GetComponent<TransformComponentLegacy>().GetTranslation();
+                    auto entity_t = entity.GetComponent<TransformComponent>().GetTranslation();
+                    auto target_t = target.GetComponent<TransformComponent>().GetTranslation();
 
                     auto entity_mass = entity.GetComponent<RigidBodyComponent>().mass;
                     auto target_mass = entity.GetComponent<RigidBodyComponent>().mass;
@@ -66,7 +66,7 @@ namespace Engine {
             velocity.y = acceleration.y * deltaTime;
             velocity.z = acceleration.z * deltaTime;
 
-            auto position = entity.GetComponent<TransformComponentLegacy>().Translation;
+            auto position = entity.GetComponent<TransformComponent>().Translation;
 
             // UPDATE POSITION
 
@@ -76,7 +76,7 @@ namespace Engine {
 
             entity.GetComponent<RigidBodyComponent>().acceleration = acceleration;
             entity.GetComponent<RigidBodyComponent>().velocity = velocity;
-            entity.GetComponent<TransformComponentLegacy>().SetTranslation(position);
+            entity.GetComponent<TransformComponent>().SetTranslation(position);
         });
 
         scene->m_Registry.each([&](auto entityID) {
@@ -96,17 +96,17 @@ namespace Engine {
 
                         // STATIC COLISSION
 
-                        auto transfrom1 = entity.GetComponent<TransformComponentLegacy>().GetTranslation();
-                        auto transfrom2 = target.GetComponent<TransformComponentLegacy>().GetTranslation();
+                        auto transfrom1 = entity.GetComponent<TransformComponent>().GetTranslation();
+                        auto transfrom2 = target.GetComponent<TransformComponent>().GetTranslation();
 
-                        auto radius1 = entity.GetComponent<RigidBodyComponent>().getRadius();
-                        auto radius2 = target.GetComponent<RigidBodyComponent>().getRadius();
+                        auto radius1 = entity.GetComponent<RigidBodyComponent>().radius;
+                        auto radius2 = target.GetComponent<RigidBodyComponent>().radius;
 
                         float distance = glm::sqrt((transfrom2.x - transfrom1.x) * (transfrom2.x - transfrom1.x) + (transfrom2.y - transfrom1.y) * (transfrom2.y - transfrom1.y) + (transfrom2.z - transfrom1.z) * (transfrom2.z - transfrom1.z));
                         float overlap = 0.5 * (distance - radius1 - radius2);
 
-                        auto entity_t = entity.GetComponent<TransformComponentLegacy>().GetTranslation();
-                        auto target_t = target.GetComponent<TransformComponentLegacy>().GetTranslation();
+                        auto entity_t = entity.GetComponent<TransformComponent>().GetTranslation();
+                        auto target_t = target.GetComponent<TransformComponent>().GetTranslation();
 
                         entity_t.x -= overlap * (entity_t.x - target_t.x) / distance;
                         entity_t.y -= overlap * (entity_t.y - target_t.y) / distance;
@@ -116,8 +116,8 @@ namespace Engine {
                         target_t.y += overlap * (entity_t.y - target_t.y) / distance;
                         target_t.z += overlap * (entity_t.z - target_t.z) / distance;
 
-                        entity.GetComponent<TransformComponentLegacy>().SetTranslation(entity_t);
-                        target.GetComponent<TransformComponentLegacy>().SetTranslation(target_t);
+                        entity.GetComponent<TransformComponent>().SetTranslation(entity_t);
+                        target.GetComponent<TransformComponent>().SetTranslation(target_t);
 
 
 

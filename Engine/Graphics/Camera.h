@@ -58,6 +58,7 @@ namespace Engine {
 
         const glm::mat4& getProjection() const { return projectionMatrix; }
         const glm::mat4& getView() const { return viewMatrix; }
+        glm::vec3 getPosition() { return m_Position; }
 
     private:
         int m_Width;

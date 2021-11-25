@@ -220,7 +220,7 @@ namespace Engine {
 
         ImGui::PopItemWidth();
 
-        DrawComponent<TransformComponentLegacy>("Transform", entity, [](auto& component)
+        DrawComponent<TransformComponent>("Transform", entity, [](auto& component)
         {
             DrawVec3Control("Translation", component.Translation);
             glm::vec3 rotation = glm::degrees(component.Rotation);
@@ -229,7 +229,21 @@ namespace Engine {
             DrawVec3Control("Scale", component.Scale, 1.0f);
         });
 
+        DrawComponent<RigidBodyComponent>("RigidBody", entity, [](auto& component)
+        {
+            DrawVec3Control("Translation", component.acceleration);
+            DrawVec3Control("Velocity", component.velocity);
+            ImGui::SliderFloat("Radius", &component.radius, 0.0f, 100.0f);
+            ImGui::SliderFloat("Mass", &component.mass, 0.0f, 100.0f);
+        });
 
+        /*DrawComponent<TransformComponent>("Transform", entity, [](auto& component)
+        {
+            DrawVec3Control("Translation", component.Translation);
+            glm::vec3 rotation = glm::degrees(component.Rotation);
+            DrawVec3Control("Rotation", rotation);
+            component.Rotation = glm::radians(rotation);
+            DrawVec3Control("Scale", component.Scale, 1.0f);
+        });*/
     }
-
 }

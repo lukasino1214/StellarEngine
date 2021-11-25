@@ -13,6 +13,7 @@
 
 #include "Data/Scene.h"
 #include "Data/Entity.h"
+#include "Data/SceneSerializer.h"
 
 #include "Graphics/device.h"
 #include "Graphics/model.h"
@@ -26,6 +27,7 @@
 
 #include "System/render_system.h"
 #include "System/physics_system.h"
+#include "System/GridSystem.h"
 
 
 #endif //ENGINE_ENGINE_H

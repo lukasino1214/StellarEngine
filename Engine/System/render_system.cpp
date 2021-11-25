@@ -65,18 +65,22 @@ namespace Engine {
             if (!entity)
                 return;
 
-            SimplePushConstantData push{};
+            if(entity.HasComponent<ModelComponent>()) {
+                SimplePushConstantData push{};
 
-            auto Transform = entity.GetComponent<TransformComponentLegacy>();
-            push.modelMatrix = Transform.mat4();
-            push.normalMatrix = Transform.normalMatrix();
+                auto Transform = entity.GetComponent<TransformComponent>();
+                push.modelMatrix = Transform.mat4();
+                push.normalMatrix = Transform.normalMatrix();
 
-            vkCmdBindDescriptorSets(frameInfo.commandBuffer,VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &frameInfo.globalDescriptorSet, 0,nullptr);
-            vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData), &push);
+                vkCmdBindDescriptorSets(frameInfo.commandBuffer,VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &frameInfo.globalDescriptorSet, 0,nullptr);
+                vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData), &push);
 
-            auto Model = entity.GetComponent<ModelComponent>().GetModel();
-            Model->bind(frameInfo.commandBuffer);
-            Model->draw(frameInfo.commandBuffer);
+
+                //TODO: THIS SHIT
+                auto Model = entity.GetComponent<ModelComponent>().GetModel();
+                Model->bind(frameInfo.commandBuffer);
+                Model->draw(frameInfo.commandBuffer);
+            }
         });
 
     }

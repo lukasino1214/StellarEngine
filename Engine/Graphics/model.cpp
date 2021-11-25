@@ -37,6 +37,7 @@ namespace Engine {
     Model::~Model() {}
 
     std::unique_ptr<Model> Model::createModelfromFile(Device &device, const std::string &filepath) {
+        //m_Path = filepath; //TODO: bruh
         Builder builder{};
         builder.loadModel(filepath);
         std::cout << "Vertex count: " << builder.vertices.size() << std::endl;
@@ -122,6 +123,13 @@ namespace Engine {
         if(hasIndexBuffer) {
             vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
         }
+    }
+
+    Model::Model(Device &device, const std::string &filepath) : m_Device{device}, m_Path{filepath} {
+        Builder builder{};
+        builder.loadModel(filepath);
+        createVertexBuffers(builder.vertices);
+        createIndexBuffers(builder.indices);
     }
 
     std::vector<VkVertexInputBindingDescription> Model::Vertex::getBindingDescriptions() {

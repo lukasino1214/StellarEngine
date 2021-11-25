@@ -19,10 +19,12 @@
 namespace Engine {
 
     struct GlobalUbo {
-        glm::mat4 projectionView{1.0f};
+        glm::mat4 projectionMat{1.0f};
+        glm::mat4 viewMat{1.0f};
         glm::vec4 ambientLightColor{1.0f, 1.0f, 1.0f, 0.02f};
         glm::vec3 lightPosition{-1.0f};
         alignas(16) glm::vec4 lightColor{1.0f};
+        glm::vec3 cameraPos{0.0f, 0.0f, 0.0f};
     };
 
     FirstApp::FirstApp() {
@@ -31,53 +33,55 @@ namespace Engine {
                 .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
                 .build();
 
-        m_ActiveScene = CreateRef<Scene>();
+        m_EditorScene = CreateRef<Scene>();
 
-        Entity test = m_ActiveScene->CreateEntity("Test");
-        test.GetComponent<TransformComponentLegacy>().SetRotation({glm::radians(180.0f), glm::radians(90.0f), 0.0f});
-        test.GetComponent<TransformComponentLegacy>().SetTranslation({0.0f, 0.0f, 3.5f});
+        /*Entity test = m_EditorScene->CreateEntity("Test");
+        test.GetComponent<TransformComponent>().SetRotation({glm::radians(180.0f), glm::radians(90.0f), 0.0f});
+        test.GetComponent<TransformComponent>().SetTranslation({0.0f, 0.0f, 3.5f});
 
-        std::shared_ptr<Model> model = Model::createModelfromFile(m_Device, "assets/models/sphere.obj");
+        //std::shared_ptr<Model> model = Model::createModelfromFile(m_Device, "assets/models/sphere.obj");
+        Ref<Model> model = CreateRef<Model>(m_Device, "assets/models/sphere.obj");
 
         test.AddComponent<ModelComponent>(model);
         test.AddComponent<RigidBodyComponent>();
-        test.GetComponent<RigidBodyComponent>().changeStatus(true);
         test.GetComponent<RigidBodyComponent>().acceleration = {0.0f, 5.0f, 0.0f};
 
-        Entity test2 = m_ActiveScene->CreateEntity("Test 2");
-        test2.GetComponent<TransformComponentLegacy>().SetRotation({glm::radians(180.0f), glm::radians(90.0f), 0.0f});
-        test2.GetComponent<TransformComponentLegacy>().SetTranslation({1.1f, 3.0f, 3.5f});
+        Entity test2 = m_EditorScene->CreateEntity("Test 2");
+        test2.GetComponent<TransformComponent>().SetRotation({glm::radians(180.0f), glm::radians(90.0f), 0.0f});
+        test2.GetComponent<TransformComponent>().SetTranslation({1.1f, 3.0f, 3.5f});
         test2.AddComponent<ModelComponent>(model);
         test2.AddComponent<RigidBodyComponent>();
-        test2.GetComponent<RigidBodyComponent>().changeStatus(false);
         test2.GetComponent<RigidBodyComponent>().acceleration = {-5.0f, 5.0f, 0.0f};
 
-        Entity test3 = m_ActiveScene->CreateEntity("Test 3");
-        test3.GetComponent<TransformComponentLegacy>().SetRotation({glm::radians(180.0f), glm::radians(90.0f), 0.0f});
-        test3.GetComponent<TransformComponentLegacy>().SetTranslation({-1.3f, 3.0f, 3.5f});
+        Entity test3 = m_EditorScene->CreateEntity("Test 3");
+        test3.GetComponent<TransformComponent>().SetRotation({glm::radians(180.0f), glm::radians(90.0f), 0.0f});
+        test3.GetComponent<TransformComponent>().SetTranslation({-1.3f, 3.0f, 3.5f});
         test3.AddComponent<ModelComponent>(model);
         test3.AddComponent<RigidBodyComponent>();
-        test3.GetComponent<RigidBodyComponent>().changeStatus(false);
         test3.GetComponent<RigidBodyComponent>().acceleration = {5.0f, -5.0f, 0.0f};
 
-        Entity test4 = m_ActiveScene->CreateEntity("Test 4");
-        test4.GetComponent<TransformComponentLegacy>().SetRotation({glm::radians(180.0f), glm::radians(90.0f), 0.0f});
-        test4.GetComponent<TransformComponentLegacy>().SetTranslation({1.3f, 5.0f, 3.5f});
+        Entity test4 = m_EditorScene->CreateEntity("Test 4");
+        test4.GetComponent<TransformComponent>().SetRotation({glm::radians(180.0f), glm::radians(90.0f), 0.0f});
+        test4.GetComponent<TransformComponent>().SetTranslation({1.3f, 5.0f, 3.5f});
         test4.AddComponent<ModelComponent>(model);
         test4.AddComponent<RigidBodyComponent>();
-        test4.GetComponent<RigidBodyComponent>().changeStatus(false);
         test4.GetComponent<RigidBodyComponent>().acceleration = {0.0f, 5.0f, 5.0f};
 
-        Entity test5 = m_ActiveScene->CreateEntity("Test 5");
-        test5.GetComponent<TransformComponentLegacy>().SetRotation({glm::radians(180.0f), glm::radians(90.0f), 0.0f});
-        test5.GetComponent<TransformComponentLegacy>().SetTranslation({-1.1f, 5.0f, 3.5f});
+        Entity test5 = m_EditorScene->CreateEntity("Test 5");
+        test5.GetComponent<TransformComponent>().SetRotation({glm::radians(180.0f), glm::radians(90.0f), 0.0f});
+        test5.GetComponent<TransformComponent>().SetTranslation({-1.1f, 5.0f, 3.5f});
         test5.AddComponent<ModelComponent>(model);
         test5.AddComponent<RigidBodyComponent>();
-        test5.GetComponent<RigidBodyComponent>().changeStatus(false);
-        test5.GetComponent<RigidBodyComponent>().acceleration = {4.0f, 0.0f, 5.0f};
+        test5.GetComponent<RigidBodyComponent>().acceleration = {4.0f, 0.0f, 5.0f};*/
+
+        /*SceneSerializer serializer(m_EditorScene);
+        serializer.Deserialize("Example.scene");*/
+
+        SceneSerializer serializer(m_EditorScene);
+        serializer.Deserialize("Example.scene", m_Device);
 
 
-        HierarchyPanel.SetContext(m_ActiveScene);
+        HierarchyPanel.SetContext(m_EditorScene);
     }
 
     FirstApp::~FirstApp() {}
@@ -107,12 +111,14 @@ namespace Engine {
         }
 
         RenderSystem simpleRenderSystem{m_Device, m_Renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+        GridSystem gridsystem{m_Device,m_Renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
         Camera camera{};
         camera.setViewTarget(glm::vec3(-1.f, -1.f, -1.f), glm::vec3(0.f, 0.f, 2.5f));
 
         Imgui m_Imgui{m_Window, m_Device, m_Renderer.getSwapChainRenderPass(), m_Renderer.getImageCount()};
 
         auto currentTime = std::chrono::high_resolution_clock::now();
+        bool scenePlaying = false;
 
         while (!m_Window.shouldClose()) {
             glfwPollEvents();
@@ -132,28 +138,75 @@ namespace Engine {
             camera.setPerspectiveProjection(glm::radians(90.0f), aspect, 0.01, 1000.0f);
 
             if (auto commandBuffer = m_Renderer.beginFrame()) {
-
-                if(startPhysics) {
-                    PhysicsSystem test{};
-                    test.Update(m_ActiveScene, frameTime);
-                }
-
                 int frameIndex = m_Renderer.getFrameIndex();
                 FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, camera, globalDescriptorSets[frameIndex]};
 
                 // update
                 GlobalUbo ubo{};
-                ubo.projectionView = camera.getProjection() * camera.getView();
+                ubo.projectionMat = camera.getProjection();
+                ubo.viewMat = camera.getView();
+                ubo.cameraPos = camera.getPosition();
                 uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 uboBuffers[frameIndex]->flush();
 
                 // render
                 m_Imgui.newFrame();
                 m_Renderer.beginSwapChainRenderPass(commandBuffer);
-                simpleRenderSystem.renderGameObjects(frameInfo, m_ActiveScene);
+
+                if(startPhysics) {
+                    PhysicsSystem test{};
+                    test.Update(m_EditorScene, frameTime);
+                }
+
+                /*ImGui::Begin("Scene Info and Control");
+                if(ImGui::Button("Save")) {
+                    SceneSerializer serializer(m_EditorScene);
+                    serializer.Serialize("Example.scene");
+                }
+
+                if(ImGui::Button("Load")) {
+                    std::cout << "0" << std::endl;
+                    m_EditorScene = CreateRef<Scene>();
+                    SceneSerializer serializer(m_EditorScene);
+                    serializer.Deserialize("Example.scene", m_Device);
+                    HierarchyPanel.SetContext(m_EditorScene);
+                }
+                ImGui::End();*/
+
+                simpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);
+                gridsystem.render(frameInfo);
+
 
                 ImGui::Begin("Scene Info and Control");
                 ImGui::Text("Frame Time: %f", frameTime);
+                if(!scenePlaying) {
+                    simpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);
+                    if(ImGui::Button("Play")) {
+                        scenePlaying = true;
+                    }
+                }
+
+                else {
+                    PhysicsSystem test{};
+                    test.Update(m_EditorScene, frameTime);
+                    simpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);
+                    if(ImGui::Button("Stop")) {
+                        scenePlaying = false;
+                        m_EditorScene = m_EditorScene;
+                    }
+                }
+                if(ImGui::Button("Save")) {
+                    SceneSerializer serializer(m_EditorScene);
+                    serializer.Serialize("Example.scene");
+                }
+
+                if(ImGui::Button("Load")) {
+                    std::cout << "0" << std::endl;
+                    m_EditorScene = CreateRef<Scene>();
+                    SceneSerializer serializer(m_EditorScene);
+                    serializer.Deserialize("Example.scene", m_Device);
+                    HierarchyPanel.SetContext(m_EditorScene);
+                }
                 ImGui::End();
 
                 HierarchyPanel.OnImGuiRender();

@@ -5,7 +5,7 @@
 #include "Components.h"
 
 namespace Engine {
-    glm::mat4 TransformComponentLegacy::mat4() {
+    glm::mat4 TransformComponent::mat4() {
         const float c3 = glm::cos(Rotation.z);
         const float s3 = glm::sin(Rotation.z);
         const float c2 = glm::cos(Rotation.x);
@@ -34,7 +34,7 @@ namespace Engine {
                 {Translation.x, -Translation.y, Translation.z, 1.0f}};
     }
 
-    glm::mat3 TransformComponentLegacy::normalMatrix() {
+    glm::mat3 TransformComponent::normalMatrix() {
         const float c3 = glm::cos(Rotation.z);
         const float s3 = glm::sin(Rotation.z);
         const float c2 = glm::cos(Rotation.x);

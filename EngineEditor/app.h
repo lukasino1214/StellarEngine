@@ -42,6 +42,7 @@ namespace Engine {
 
         std::unique_ptr<DescriptorPool> globalPool{};
         SceneHierarchyPanel HierarchyPanel;
+        Ref<Scene> m_EditorScene;
         Ref<Scene> m_ActiveScene;
     };
 }

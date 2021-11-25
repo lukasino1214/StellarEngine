@@ -41,6 +41,7 @@ namespace Engine {
             void loadModel(const std::string &filepath);
         };
 
+        Model(Device &device, const std::string &filepath);
         Model(Device &device, const Model::Builder &builder);
         ~Model();
 
@@ -51,6 +52,8 @@ namespace Engine {
 
         void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer);
+
+        std::string getPath() { return m_Path; }
 
     private:
         void createVertexBuffers(const std::vector<Vertex> &vertices);
@@ -63,6 +66,7 @@ namespace Engine {
         bool hasIndexBuffer = false;
         std::unique_ptr<Buffer> indexBuffer;
         uint32_t indexCount;
+        std::string m_Path;
     };
 }
 
