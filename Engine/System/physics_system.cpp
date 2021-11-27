@@ -34,7 +34,7 @@ namespace Engine {
                     auto target_t = target.GetComponent<TransformComponent>().GetTranslation();
 
                     auto entity_mass = entity.GetComponent<RigidBodyComponent>().mass;
-                    auto target_mass = entity.GetComponent<RigidBodyComponent>().mass;
+                    auto target_mass = target.GetComponent<RigidBodyComponent>().mass;
 
                     float distance = (target_t.x - entity_t.x) * (target_t.x - entity_t.x) + (target_t.y - entity_t.y) * (target_t.y - entity_t.y) + (target_t.z - entity_t.z) * (target_t.z - entity_t.z);
                     auto forceDirection =  (target_t - entity_t) / distance;

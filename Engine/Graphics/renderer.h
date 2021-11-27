@@ -27,6 +27,7 @@ namespace Engine {
         uint32_t getImageCount() const { return m_SwapChain->imageCount(); }
         float getAspectRatio() const { return m_SwapChain->extentAspectRatio(); }
         bool isFrameInProgress() const { return isFrameStarted; }
+        VkImageView getImageView(int index) { return m_SwapChain->getImageView(index); }
 
         VkCommandBuffer getCurrentCommandBuffer() const {
             assert(isFrameStarted && "Cannot get command buffer when frame not in progress");

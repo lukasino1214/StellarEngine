@@ -24,6 +24,7 @@
 #include "Graphics/imguiLayer.h"
 #include "Graphics/buffer.h"
 #include "Graphics/descriptors.h"
+#include "Graphics/OffScreen.h"
 
 #include "System/render_system.h"
 #include "System/physics_system.h"

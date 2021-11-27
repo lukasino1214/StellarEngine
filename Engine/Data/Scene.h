@@ -39,6 +39,7 @@ namespace Engine {
         friend class RenderSystem;
         friend class FirstApp;
         friend class PhysicsSystem;
+        friend class OffScreen;
     };
 
 }

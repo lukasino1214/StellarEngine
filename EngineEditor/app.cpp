@@ -35,6 +35,7 @@ namespace Engine {
 
         m_EditorScene = CreateRef<Scene>();
 
+
         /*Entity test = m_EditorScene->CreateEntity("Test");
         test.GetComponent<TransformComponent>().SetRotation({glm::radians(180.0f), glm::radians(90.0f), 0.0f});
         test.GetComponent<TransformComponent>().SetTranslation({0.0f, 0.0f, 3.5f});
@@ -114,11 +115,30 @@ namespace Engine {
         GridSystem gridsystem{m_Device,m_Renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
         Camera camera{};
         camera.setViewTarget(glm::vec3(-1.f, -1.f, -1.f), glm::vec3(0.f, 0.f, 2.5f));
+        OffScreen screen(m_Device, globalSetLayout->getDescriptorSetLayout());
 
         Imgui m_Imgui{m_Window, m_Device, m_Renderer.getSwapChainRenderPass(), m_Renderer.getImageCount()};
 
         auto currentTime = std::chrono::high_resolution_clock::now();
         bool scenePlaying = false;
+
+        //OffScreen screen(m_Device, globalSetLayout->getDescriptorSetLayout());
+        //screen.Init(m_Device);
+
+        /*VkSamplerCreateInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        info.magFilter = VK_FILTER_LINEAR;
+        info.minFilter = VK_FILTER_LINEAR;
+        info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        info.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        info.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        info.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        info.minLod = 0;
+        info.maxLod = 1;
+        info.maxAnisotropy = 1.0f;
+        if(vkCreateSampler(m_Device.device(), &info, nullptr, &sampler) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture sampler!");
+        }*/
 
         while (!m_Window.shouldClose()) {
             glfwPollEvents();
@@ -149,47 +169,33 @@ namespace Engine {
                 uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 uboBuffers[frameIndex]->flush();
 
+                screen.render(frameInfo, m_EditorScene);
+
                 // render
                 m_Imgui.newFrame();
-                m_Renderer.beginSwapChainRenderPass(commandBuffer);
+                m_Renderer.beginSwapChainRenderPass(commandBuffer); // VKBeginRenderPass
 
-                if(startPhysics) {
-                    PhysicsSystem test{};
-                    test.Update(m_EditorScene, frameTime);
-                }
+                /*simpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);
+                gridsystem.render(frameInfo);*/
 
-                /*ImGui::Begin("Scene Info and Control");
-                if(ImGui::Button("Save")) {
-                    SceneSerializer serializer(m_EditorScene);
-                    serializer.Serialize("Example.scene");
-                }
-
-                if(ImGui::Button("Load")) {
-                    std::cout << "0" << std::endl;
-                    m_EditorScene = CreateRef<Scene>();
-                    SceneSerializer serializer(m_EditorScene);
-                    serializer.Deserialize("Example.scene", m_Device);
-                    HierarchyPanel.SetContext(m_EditorScene);
-                }
-                ImGui::End();*/
-
-                simpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);
-                gridsystem.render(frameInfo);
-
+                ImGui::Begin("BRUH");
+                auto size = ImGui::GetWindowSize();
+                ImGui::Image((ImTextureID) ImGui_ImplVulkan_AddTexture(screen.GetSampler(), screen.GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL), { size.x, (size.y - 36.0f) });
+                ImGui::End();
 
                 ImGui::Begin("Scene Info and Control");
                 ImGui::Text("Frame Time: %f", frameTime);
                 if(!scenePlaying) {
-                    simpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);
+                    //simpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);
                     if(ImGui::Button("Play")) {
                         scenePlaying = true;
                     }
                 }
 
                 else {
-                    PhysicsSystem test{};
+                    /*PhysicsSystem test{};
                     test.Update(m_EditorScene, frameTime);
-                    simpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);
+                    simpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);*/
                     if(ImGui::Button("Stop")) {
                         scenePlaying = false;
                         m_EditorScene = m_EditorScene;
@@ -212,7 +218,7 @@ namespace Engine {
                 HierarchyPanel.OnImGuiRender();
 
                 m_Imgui.render(commandBuffer);
-                m_Renderer.endSwapChainRenderPass(commandBuffer);
+                m_Renderer.endSwapChainRenderPass(commandBuffer);  //vkEndRenderPass
                 m_Renderer.endFrame();
 
             }

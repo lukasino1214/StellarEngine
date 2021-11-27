@@ -70,7 +70,7 @@ namespace Engine {
         glm::mat4 m_View = glm::mat4(1.0f);
         glm::mat4 m_Projection = glm::mat4(1.0f);
 
-        glm::vec3 m_Position = { 0.0f, 0.0f, 0.0f };
+        glm::vec3 m_Position = { 0.0f, -1.0f, 0.0f };
         glm::vec3 m_Rotation = { 0.0f, 0.0f, 0.0f };
         glm::vec3 m_Orientation = { -1.0f, -1.0f, -1.0f };
         glm::vec3 m_Up = { 0.0f, 1.0f, 0.0f };
