@@ -18,7 +18,7 @@ namespace Engine {
     };
 
 
-    OffScreen::OffScreen(Device &device, VkDescriptorSetLayout globalSetLayout) : m_Device{device} {
+    OffScreen::OffScreen(Device &device, VkDescriptorSetLayout globalSetLayout) : m_Device{device}, DescriptorSetLayout{globalSetLayout} {
         pass.width = 1280;
         pass.height = 720;
 
@@ -220,11 +220,10 @@ namespace Engine {
     void OffScreen::render(FrameInfo frameInfo, const Ref<Scene> &Scene)
     {
 
-        VkClearValue clearValues[2];
+        std::array<VkClearValue, 2> clearValues{};
+        clearValues[0].color = {0.01f, 0.01f, 0.01f, 1.0f};
+        clearValues[1].depthStencil = {1.0f, 0};
         VkDeviceSize offsets[1] = { 0 };
-
-        clearValues[0].color = { { 0.01f, 0.01f, 0.01f, 0.0f } };
-        clearValues[1].depthStencil = { 1.0f, 0 };
 
         VkRenderPassBeginInfo renderPassBeginInfo {};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -233,7 +232,7 @@ namespace Engine {
         renderPassBeginInfo.renderArea.extent.width = pass.width;
         renderPassBeginInfo.renderArea.extent.height = pass.height;
         renderPassBeginInfo.clearValueCount = 2;
-        renderPassBeginInfo.pClearValues = clearValues;
+        renderPassBeginInfo.pClearValues = clearValues.data();
 
         vkCmdBeginRenderPass(frameInfo.commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -277,125 +276,8 @@ namespace Engine {
             }
         });
 
+
         vkCmdEndRenderPass(frameInfo.commandBuffer);
-
-        //std::vector<VkCommandBuffer> drawCmdBuffers;
-
-        /*for (int32_t i = 0; i < drawCmdBuffers.size(); ++i)
-        {
-            if(vkBeginCommandBuffer(drawCmdBuffers[i], &cmdBufInfo) != VK_SUCCESS) {
-                std::cout << "Failed to begin command buffer" << std::endl;
-            }
-
-            {
-                VkClearValue clearValues[2];
-                clearValues[0].color = { { 0.0f, 0.0f, 0.0f, 0.0f } };
-                clearValues[1].depthStencil = { 1.0f, 0 };
-
-                VkRenderPassBeginInfo renderPassBeginInfo = {};
-                renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-                renderPassBeginInfo.renderPass = pass.renderPass;
-                renderPassBeginInfo.framebuffer = pass.frameBuffer;
-                renderPassBeginInfo.renderArea.extent.width = pass.width;
-                renderPassBeginInfo.renderArea.extent.height = pass.height;
-                renderPassBeginInfo.clearValueCount = 2;
-                renderPassBeginInfo.pClearValues = clearValues;
-
-                vkCmdBeginRenderPass(drawCmdBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-                //VkViewport viewport = vks::initializers::viewport((float)pass.width, (float)pass.height, 0.0f, 1.0f);
-                VkViewport viewport = {};
-                viewport.width = (float)pass.width;
-                viewport.height = (float)pass.height;
-                viewport.minDepth = 0.0f;
-                viewport.maxDepth = 1.0f;
-
-                vkCmdSetViewport(drawCmdBuffers[i], 0, 1, &viewport);
-
-                //VkRect2D scissor = vks::initializers::rect2D(pass.width, pass.height, 0, 0);
-                VkRect2D scissor = {};
-                scissor.extent.width = pass.width;
-                scissor.extent.height = pass.height;
-                scissor.offset.x = 0;
-                scissor.offset.y = 0;
-                vkCmdSetScissor(drawCmdBuffers[i], 0, 1, &scissor);
-
-                VkDeviceSize offsets[1] = { 0 };
-
-                // Mirrored scene
-                //vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &frameInfo.globalDescriptorSet, 0, NULL);
-                m_Pipeline->bind(drawCmdBuffers[i]);
-                Scene->m_Registry.each([&](auto entityID) {
-                    Entity entity = { entityID, Scene.get() };
-                    if (!entity)
-                        return;
-
-                    if(entity.HasComponent<ModelComponent>()) {
-                        SimplePushConstantData push{};
-
-                        auto Transform = entity.GetComponent<TransformComponent>();
-                        push.modelMatrix = Transform.mat4();
-                        push.normalMatrix = Transform.normalMatrix();
-
-                        vkCmdBindDescriptorSets(drawCmdBuffers[i],VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &sets[i], 0,nullptr);
-                        vkCmdPushConstants(drawCmdBuffers[i], pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData), &push);
-
-
-                        //TODO: THIS SHIT
-                        auto Model = entity.GetComponent<ModelComponent>().GetModel();
-                        Model->bind(drawCmdBuffers[i]);
-                        Model->draw(drawCmdBuffers[i]);
-                    }
-                });
-
-                vkCmdEndRenderPass(drawCmdBuffers[i]);
-            }
-
-            if(vkEndCommandBuffer(drawCmdBuffers[i]) != VK_SUCCESS) {
-                std::cout << "Failed to end command buffer" << std::endl;
-            }
-        }
-
-        if (imagesInFlight[*imageIndex] != VK_NULL_HANDLE) {
-            vkWaitForFences(device.device(), 1, &imagesInFlight[*imageIndex], VK_TRUE, UINT64_MAX);
-        }
-        imagesInFlight[*imageIndex] = inFlightFences[currentFrame];
-
-        VkSubmitInfo submitInfo = {};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-        VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
-        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-        submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = waitSemaphores;
-        submitInfo.pWaitDstStageMask = waitStages;
-
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = buffers;
-
-        VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
-        submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = signalSemaphores;
-
-        vkResetFences(device.device(), 1, &inFlightFences[currentFrame]);
-        if (vkQueueSubmit(device.graphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) !=
-            VK_SUCCESS) {
-            throw std::runtime_error("failed to submit draw command buffer!");
-        }
-
-        VkPresentInfoKHR presentInfo = {};
-        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-        presentInfo.waitSemaphoreCount = 1;
-        presentInfo.pWaitSemaphores = signalSemaphores;
-
-        VkSwapchainKHR swapChains[] = {swapChain};
-        presentInfo.swapchainCount = 1;
-        presentInfo.pSwapchains = swapChains;
-
-        presentInfo.pImageIndices = imageIndex;
-
-        auto result = vkQueuePresentKHR(device.presentQueue(), &presentInfo);*/
     }
 
     void OffScreen::setupPipelineLayout(VkDescriptorSetLayout globalSetLayout) {

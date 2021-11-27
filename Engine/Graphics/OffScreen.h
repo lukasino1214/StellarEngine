@@ -12,6 +12,7 @@
 #include "frame_info.h"
 #include "../Data/Scene.h"
 #include "../Data/Entity.h"
+#include "../System/GridSystem.h"
 
 namespace Engine {
 
@@ -59,6 +60,7 @@ namespace Engine {
         Device &m_Device;
         VkPipelineLayout pipelineLayout;
         std::unique_ptr<Pipeline> m_Pipeline;
+        VkDescriptorSetLayout DescriptorSetLayout;
     };
 }
 

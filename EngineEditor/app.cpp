@@ -36,7 +36,7 @@ namespace Engine {
         m_EditorScene = CreateRef<Scene>();
 
 
-        /*Entity test = m_EditorScene->CreateEntity("Test");
+        Entity test = m_EditorScene->CreateEntity("Test");
         test.GetComponent<TransformComponent>().SetRotation({glm::radians(180.0f), glm::radians(90.0f), 0.0f});
         test.GetComponent<TransformComponent>().SetTranslation({0.0f, 0.0f, 3.5f});
 
@@ -73,13 +73,13 @@ namespace Engine {
         test5.GetComponent<TransformComponent>().SetTranslation({-1.1f, 5.0f, 3.5f});
         test5.AddComponent<ModelComponent>(model);
         test5.AddComponent<RigidBodyComponent>();
-        test5.GetComponent<RigidBodyComponent>().acceleration = {4.0f, 0.0f, 5.0f};*/
+        test5.GetComponent<RigidBodyComponent>().acceleration = {4.0f, 0.0f, 5.0f};
 
         /*SceneSerializer serializer(m_EditorScene);
         serializer.Deserialize("Example.scene");*/
 
-        SceneSerializer serializer(m_EditorScene);
-        serializer.Deserialize("Example.scene", m_Device);
+        /*SceneSerializer serializer(m_EditorScene);
+        serializer.Deserialize("Example.scene", m_Device);*/
 
 
         HierarchyPanel.SetContext(m_EditorScene);
@@ -178,7 +178,7 @@ namespace Engine {
                 /*simpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);
                 gridsystem.render(frameInfo);*/
 
-                ImGui::Begin("BRUH");
+                ImGui::Begin("Viewport");
                 auto size = ImGui::GetWindowSize();
                 ImGui::Image((ImTextureID) ImGui_ImplVulkan_AddTexture(screen.GetSampler(), screen.GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL), { size.x, (size.y - 36.0f) });
                 ImGui::End();

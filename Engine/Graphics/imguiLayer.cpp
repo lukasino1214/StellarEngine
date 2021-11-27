@@ -60,7 +60,7 @@ namespace Engine {
         // Setup Platform/Renderer backends
         // Initialize imgui for vulkan
         ImGui_ImplGlfw_InitForVulkan(window.getGLFWwindow(), true);
-        ImGui_ImplVulkan_InitInfo init_info = {};
+        ImGui_ImplVulkan_InitInfo init_info = {0};
         init_info.Instance = device.getInstance();
         init_info.PhysicalDevice = device.getPhysicalDevice();
         init_info.Device = device.device();
