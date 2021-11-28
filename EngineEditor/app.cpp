@@ -215,9 +215,20 @@ namespace Engine {
                 }
                 ImGui::End();
 
+
                 HierarchyPanel.OnImGuiRender();
 
+                ImGuiIO &io = ImGui::GetIO();
+                io.DisplaySize = ImVec2((float)1280, (float)720);
+
                 m_Imgui.render(commandBuffer);
+                if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+                    GLFWwindow *backup_current_context = glfwGetCurrentContext();
+                    ImGui::UpdatePlatformWindows();
+                    ImGui::RenderPlatformWindowsDefault();
+                    glfwMakeContextCurrent(backup_current_context);
+                }
+
                 m_Renderer.endSwapChainRenderPass(commandBuffer);  //vkEndRenderPass
                 m_Renderer.endFrame();
 

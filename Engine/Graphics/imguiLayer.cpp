@@ -41,7 +41,7 @@ namespace Engine {
         pool_info.maxSets = 1000 * IM_ARRAYSIZE(pool_sizes);
         pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
         pool_info.pPoolSizes = pool_sizes;
-        if (vkCreateDescriptorPool(device.device(), &pool_info, nullptr, &descriptorPool) != VK_SUCCESS) {
+        if (vkCreateDescriptorPool(device.device(), &pool_info, nullptr, &m_DescriptorPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to set up descriptor pool for imgui");
         }
 
@@ -52,6 +52,8 @@ namespace Engine {
         (void)io;
         // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
         // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
@@ -69,7 +71,7 @@ namespace Engine {
 
         // pipeline cache is a potential future optimization, ignoring for now
         init_info.PipelineCache = VK_NULL_HANDLE;
-        init_info.DescriptorPool = descriptorPool;
+        init_info.DescriptorPool = m_DescriptorPool;
         // todo, I should probably get around to integrating a memory allocator library such as Vulkan
         // memory allocator (VMA) sooner than later. We don't want to have to update adding an allocator
         // in a ton of locations.
@@ -88,7 +90,7 @@ namespace Engine {
     }
 
     Imgui::~Imgui() {
-        vkDestroyDescriptorPool(m_Device.device(), descriptorPool, nullptr);
+        vkDestroyDescriptorPool(m_Device.device(), m_DescriptorPool, nullptr);
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();

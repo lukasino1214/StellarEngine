@@ -690,7 +690,7 @@ struct IMGUI_API ImChunkStream
 // perpendicular to X axis. Follow steps in the article from this starting condition and you will
 // will get this result.
 //
-// Graphics circles with an odd number of segments, while mathematically correct will produce
+// Rendering circles with an odd number of segments, while mathematically correct will produce
 // asymmetrical results on the raster grid. Therefore we're rounding N to next even number (7->8, 8->8, 9->10 etc.)
 //
 #define IM_ROUNDUP_TO_EVEN(_V)                                  ((((_V) + 1) / 2) * 2)
@@ -1250,9 +1250,10 @@ enum ImGuiNavHighlightFlags_
 enum ImGuiNavDirSourceFlags_
 {
     ImGuiNavDirSourceFlags_None             = 0,
-    ImGuiNavDirSourceFlags_Keyboard         = 1 << 0,
-    ImGuiNavDirSourceFlags_PadDPad          = 1 << 1,
-    ImGuiNavDirSourceFlags_PadLStick        = 1 << 2
+    ImGuiNavDirSourceFlags_RawKeyboard      = 1 << 0,   // Raw keyboard (not pulled from nav), faciliate use of some functions before we can unify nav and keys
+    ImGuiNavDirSourceFlags_Keyboard         = 1 << 1,
+    ImGuiNavDirSourceFlags_PadDPad          = 1 << 2,
+    ImGuiNavDirSourceFlags_PadLStick        = 1 << 3
 };
 
 enum ImGuiNavMoveFlags_

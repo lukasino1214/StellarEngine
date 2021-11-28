@@ -35,6 +35,7 @@ namespace Engine {
         void newFrame();
 
         void render(VkCommandBuffer commandBuffer);
+        //static VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo);
 
         // Example state
         bool show_demo_window = true;
@@ -49,7 +50,7 @@ namespace Engine {
         // so I'm just going to create one for just imgui and store it here for now.
         // maybe its preferred to have a separate descriptor pool for imgui anyway,
         // I haven't looked into imgui best practices at all.
-        VkDescriptorPool descriptorPool;
+        VkDescriptorPool m_DescriptorPool;
     };
 }  // namespace lve
 

@@ -19,7 +19,7 @@ target("Vendor")
     set_kind("static")
     add_files("Vendor/*/*.cpp")
     add_headerfiles("Vendor/*/*.h")
-    add_packages("glfw")
+    add_packages("glfw", "glm")
 target_end()
 
 target("Engine")
