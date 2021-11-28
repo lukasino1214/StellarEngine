@@ -217,6 +217,42 @@ namespace Engine {
         preparePipelines();
     }
 
+    void OffScreen::Start(FrameInfo frameInfo) {
+        std::array<VkClearValue, 2> clearValues{};
+        clearValues[0].color = {0.01f, 0.01f, 0.01f, 1.0f};
+        clearValues[1].depthStencil = {1.0f, 0};
+        VkDeviceSize offsets[1] = { 0 };
+
+        VkRenderPassBeginInfo renderPassBeginInfo {};
+        renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassBeginInfo.renderPass = pass.renderPass;
+        renderPassBeginInfo.framebuffer = pass.frameBuffer;
+        renderPassBeginInfo.renderArea.extent.width = pass.width;
+        renderPassBeginInfo.renderArea.extent.height = pass.height;
+        renderPassBeginInfo.clearValueCount = 2;
+        renderPassBeginInfo.pClearValues = clearValues.data();
+
+        vkCmdBeginRenderPass(frameInfo.commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        VkViewport viewport = {};
+        viewport.width = (float)pass.width;
+        viewport.height = (float)pass.height;
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(frameInfo.commandBuffer, 0, 1, &viewport);
+
+        VkRect2D scissor = {};
+        scissor.extent.width = pass.width;
+        scissor.extent.height = pass.height;
+        scissor.offset.x = 0;
+        scissor.offset.y = 0;
+        vkCmdSetScissor(frameInfo.commandBuffer, 0, 1, &scissor);
+    }
+
+    void OffScreen::End(FrameInfo frameInfo) {
+        vkCmdEndRenderPass(frameInfo.commandBuffer);
+    }
+
     void OffScreen::render(FrameInfo frameInfo, const Ref<Scene> &Scene)
     {
 
@@ -252,7 +288,7 @@ namespace Engine {
 
         //VkDeviceSize offsets[1] = { 0 };
 
-        m_Pipeline->bind(frameInfo.commandBuffer);
+        /*m_Pipeline->bind(frameInfo.commandBuffer);
         Scene->m_Registry.each([&](auto entityID) {
             Entity entity = { entityID, Scene.get() };
             if (!entity)
@@ -274,7 +310,7 @@ namespace Engine {
                 Model->bind(frameInfo.commandBuffer);
                 Model->draw(frameInfo.commandBuffer);
             }
-        });
+        });*/
 
 
         vkCmdEndRenderPass(frameInfo.commandBuffer);

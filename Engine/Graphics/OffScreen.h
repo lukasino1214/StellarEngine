@@ -52,6 +52,11 @@ namespace Engine {
         void render(FrameInfo frameInfo, const Ref<Scene> &Scene);
         VkSampler GetSampler() { return pass.sampler; }
         VkImageView GetImageView() { return pass.color.view; }
+        VkRenderPass GetRenderPass() { return pass.renderPass; }
+        void SetViewportSize(const glm::vec2& size) { pass.width = size.x; pass.height = size.y; }
+
+        void Start(FrameInfo frameInfo);
+        void End(FrameInfo frameInfo);
     private:
         void setupPipelineLayout(VkDescriptorSetLayout globalSetLayout);
         void preparePipelines();

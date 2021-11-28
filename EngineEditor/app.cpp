@@ -111,11 +111,17 @@ namespace Engine {
                 .build(globalDescriptorSets[i]);
         }
 
-        RenderSystem simpleRenderSystem{m_Device, m_Renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
-        GridSystem gridsystem{m_Device,m_Renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+        OffScreen screen(m_Device, globalSetLayout->getDescriptorSetLayout());
+
+        //RenderSystem simpleRenderSystem{m_Device, m_Renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+        //GridSystem gridsystem{m_Device,m_Renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+
+        RenderSystem simpleRenderSystem{m_Device, screen.GetRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+        GridSystem gridsystem{m_Device,screen.GetRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+
         Camera camera{};
         camera.setViewTarget(glm::vec3(-1.f, -1.f, -1.f), glm::vec3(0.f, 0.f, 2.5f));
-        OffScreen screen(m_Device, globalSetLayout->getDescriptorSetLayout());
+        //OffScreen screen(m_Device, globalSetLayout->getDescriptorSetLayout());
 
         Imgui m_Imgui{m_Window, m_Device, m_Renderer.getSwapChainRenderPass(), m_Renderer.getImageCount()};
 
@@ -139,6 +145,13 @@ namespace Engine {
         if(vkCreateSampler(m_Device.device(), &info, nullptr, &sampler) != VK_SUCCESS) {
             throw std::runtime_error("failed to create texture sampler!");
         }*/
+
+        bool p_open = true;
+        static bool opt_fullscreen = true;
+        static bool opt_padding = false;
+        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
 
         while (!m_Window.shouldClose()) {
             glfwPollEvents();
@@ -169,7 +182,11 @@ namespace Engine {
                 uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 uboBuffers[frameIndex]->flush();
 
-                screen.render(frameInfo, m_EditorScene);
+                screen.Start(frameInfo);
+                simpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);
+                gridsystem.render(frameInfo);
+                screen.End(frameInfo);
+                //screen.render(frameInfo, m_EditorScene);
 
                 // render
                 m_Imgui.newFrame();
@@ -177,6 +194,54 @@ namespace Engine {
 
                 /*simpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);
                 gridsystem.render(frameInfo);*/
+
+                // Docking
+                {
+                    if (opt_fullscreen) {
+                        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+                        ImGui::SetNextWindowPos(viewport->WorkPos);
+                        ImGui::SetNextWindowSize(viewport->WorkSize);
+                        ImGui::SetNextWindowViewport(viewport->ID);
+                        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+                        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+                        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+                        window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+                    }
+                    else {
+                        dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+                    }
+
+                    if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+                        window_flags |= ImGuiWindowFlags_NoBackground;
+
+                    if (!opt_padding)
+                        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+                    ImGui::Begin("DockSpace Demo", &p_open, window_flags);
+                    if (!opt_padding)
+                        ImGui::PopStyleVar();
+
+                    if (opt_fullscreen)
+                        ImGui::PopStyleVar(2);
+
+                    // DockSpace
+                    ImGuiIO& io = ImGui::GetIO();
+                    if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
+                        ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+                        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+                    }
+                    else {
+
+                    }
+
+                    if (ImGui::BeginMenuBar()) {
+                        if (ImGui::BeginMenu("File")) {
+
+                            ImGui::EndMenu();
+                        }
+
+                        ImGui::EndMenuBar();
+                    }
+                }
 
                 ImGui::Begin("Viewport");
                 auto size = ImGui::GetWindowSize();
@@ -213,6 +278,10 @@ namespace Engine {
                     serializer.Deserialize("Example.scene", m_Device);
                     HierarchyPanel.SetContext(m_EditorScene);
                 }
+                ImGui::End();
+
+                ImGui::Begin("File Browser");
+                ImGui::Text("Work in progress");
                 ImGui::End();
 
 
