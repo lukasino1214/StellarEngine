@@ -40,6 +40,8 @@ namespace Engine {
         SceneHierarchyPanel HierarchyPanel;
         Ref<Scene> m_EditorScene;
         Ref<Scene> m_ActiveScene;
+
+        glm::vec2 m_ViewportSize = {500, 200};
     };
 }
 

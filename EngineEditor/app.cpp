@@ -111,13 +111,14 @@ namespace Engine {
                 .build(globalDescriptorSets[i]);
         }
 
-        OffScreen screen(m_Device, globalSetLayout->getDescriptorSetLayout());
+        OffScreen screen(m_Device); // validation layer: Validation Error: [ UNASSIGNED-CoreValidation-DrawState-InvalidImageAspect ] Object 0: handle = 0x4fac1c0000000032, type = VK_OBJECT_TYPE_IMAGE; | MessageID = 0x90ef715d | vkCreateImageView(): Using format (VK_FORMAT_D32_SFLOAT) with aspect flags (VK_IMAGE_ASPECT_DEPTH_BIT|VK_IMAGE_ASPECT_STENCIL_BIT) but depth-only image formats can have only the VK_IMAGE_ASPECT_DEPTH_BIT set.
+                                                                                  // validation layer: Validation Error: [ VUID-vkDestroyDevice-device-00378 ] Object 0: handle = 0x562ceac6b8f0, type = VK_OBJECT_TYPE_DEVICE; Object 1: handle = 0x2723ba0000000037, type = VK_OBJECT_TYPE_PIPELINE_LAYOUT; | MessageID = 0x71500fba | OBJ ERROR : For VkDevice 0x562ceac6b8f0[], VkPipelineLayout 0x2723ba0000000037[] has not been destroyed. The Vulkan spec states: All child objects created on device must have been destroyed prior to destroying device (https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#VUID-vkDestroyDevice-device-00378)
 
-        //RenderSystem simpleRenderSystem{m_Device, m_Renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
-        //GridSystem gridsystem{m_Device,m_Renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+        RenderSystem simpleRenderSystem{m_Device, m_Renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+        GridSystem gridsystem{m_Device,m_Renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
 
-        RenderSystem simpleRenderSystem{m_Device, screen.GetRenderPass(), globalSetLayout->getDescriptorSetLayout()};
-        GridSystem gridsystem{m_Device,screen.GetRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+        GridSystem ScreenGridsystem{m_Device,screen.GetRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+        RenderSystem ScreenSimpleRenderSystem{m_Device, screen.GetRenderPass(), globalSetLayout->getDescriptorSetLayout()};
 
         Camera camera{};
         camera.setViewTarget(glm::vec3(-1.f, -1.f, -1.f), glm::vec3(0.f, 0.f, 2.5f));
@@ -127,24 +128,6 @@ namespace Engine {
 
         auto currentTime = std::chrono::high_resolution_clock::now();
         bool scenePlaying = false;
-
-        //OffScreen screen(m_Device, globalSetLayout->getDescriptorSetLayout());
-        //screen.Init(m_Device);
-
-        /*VkSamplerCreateInfo info = {};
-        info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        info.magFilter = VK_FILTER_LINEAR;
-        info.minFilter = VK_FILTER_LINEAR;
-        info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        info.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        info.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        info.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        info.minLod = 0;
-        info.maxLod = 1;
-        info.maxAnisotropy = 1.0f;
-        if(vkCreateSampler(m_Device.device(), &info, nullptr, &sampler) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create texture sampler!");
-        }*/
 
         bool p_open = true;
         static bool opt_fullscreen = true;
@@ -182,10 +165,11 @@ namespace Engine {
                 uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 uboBuffers[frameIndex]->flush();
 
-                screen.Start(frameInfo);
-                simpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);
-                gridsystem.render(frameInfo);
-                screen.End(frameInfo);
+                //TODO: RENDERING
+                /*screen.Start(frameInfo);
+                ScreenSimpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);
+                ScreenGridsystem.render(frameInfo);
+                screen.End(frameInfo);*/
                 //screen.render(frameInfo, m_EditorScene);
 
                 // render
@@ -244,8 +228,16 @@ namespace Engine {
                 }
 
                 ImGui::Begin("Viewport");
-                auto size = ImGui::GetWindowSize();
-                ImGui::Image((ImTextureID) ImGui_ImplVulkan_AddTexture(screen.GetSampler(), screen.GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL), { size.x, (size.y - 36.0f) });
+                ImGui::SetWindowSize({500, 200});
+                auto viewportSize = ImGui::GetContentRegionAvail();
+                if (m_ViewportSize != *((glm::vec2*)&viewportSize)) {
+                    screen.SetViewportSize({m_ViewportSize.x , m_ViewportSize.y});
+                    //m_Camera->SetProjection(viewportSize.x, viewportSize.y);
+                    camera.SetProjection(m_ViewportSize.x , m_ViewportSize.y);
+                    m_ViewportSize = { viewportSize.x, viewportSize.y };
+                }
+                //ImGui::Image((ImTextureID) ImGui_ImplVulkan_AddTexture(screen.GetSampler(), screen.GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL), { viewportSize.x, viewportSize.y });
+
                 ImGui::End();
 
                 ImGui::Begin("Scene Info and Control");
@@ -258,9 +250,9 @@ namespace Engine {
                 }
 
                 else {
-                    /*PhysicsSystem test{};
-                    test.Update(m_EditorScene, frameTime);
-                    simpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);*/
+                    //PhysicsSystem test{};
+                    //test.Update(m_EditorScene, frameTime);
+                    //simpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);
                     if(ImGui::Button("Stop")) {
                         scenePlaying = false;
                         m_EditorScene = m_EditorScene;
@@ -291,12 +283,12 @@ namespace Engine {
                 io.DisplaySize = ImVec2((float)1280, (float)720);
 
                 m_Imgui.render(commandBuffer);
-                if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+                /*if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
                     GLFWwindow *backup_current_context = glfwGetCurrentContext();
                     ImGui::UpdatePlatformWindows();
                     ImGui::RenderPlatformWindowsDefault();
                     glfwMakeContextCurrent(backup_current_context);
-                }
+                }*/
 
                 m_Renderer.endSwapChainRenderPass(commandBuffer);  //vkEndRenderPass
                 m_Renderer.endFrame();

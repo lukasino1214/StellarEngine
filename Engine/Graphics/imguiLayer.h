@@ -35,6 +35,7 @@ namespace Engine {
         void newFrame();
 
         void render(VkCommandBuffer commandBuffer);
+        VkDescriptorPool GetDescriptorPool() { return m_DescriptorPool; }
         //static VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo);
 
         // Example state

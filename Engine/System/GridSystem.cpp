@@ -57,7 +57,7 @@ namespace Engine {
                 m_Device,
                 "assets/shaders/grid.vert.spv",
                 "assets/shaders/grid.frag.spv",
-                configInfo);
+                configInfo, false);
     }
 
     void GridSystem::render(FrameInfo& frameInfo) {

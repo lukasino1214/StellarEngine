@@ -40,7 +40,7 @@ namespace Engine {
                 Device& device,
                 const std::string& vertFilepath,
                 const std::string& fragFilepath,
-                const PipelineConfigInfo& configInfo);
+                const PipelineConfigInfo& configInfo, const bool& hasVertexAtrributes);
         ~Pipeline();
 
         Pipeline(const Pipeline&) = delete;
@@ -56,7 +56,7 @@ namespace Engine {
         void createGraphicsPipeline(
                 const std::string& vertFilepath,
                 const std::string& fragFilepath,
-                const PipelineConfigInfo& configInfo);
+                const PipelineConfigInfo& configInfo, const bool& hasVertexAtrributes);
 
         void createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule);
 

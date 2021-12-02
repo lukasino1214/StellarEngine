@@ -18,12 +18,32 @@ namespace Engine {
     };
 
 
-    OffScreen::OffScreen(Device &device, VkDescriptorSetLayout globalSetLayout) : m_Device{device}, DescriptorSetLayout{globalSetLayout} {
+    OffScreen::OffScreen(Device &device) : m_Device{device} {
         pass.width = 1280;
         pass.height = 720;
 
+        CreateImages();
+        after = true;
+    }
+
+    void OffScreen::CreateImages() {
+        if(after) {
+            /*vkDestroyImageView(m_Device.device(), pass.color.view, nullptr);
+            vkDestroyImage(m_Device.device(), pass.color.image, nullptr);
+            vkFreeMemory(m_Device.device(), pass.color.mem, nullptr);
+
+            // Depth attachment
+            vkDestroyImageView(m_Device.device(), pass.depth.view, nullptr);
+            vkDestroyImage(m_Device.device(), pass.depth.image, nullptr);
+            vkFreeMemory(m_Device.device(), pass.depth.mem, nullptr);
+
+            vkDestroyRenderPass(m_Device.device(), pass.renderPass, nullptr);
+            vkDestroySampler(m_Device.device(), pass.sampler, nullptr);
+            vkDestroyFramebuffer(m_Device.device(), pass.frameBuffer, nullptr);*/
+        }
+
         // Find a suitable depth format
-        VkFormat fbDepthFormat = device.findSupportedFormat(
+        VkFormat fbDepthFormat = m_Device.findSupportedFormat(
                 {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
                 VK_IMAGE_TILING_OPTIMAL,
                 VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
@@ -47,17 +67,17 @@ namespace Engine {
         memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         VkMemoryRequirements memReqs;
 
-        if(vkCreateImage(m_Device.device(), &image, nullptr, &pass.color.image) != VK_SUCCESS) {
+        if (vkCreateImage(m_Device.device(), &image, nullptr, &pass.color.image) != VK_SUCCESS) {
             std::cout << "Failed to create image" << std::endl;
         }
         vkGetImageMemoryRequirements(m_Device.device(), pass.color.image, &memReqs);
         memAlloc.allocationSize = memReqs.size;
         memAlloc.memoryTypeIndex = m_Device.findMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
         //memAlloc.memoryTypeIndex = getMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        if(vkAllocateMemory(m_Device.device(), &memAlloc, nullptr, &pass.color.mem) != VK_SUCCESS) {
+        if (vkAllocateMemory(m_Device.device(), &memAlloc, nullptr, &pass.color.mem) != VK_SUCCESS) {
             std::cout << "Failed to allocate memory" << std::endl;
         }
-        if(vkBindImageMemory(m_Device.device(), pass.color.image, pass.color.mem, 0) != VK_SUCCESS) {
+        if (vkBindImageMemory(m_Device.device(), pass.color.image, pass.color.mem, 0) != VK_SUCCESS) {
             std::cout << "Failed to bind memory" << std::endl;
         }
 
@@ -72,7 +92,7 @@ namespace Engine {
         colorImageView.subresourceRange.baseArrayLayer = 0;
         colorImageView.subresourceRange.layerCount = 1;
         colorImageView.image = pass.color.image;
-        if(vkCreateImageView(device.device(), &colorImageView, nullptr, &pass.color.view) != VK_SUCCESS) {
+        if (vkCreateImageView(m_Device.device(), &colorImageView, nullptr, &pass.color.view) != VK_SUCCESS) {
             std::cout << "Failed to create color image view" << std::endl;
         }
 
@@ -90,7 +110,7 @@ namespace Engine {
         samplerInfo.minLod = 0.0f;
         samplerInfo.maxLod = 1.0f;
         samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-        if(vkCreateSampler(m_Device.device(), &samplerInfo, nullptr, &pass.sampler) != VK_SUCCESS) {
+        if (vkCreateSampler(m_Device.device(), &samplerInfo, nullptr, &pass.sampler) != VK_SUCCESS) {
             std::cout << "Failed to create sampler" << std::endl;
         }
 
@@ -98,16 +118,16 @@ namespace Engine {
         image.format = fbDepthFormat;
         image.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
-        if(vkCreateImage(m_Device.device(), &image, nullptr, &pass.depth.image) != VK_SUCCESS) {
+        if (vkCreateImage(m_Device.device(), &image, nullptr, &pass.depth.image) != VK_SUCCESS) {
             std::cout << "Failed to create image" << std::endl;
         }
         vkGetImageMemoryRequirements(m_Device.device(), pass.depth.image, &memReqs);
         memAlloc.allocationSize = memReqs.size;
         memAlloc.memoryTypeIndex = m_Device.findMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        if(vkAllocateMemory(m_Device.device(), &memAlloc, nullptr, &pass.depth.mem) != VK_SUCCESS) {
+        if (vkAllocateMemory(m_Device.device(), &memAlloc, nullptr, &pass.depth.mem) != VK_SUCCESS) {
             std::cout << "Failed to allocate memory" << std::endl;
         }
-        if(vkBindImageMemory(m_Device.device(), pass.depth.image, pass.depth.mem, 0) != VK_SUCCESS) {
+        if (vkBindImageMemory(m_Device.device(), pass.depth.image, pass.depth.mem, 0) != VK_SUCCESS) {
             std::cout << "Failed to bind memory" << std::endl;
         }
 
@@ -117,13 +137,15 @@ namespace Engine {
         depthStencilView.format = fbDepthFormat;
         depthStencilView.flags = 0;
         depthStencilView.subresourceRange = {};
-        depthStencilView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+        // if is something wrong with depth uncomment this
+        //depthStencilView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+        depthStencilView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
         depthStencilView.subresourceRange.baseMipLevel = 0;
         depthStencilView.subresourceRange.levelCount = 1;
         depthStencilView.subresourceRange.baseArrayLayer = 0;
         depthStencilView.subresourceRange.layerCount = 1;
         depthStencilView.image = pass.depth.image;
-        if(vkCreateImageView(m_Device.device(), &depthStencilView, nullptr, &pass.depth.view) != VK_SUCCESS) {
+        if (vkCreateImageView(m_Device.device(), &depthStencilView, nullptr, &pass.depth.view) != VK_SUCCESS) {
             std::cout << "Failed to create depth stencil view" << std::endl;
         }
 
@@ -149,8 +171,8 @@ namespace Engine {
         attchmentDescriptions[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         attchmentDescriptions[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-        VkAttachmentReference colorReference = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-        VkAttachmentReference depthReference = { 1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+        VkAttachmentReference colorReference = {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+        VkAttachmentReference depthReference = {1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
 
         VkSubpassDescription subpassDescription = {};
         subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -187,7 +209,7 @@ namespace Engine {
         renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
         renderPassInfo.pDependencies = dependencies.data();
 
-        if(vkCreateRenderPass(m_Device.device(), &renderPassInfo, nullptr, &pass.renderPass) != VK_SUCCESS) {
+        if (vkCreateRenderPass(m_Device.device(), &renderPassInfo, nullptr, &pass.renderPass) != VK_SUCCESS) {
             std::cout << "Failed to create render pass" << std::endl;
         }
 
@@ -204,7 +226,7 @@ namespace Engine {
         fbufCreateInfo.height = pass.height;
         fbufCreateInfo.layers = 1;
 
-        if(vkCreateFramebuffer(m_Device.device(), &fbufCreateInfo, nullptr, &pass.frameBuffer) != VK_SUCCESS) {
+        if (vkCreateFramebuffer(m_Device.device(), &fbufCreateInfo, nullptr, &pass.frameBuffer) != VK_SUCCESS) {
             std::cout << "Failed to create framebuffer" << std::endl;
         }
 
@@ -212,18 +234,15 @@ namespace Engine {
         pass.descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         pass.descriptor.imageView = pass.color.view;
         pass.descriptor.sampler = pass.sampler;
-
-        setupPipelineLayout(globalSetLayout);
-        preparePipelines();
-    }
+    };
 
     void OffScreen::Start(FrameInfo frameInfo) {
         std::array<VkClearValue, 2> clearValues{};
         clearValues[0].color = {0.01f, 0.01f, 0.01f, 1.0f};
         clearValues[1].depthStencil = {1.0f, 0};
-        VkDeviceSize offsets[1] = { 0 };
+        VkDeviceSize offsets[1] = {0};
 
-        VkRenderPassBeginInfo renderPassBeginInfo {};
+        VkRenderPassBeginInfo renderPassBeginInfo{};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassBeginInfo.renderPass = pass.renderPass;
         renderPassBeginInfo.framebuffer = pass.frameBuffer;
@@ -235,8 +254,8 @@ namespace Engine {
         vkCmdBeginRenderPass(frameInfo.commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         VkViewport viewport = {};
-        viewport.width = (float)pass.width;
-        viewport.height = (float)pass.height;
+        viewport.width = (float) pass.width;
+        viewport.height = (float) pass.height;
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
         vkCmdSetViewport(frameInfo.commandBuffer, 0, 1, &viewport);
@@ -251,151 +270,5 @@ namespace Engine {
 
     void OffScreen::End(FrameInfo frameInfo) {
         vkCmdEndRenderPass(frameInfo.commandBuffer);
-    }
-
-    void OffScreen::render(FrameInfo frameInfo, const Ref<Scene> &Scene)
-    {
-
-        std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = {0.01f, 0.01f, 0.01f, 1.0f};
-        clearValues[1].depthStencil = {1.0f, 0};
-        VkDeviceSize offsets[1] = { 0 };
-
-        VkRenderPassBeginInfo renderPassBeginInfo {};
-        renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassBeginInfo.renderPass = pass.renderPass;
-        renderPassBeginInfo.framebuffer = pass.frameBuffer;
-        renderPassBeginInfo.renderArea.extent.width = pass.width;
-        renderPassBeginInfo.renderArea.extent.height = pass.height;
-        renderPassBeginInfo.clearValueCount = 2;
-        renderPassBeginInfo.pClearValues = clearValues.data();
-
-        vkCmdBeginRenderPass(frameInfo.commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-        VkViewport viewport = {};
-        viewport.width = (float)pass.width;
-        viewport.height = (float)pass.height;
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(frameInfo.commandBuffer, 0, 1, &viewport);
-
-        VkRect2D scissor = {};
-        scissor.extent.width = pass.width;
-        scissor.extent.height = pass.height;
-        scissor.offset.x = 0;
-        scissor.offset.y = 0;
-        vkCmdSetScissor(frameInfo.commandBuffer, 0, 1, &scissor);
-
-        //VkDeviceSize offsets[1] = { 0 };
-
-        /*m_Pipeline->bind(frameInfo.commandBuffer);
-        Scene->m_Registry.each([&](auto entityID) {
-            Entity entity = { entityID, Scene.get() };
-            if (!entity)
-                return;
-
-            if(entity.HasComponent<ModelComponent>()) {
-                SimplePushConstantData push{};
-
-                auto Transform = entity.GetComponent<TransformComponent>();
-                push.modelMatrix = Transform.mat4();
-                push.normalMatrix = Transform.normalMatrix();
-
-                vkCmdBindDescriptorSets(frameInfo.commandBuffer,VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &frameInfo.globalDescriptorSet, 0,nullptr);
-                vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData), &push);
-
-
-                //TODO: THIS SHIT
-                auto Model = entity.GetComponent<ModelComponent>().GetModel();
-                Model->bind(frameInfo.commandBuffer);
-                Model->draw(frameInfo.commandBuffer);
-            }
-        });*/
-
-
-        vkCmdEndRenderPass(frameInfo.commandBuffer);
-    }
-
-    void OffScreen::setupPipelineLayout(VkDescriptorSetLayout globalSetLayout) {
-        VkPushConstantRange pushConstantRange{};
-        pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-        pushConstantRange.offset = 0;
-        pushConstantRange.size = sizeof(SimplePushConstantData);
-
-        std::vector<VkDescriptorSetLayout> descriptorSetLayouts{globalSetLayout};
-
-        VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
-        pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
-        pipelineLayoutInfo.pushConstantRangeCount = 1;
-        pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-        if (vkCreatePipelineLayout(m_Device.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
-            VK_SUCCESS) {
-            throw std::runtime_error("failed to create pipeline layout!");
-        }
-    }
-
-    void OffScreen::preparePipelines()
-    {
-        assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
-
-        PipelineConfigInfo pipelineConfig{};
-        Pipeline::defaultPipelineConfigInfo(pipelineConfig);
-        pipelineConfig.renderPass = pass.renderPass;
-        pipelineConfig.pipelineLayout = pipelineLayout;
-        m_Pipeline = std::make_unique<Pipeline>(m_Device, "assets/shaders/simple_shader.vert.spv", "assets/shaders/simple_shader.frag.spv", pipelineConfig);
-
-
-
-        /*VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = vks::initializers::pipelineInputAssemblyStateCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, 0, VK_FALSE);
-        VkPipelineRasterizationStateCreateInfo rasterizationState = vks::initializers::pipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE,0);
-        VkPipelineColorBlendAttachmentState blendAttachmentState = vks::initializers::pipelineColorBlendAttachmentState(0xf, VK_FALSE);
-        VkPipelineColorBlendStateCreateInfo colorBlendState = vks::initializers::pipelineColorBlendStateCreateInfo(1, &blendAttachmentState);
-        VkPipelineDepthStencilStateCreateInfo depthStencilState = vks::initializers::pipelineDepthStencilStateCreateInfo(VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS_OR_EQUAL);
-        VkPipelineViewportStateCreateInfo viewportState = vks::initializers::pipelineViewportStateCreateInfo(1, 1, 0);
-        VkPipelineMultisampleStateCreateInfo multisampleState = vks::initializers::pipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
-        std::vector<VkDynamicState> dynamicStateEnables = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
-        VkPipelineDynamicStateCreateInfo dynamicState = vks::initializers::pipelineDynamicStateCreateInfo(dynamicStateEnables);
-        std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages;
-
-        VkGraphicsPipelineCreateInfo pipelineCI = vks::initializers::pipelineCreateInfo(pipelineLayouts.textured, renderPass, 0);
-        pipelineCI.pInputAssemblyState = &inputAssemblyState;
-        pipelineCI.pRasterizationState = &rasterizationState;
-        pipelineCI.pColorBlendState = &colorBlendState;
-        pipelineCI.pMultisampleState = &multisampleState;
-        pipelineCI.pViewportState = &viewportState;
-        pipelineCI.pDepthStencilState = &depthStencilState;
-        pipelineCI.pDynamicState = &dynamicState;
-        pipelineCI.stageCount = static_cast<uint32_t>(shaderStages.size());
-        pipelineCI.pStages = shaderStages.data();
-        pipelineCI.pVertexInputState = vkglTF::Vertex::getPipelineVertexInputState({vkglTF::VertexComponent::Position, vkglTF::VertexComponent::Color, vkglTF::VertexComponent::Normal});
-
-        rasterizationState.cullMode = VK_CULL_MODE_NONE;
-
-        // Render-target debug display
-        shaderStages[0] = loadShader(getShadersPath() + "offscreen/quad.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-        shaderStages[1] = loadShader(getShadersPath() + "offscreen/quad.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-        VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCI, nullptr, &pipelines.debug));
-
-        // Mirror
-        shaderStages[0] = loadShader(getShadersPath() + "offscreen/mirror.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-        shaderStages[1] = loadShader(getShadersPath() + "offscreen/mirror.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-        VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCI, nullptr, &pipelines.mirror));
-
-        rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
-
-        // Phong shading pipelines
-        pipelineCI.layout = pipelineLayouts.shaded;
-        // Scene
-        shaderStages[0] = loadShader(getShadersPath() + "offscreen/phong.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-        shaderStages[1] = loadShader(getShadersPath() + "offscreen/phong.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-        VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCI, nullptr, &pipelines.shaded));
-        // Offscreen
-        // Flip cull mode
-        rasterizationState.cullMode = VK_CULL_MODE_FRONT_BIT;
-        pipelineCI.renderPass = offscreenPass.renderPass;
-        VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCI, nullptr, &pipelines.shadedOffscreen));*/
-
     }
 }
