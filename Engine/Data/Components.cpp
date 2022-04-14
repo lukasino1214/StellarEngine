@@ -8,7 +8,7 @@ namespace Engine {
     glm::mat4 TransformComponent::mat4() {
         glm::mat4 rotation = glm::toMat4(glm::quat(Rotation));
 
-        return glm::translate(glm::mat4(1.0f), glm::vec3(Translation.x, -Translation.y, Translation.z))
+        return glm::translate(glm::mat4(1.0f), glm::vec3(Translation.x, Translation.y, Translation.z))
                * rotation
                * glm::scale(glm::mat4(1.0f), Scale);
     }

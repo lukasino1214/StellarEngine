@@ -55,6 +55,21 @@ namespace Engine {
         void SetViewportSize(const glm::vec2& size) {
             pass.width = size.x;
             pass.height = size.y;
+
+            vkDestroyImageView(m_Device.device(), pass.color.view, nullptr);
+            vkDestroyImage(m_Device.device(), pass.color.image, nullptr);
+            vkFreeMemory(m_Device.device(), pass.color.mem, nullptr);
+
+            // Depth attachment
+            vkDestroyImageView(m_Device.device(), pass.depth.view, nullptr);
+            vkDestroyImage(m_Device.device(), pass.depth.image, nullptr);
+            vkFreeMemory(m_Device.device(), pass.depth.mem, nullptr);
+
+            vkDestroyRenderPass(m_Device.device(), pass.renderPass, nullptr);
+            vkDestroySampler(m_Device.device(), pass.sampler, nullptr);
+            vkDestroyFramebuffer(m_Device.device(), pass.frameBuffer, nullptr);
+
+
             CreateImages();
         }
 

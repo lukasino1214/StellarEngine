@@ -132,8 +132,8 @@ namespace Engine {
         //GridSystem ScreenGridsystem{m_Device,screen.GetRenderPass(), globalSetLayout->getDescriptorSetLayout()};
         RenderSystem ScreenSimpleRenderSystem{m_Device, screen.GetRenderPass(), globalSetLayout->getDescriptorSetLayout()};
 
-        Camera camera{};
-        camera.setViewTarget(glm::vec3(-1.f, -1.f, -1.f), glm::vec3(0.f, 0.f, 2.5f));
+        Camera camera = Camera({10, 10, 10}, {0, 0, 0});
+        //camera.setViewTarget(glm::vec3(-1.f, -1.f, -1.f), glm::vec3(0.f, 0.f, 2.5f));
 
         Imgui m_Imgui{m_Window, m_Device, m_Renderer.getSwapChainRenderPass(), m_Renderer.getImageCount()};
 
@@ -147,12 +147,20 @@ namespace Engine {
         static bool opt_padding = false;
         static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
+        bool resize = false;
+
         int m_GizmoType = 0;
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
 
         while (!m_Window.shouldClose()) {
             glfwPollEvents();
+
+            if(resize) {
+                screen.SetViewportSize({m_ViewportSize.x , m_ViewportSize.y});
+                image = ImGui_ImplVulkan_AddTexture(screen.GetSampler(), screen.GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                resize = false;
+            }
 
             if(glfwGetKey(m_Window.getGLFWwindow(), GLFW_KEY_F) == GLFW_PRESS) {
                 startPhysics = true;
@@ -163,10 +171,6 @@ namespace Engine {
             currentTime = newTime;
 
             camera.Move(m_Window.getGLFWwindow(), frameTime);
-            //camera.setViewYXZ();
-
-            float aspect = m_Renderer.getAspectRatio();
-            camera.setPerspectiveProjection(glm::radians(90.0f), aspect, 0.01, 1000.0f);
 
             if (auto commandBuffer = m_Renderer.beginFrame()) {
                 int frameIndex = m_Renderer.getFrameIndex();
@@ -236,89 +240,16 @@ namespace Engine {
                     }
                 }
 
-                /*ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-                ImGui::Begin("Viewport");
-                auto viewportSize = ImGui::GetContentRegionAvail();
-                if (m_ViewportSize != *((glm::vec2*)&viewportSize)) {
-                    //screen.SetViewportSize({m_ViewportSize.x , m_ViewportSize.y});
-                    //m_Camera->SetProjection(viewportSize.x, viewportSize.y);
-                    camera.SetProjection(m_ViewportSize.x , m_ViewportSize.y);
-                    m_ViewportSize = { viewportSize.x, viewportSize.y };
-                }
-                ImGui::Image(image, { viewportSize.x, viewportSize.y });
-                if (glfwGetKey(m_Window.getGLFWwindow(), GLFW_KEY_Q) == GLFW_PRESS) {
-                    if (!ImGuizmo::IsUsing())
-                        m_GizmoType = -1;
-                }
-
-                if (glfwGetKey(m_Window.getGLFWwindow(), GLFW_KEY_W) == GLFW_PRESS) {
-                    if (!ImGuizmo::IsUsing())
-                        m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
-                }
-
-                if (glfwGetKey(m_Window.getGLFWwindow(), GLFW_KEY_E) == GLFW_PRESS) {
-                    if (!ImGuizmo::IsUsing())
-                        m_GizmoType = ImGuizmo::OPERATION::ROTATE;
-                }
-
-                if (glfwGetKey(m_Window.getGLFWwindow(), GLFW_KEY_R) == GLFW_PRESS) {
-                    if (!ImGuizmo::IsUsing())
-                        m_GizmoType = ImGuizmo::OPERATION::SCALE;
-                }
-
-                Entity selectedEntity = HierarchyPanel.GetSelectedEntity();
-                //Entity selectedEntity = m_HoveredEntity;
-                if(selectedEntity) {
-                    //INFO("BINGO");
-                }
-                if (selectedEntity && m_GizmoType != -1)
-                {
-                    ImGuizmo::SetOrthographic(false);
-                    ImGuizmo::SetDrawlist();
-
-                    auto& tc = selectedEntity.GetComponent<TransformComponent>();
-                    glm::mat4 transform = tc.mat4();
-
-                    std::cout << glm::to_string(tc.Translation) << std::endl;
-
-                    float windowWidth = (float)ImGui::GetWindowWidth();
-                    float winodwHeight = (float)ImGui::GetWindowHeight();
-                    ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, winodwHeight);
-                    //glm::mat4 transform = selectedEntity.GetComponent<TransformComponent>().GetTransform();
-                    ImGuizmo::Manipulate(glm::value_ptr(camera.GetView()), glm::value_ptr(camera.GetProjection()), (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform));
-                    if (ImGuizmo::IsUsing()) {
-                        glm::vec3 translation, rotation, scale;
-                        Math::DecomposeTransform(transform, translation, rotation, scale);
-                        //ImGuizmo::DecomposeMatrixToComponents(transform, translation, rotation, scale);
-
-                        glm::vec3 deltaRotation = rotation - tc.Rotation;
-                        tc.Translation = translation;
-                        tc.Rotation += deltaRotation;
-                        tc.Scale = scale;
-                    }
-                }
-                ImGui::End();
-                ImGui::PopStyleVar();*/
-
                 ImGui::Begin("Viewport");
                 ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
                 if (m_ViewportSize != *((glm::vec2*)&viewportPanelSize)) {
-                    //m_Framebuffer->Resize(viewportPanelSize.x, viewportPanelSize.y);
-                    //m_Camera->SetProjection(viewportPanelSize.x, viewportPanelSize.y);
+                    resize = true;
+                    std::cout << "test" << std::endl;
+                    camera.SetProjection(viewportPanelSize.x , viewportPanelSize.y);
                     m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
                 }
 
-                /*if (ImGui::IsWindowHovered())
-                    m_Camera->Inputs(windowHandler->GetWindow());*/
-
-                //windowSize = ImGui::GetContentRegionAvail();
-                //ImGui::Image((void*)textureColorbuffer, ImVec2{ windowSize.x, windowSize.y }, ImVec2(0, 1), ImVec2(1, 0));
-                ImGui::Image(image, ImGui::GetContentRegionAvail());
-                auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
-                auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
-                auto viewportOffset = ImGui::GetWindowPos();
-                //m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
-                //m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+                ImGui::Image(image, viewportPanelSize, ImVec2(0, 1), ImVec2(1, 0));
 
                 if (glfwGetKey(m_Window.getGLFWwindow(), GLFW_KEY_U) == GLFW_PRESS) {
                     if (!ImGuizmo::IsUsing())
@@ -341,7 +272,6 @@ namespace Engine {
                 }
 
                 Entity selectedEntity = HierarchyPanel.GetSelectedEntity();
-                //Entity selectedEntity = m_HoveredEntity;
                 if(selectedEntity) {
                     std::cout << "bruh" << std::endl;
                 }
@@ -351,24 +281,24 @@ namespace Engine {
                     ImGuizmo::SetDrawlist();
 
                     auto& tc = selectedEntity.GetComponent<TransformComponent>();
-                    glm::mat4 mat = tc.mat4();
 
                     float windowWidth = (float)ImGui::GetWindowWidth();
                     float windowHeight = (float)ImGui::GetWindowHeight();
                     ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
-                    //glm::mat4 transform = selectedEntity.GetComponent<TransformComponent>().GetTransform();
-                    ImGuizmo::Manipulate(glm::value_ptr(camera.GetView()), glm::value_ptr(camera.GetProjection()), (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(mat));
-                    std::cout << "yes" << std::endl;
-                    std::cout << m_GizmoType << std::endl;
-                    std::cout << glm::to_string(tc.Translation) << std::endl;
+                    glm::mat4 cameraView = glm::inverse(camera.getView());
+                    glm::mat4 cameraProj = camera.getProjection();
+                    TransformComponent transform = selectedEntity.GetComponent<TransformComponent>();
+
+                    glm::mat4 mod_mat = transform.mat4();
+                    ImGuizmo::Manipulate(glm::value_ptr(camera.getView()), glm::value_ptr(cameraProj), (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(mod_mat));
+
                     if (ImGuizmo::IsUsing()) {
                         glm::vec3 translation, rotation, scale;
-                        Math::DecomposeTransform(mat, translation, rotation, scale);
+                        Math::DecomposeTransform(mod_mat, translation, rotation, scale);
 
-                        glm::vec3 deltaRotation = rotation - tc.Rotation;
-                        tc.Translation = translation;
-                        tc.Rotation += deltaRotation;
-                        tc.Scale = scale;
+                        tc.Translation += translation - transform.Translation;
+                        tc.Rotation += rotation - transform.Rotation;
+                        tc.Scale += scale - transform.Scale;
                     }
                 }
                 ImGui::End();
