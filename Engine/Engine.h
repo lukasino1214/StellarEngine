@@ -25,10 +25,12 @@
 #include "Graphics/buffer.h"
 #include "Graphics/descriptors.h"
 #include "Graphics/OffScreen.h"
+#include "Graphics/texture.h"
 
 #include "System/render_system.h"
 #include "System/physics_system.h"
 #include "System/GridSystem.h"
 
+#include "Math/Math.h"
 
 #endif //ENGINE_ENGINE_H

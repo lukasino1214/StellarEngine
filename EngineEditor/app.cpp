@@ -15,6 +15,8 @@
 #include <iostream>
 #include <chrono>
 #include <math.h>
+#include <ImGuizmo.h>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace Engine {
 
@@ -31,6 +33,7 @@ namespace Engine {
         globalPool = DescriptorPool::Builder(m_Device)
                 .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT)
                 .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
+                .addPoolSize(VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 2)
                 .build();
 
         m_EditorScene = CreateRef<Scene>();
@@ -41,7 +44,7 @@ namespace Engine {
         test.GetComponent<TransformComponent>().SetTranslation({0.0f, 0.0f, 3.5f});
 
         //std::shared_ptr<Model> model = Model::createModelfromFile(m_Device, "assets/models/sphere.obj");
-        Ref<Model> model = CreateRef<Model>(m_Device, "assets/models/sphere.obj");
+        Ref<Model> model = CreateRef<Model>(m_Device, "assets/models/plane.obj");
 
         test.AddComponent<ModelComponent>(model);
         test.AddComponent<RigidBodyComponent>();
@@ -99,8 +102,17 @@ namespace Engine {
             uboBuffers[i]->map();
         }
 
+        auto texture = Texture(m_Device, "assets/meme.png");
+
+
+        VkDescriptorImageInfo image_info = {};
+        image_info.sampler = texture.GetSampler();
+        image_info.imageView = texture.GetImageView();
+        image_info.imageLayout = texture.GetImageLayout();
+
         auto globalSetLayout = DescriptorSetLayout::Builder(m_Device)
-                .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+                .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
+                .addBinding(1, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_SHADER_STAGE_ALL_GRAPHICS)
                 .build();
 
         std::vector<VkDescriptorSet> globalDescriptorSets(SwapChain::MAX_FRAMES_IN_FLIGHT);
@@ -108,6 +120,7 @@ namespace Engine {
             auto bufferInfo = uboBuffers[i]->descriptorInfo();
             DescriptorWriter(*globalSetLayout, *globalPool)
                 .writeBuffer(0, &bufferInfo)
+                .writeImage(1, &image_info)
                 .build(globalDescriptorSets[i]);
         }
 
@@ -133,6 +146,8 @@ namespace Engine {
         static bool opt_fullscreen = true;
         static bool opt_padding = false;
         static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+        int m_GizmoType = 0;
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
 
@@ -221,7 +236,7 @@ namespace Engine {
                     }
                 }
 
-                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+                /*ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
                 ImGui::Begin("Viewport");
                 auto viewportSize = ImGui::GetContentRegionAvail();
                 if (m_ViewportSize != *((glm::vec2*)&viewportSize)) {
@@ -231,8 +246,132 @@ namespace Engine {
                     m_ViewportSize = { viewportSize.x, viewportSize.y };
                 }
                 ImGui::Image(image, { viewportSize.x, viewportSize.y });
+                if (glfwGetKey(m_Window.getGLFWwindow(), GLFW_KEY_Q) == GLFW_PRESS) {
+                    if (!ImGuizmo::IsUsing())
+                        m_GizmoType = -1;
+                }
+
+                if (glfwGetKey(m_Window.getGLFWwindow(), GLFW_KEY_W) == GLFW_PRESS) {
+                    if (!ImGuizmo::IsUsing())
+                        m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+                }
+
+                if (glfwGetKey(m_Window.getGLFWwindow(), GLFW_KEY_E) == GLFW_PRESS) {
+                    if (!ImGuizmo::IsUsing())
+                        m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+                }
+
+                if (glfwGetKey(m_Window.getGLFWwindow(), GLFW_KEY_R) == GLFW_PRESS) {
+                    if (!ImGuizmo::IsUsing())
+                        m_GizmoType = ImGuizmo::OPERATION::SCALE;
+                }
+
+                Entity selectedEntity = HierarchyPanel.GetSelectedEntity();
+                //Entity selectedEntity = m_HoveredEntity;
+                if(selectedEntity) {
+                    //INFO("BINGO");
+                }
+                if (selectedEntity && m_GizmoType != -1)
+                {
+                    ImGuizmo::SetOrthographic(false);
+                    ImGuizmo::SetDrawlist();
+
+                    auto& tc = selectedEntity.GetComponent<TransformComponent>();
+                    glm::mat4 transform = tc.mat4();
+
+                    std::cout << glm::to_string(tc.Translation) << std::endl;
+
+                    float windowWidth = (float)ImGui::GetWindowWidth();
+                    float winodwHeight = (float)ImGui::GetWindowHeight();
+                    ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, winodwHeight);
+                    //glm::mat4 transform = selectedEntity.GetComponent<TransformComponent>().GetTransform();
+                    ImGuizmo::Manipulate(glm::value_ptr(camera.GetView()), glm::value_ptr(camera.GetProjection()), (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform));
+                    if (ImGuizmo::IsUsing()) {
+                        glm::vec3 translation, rotation, scale;
+                        Math::DecomposeTransform(transform, translation, rotation, scale);
+                        //ImGuizmo::DecomposeMatrixToComponents(transform, translation, rotation, scale);
+
+                        glm::vec3 deltaRotation = rotation - tc.Rotation;
+                        tc.Translation = translation;
+                        tc.Rotation += deltaRotation;
+                        tc.Scale = scale;
+                    }
+                }
                 ImGui::End();
-                ImGui::PopStyleVar();
+                ImGui::PopStyleVar();*/
+
+                ImGui::Begin("Viewport");
+                ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+                if (m_ViewportSize != *((glm::vec2*)&viewportPanelSize)) {
+                    //m_Framebuffer->Resize(viewportPanelSize.x, viewportPanelSize.y);
+                    //m_Camera->SetProjection(viewportPanelSize.x, viewportPanelSize.y);
+                    m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+                }
+
+                /*if (ImGui::IsWindowHovered())
+                    m_Camera->Inputs(windowHandler->GetWindow());*/
+
+                //windowSize = ImGui::GetContentRegionAvail();
+                //ImGui::Image((void*)textureColorbuffer, ImVec2{ windowSize.x, windowSize.y }, ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::Image(image, ImGui::GetContentRegionAvail());
+                auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+                auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+                auto viewportOffset = ImGui::GetWindowPos();
+                //m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+                //m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+
+                if (glfwGetKey(m_Window.getGLFWwindow(), GLFW_KEY_U) == GLFW_PRESS) {
+                    if (!ImGuizmo::IsUsing())
+                        m_GizmoType = -1;
+                }
+
+                if (glfwGetKey(m_Window.getGLFWwindow(), GLFW_KEY_I) == GLFW_PRESS) {
+                    if (!ImGuizmo::IsUsing())
+                        m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+                }
+
+                if (glfwGetKey(m_Window.getGLFWwindow(), GLFW_KEY_O) == GLFW_PRESS) {
+                    if (!ImGuizmo::IsUsing())
+                        m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+                }
+
+                if (glfwGetKey(m_Window.getGLFWwindow(), GLFW_KEY_P) == GLFW_PRESS) {
+                    if (!ImGuizmo::IsUsing())
+                        m_GizmoType = ImGuizmo::OPERATION::SCALE;
+                }
+
+                Entity selectedEntity = HierarchyPanel.GetSelectedEntity();
+                //Entity selectedEntity = m_HoveredEntity;
+                if(selectedEntity) {
+                    std::cout << "bruh" << std::endl;
+                }
+                if (selectedEntity && m_GizmoType != -1)
+                {
+                    ImGuizmo::SetOrthographic(false);
+                    ImGuizmo::SetDrawlist();
+
+                    auto& tc = selectedEntity.GetComponent<TransformComponent>();
+                    glm::mat4 mat = tc.mat4();
+
+                    float windowWidth = (float)ImGui::GetWindowWidth();
+                    float windowHeight = (float)ImGui::GetWindowHeight();
+                    ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
+                    //glm::mat4 transform = selectedEntity.GetComponent<TransformComponent>().GetTransform();
+                    ImGuizmo::Manipulate(glm::value_ptr(camera.GetView()), glm::value_ptr(camera.GetProjection()), (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(mat));
+                    std::cout << "yes" << std::endl;
+                    std::cout << m_GizmoType << std::endl;
+                    std::cout << glm::to_string(tc.Translation) << std::endl;
+                    if (ImGuizmo::IsUsing()) {
+                        glm::vec3 translation, rotation, scale;
+                        Math::DecomposeTransform(mat, translation, rotation, scale);
+
+                        glm::vec3 deltaRotation = rotation - tc.Rotation;
+                        tc.Translation = translation;
+                        tc.Rotation += deltaRotation;
+                        tc.Scale = scale;
+                    }
+                }
+                ImGui::End();
 
                 ImGui::Begin("Scene Info and Control");
                 ImGui::Text("Frame Time: %f", frameTime);
