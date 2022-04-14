@@ -51,14 +51,14 @@ namespace Engine {
         static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo);
 
     private:
-        static std::vector<char> readFile(const std::string& filepath);
+        static std::string readFile(const std::string& filepath);
 
         void createGraphicsPipeline(
                 const std::string& vertFilepath,
                 const std::string& fragFilepath,
                 const PipelineConfigInfo& configInfo, const bool& hasVertexAtrributes);
 
-        void createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule);
+        void createShaderModule(const std::vector<uint32_t>& code, VkShaderModule* shaderModule);
 
         Device& m_Device;
         VkPipeline graphicsPipeline;

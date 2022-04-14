@@ -5,7 +5,7 @@
 #include "pipeline.h"
 
 #include "model.h"
-
+#include <shaderc/shaderc.hpp>
 // std
 #include <cassert>
 #include <fstream>
@@ -24,21 +24,29 @@ namespace Engine {
         vkDestroyPipeline(m_Device.device(), graphicsPipeline, nullptr);
     }
 
-    std::vector<char> Pipeline::readFile(const std::string& filepath) {
-        std::ifstream file{filepath, std::ios::ate | std::ios::binary};
-
-        if (!file.is_open()) {
-            throw std::runtime_error("failed to open file: " + filepath);
+    std::string Pipeline::readFile(const std::string& filepath) {
+        std::string code;
+        std::ifstream in(filepath, std::ios::in | std::ios::binary);
+        if (in)
+        {
+            in.seekg(0, std::ios::end);
+            size_t size = in.tellg();
+            if (size != -1)
+            {
+                code.resize(size);
+                in.seekg(0, std::ios::beg);
+                in.read(&code[0], size);
+            }
+            else
+            {
+                std::cout << "bruh" << std::endl;
+            }
         }
-
-        size_t fileSize = static_cast<size_t>(file.tellg());
-        std::vector<char> buffer(fileSize);
-
-        file.seekg(0);
-        file.read(buffer.data(), fileSize);
-
-        file.close();
-        return buffer;
+        else
+        {
+            std::cout << "bruh" << std::endl;
+        }
+        return code;
     }
 
     void Pipeline::createGraphicsPipeline(
@@ -55,8 +63,26 @@ namespace Engine {
         auto vertCode = readFile(vertFilepath);
         auto fragCode = readFile(fragFilepath);
 
-        createShaderModule(vertCode, &vertShaderModule);
-        createShaderModule(fragCode, &fragShaderModule);
+        //std::cout << vertCode << std::endl;
+        //std::cout << fragCode << std::endl;
+
+        shaderc::Compiler compiler;
+        shaderc::CompileOptions options;
+
+        //options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
+        options.SetOptimizationLevel(shaderc_optimization_level_performance);
+
+        shaderc_shader_kind vert_t = shaderc_vertex_shader;
+        shaderc_shader_kind frag_t = shaderc_fragment_shader;
+
+        shaderc::SpvCompilationResult vert_result = compiler.CompileGlslToSpv(vertCode, vert_t, vertFilepath.c_str(), options);
+        shaderc::SpvCompilationResult frag_result = compiler.CompileGlslToSpv(fragCode, frag_t, fragFilepath.c_str(), options);
+
+        auto vert = std::vector<uint32_t>(vert_result.cbegin(), vert_result.cend());
+        auto frag = std::vector<uint32_t>(frag_result.cbegin(), frag_result.cend());
+
+        createShaderModule(vert, &vertShaderModule);
+        createShaderModule(frag, &fragShaderModule);
 
         VkPipelineShaderStageCreateInfo shaderStages[2];
         shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -158,11 +184,11 @@ namespace Engine {
         }
     }
 
-    void Pipeline::createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule) {
+    void Pipeline::createShaderModule(const std::vector<uint32_t>& code, VkShaderModule* shaderModule) {
         VkShaderModuleCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        createInfo.codeSize = code.size();
-        createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+        createInfo.codeSize = 4*code.size();
+        createInfo.pCode = code.data();
 
         if (vkCreateShaderModule(m_Device.device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS) {
             throw std::runtime_error("failed to create shader module");

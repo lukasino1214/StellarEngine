@@ -36,4 +36,5 @@ void main() {
   vec3 diffuseLight = lightColor * max(dot(normalWorldSpace, normalize(directionToLight)), 0);
 
   fragColor = (diffuseLight + ambientLight) * color;
+  //fragColor = vec3(1.0);
 }
