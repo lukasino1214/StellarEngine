@@ -6,6 +6,7 @@ layout(location = 2) in vec3 normal;
 layout(location = 3) in vec2 uv;
 
 layout(location = 0) out vec3 fragColor;
+layout(location = 1) out vec2 uv_out;
 
 layout(set = 0, binding = 0) uniform GlobalUbo {
   mat4 projectionMatrix;
@@ -15,6 +16,7 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
   vec4 lightColor;
   vec3 cameraPos;
 } ubo;
+layout(set = 0, binding = 1) uniform sampler2D albedo;
 
 layout(push_constant) uniform Push {
   mat4 modelMatrix;
@@ -36,5 +38,7 @@ void main() {
   vec3 diffuseLight = lightColor * max(dot(normalWorldSpace, normalize(directionToLight)), 0);
 
   fragColor = (diffuseLight + ambientLight) * color;
+  uv_out = uv;
+  //fragColor *= texture(albedo, uv);
   //fragColor = vec3(1.0);
 }

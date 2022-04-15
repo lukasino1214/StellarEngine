@@ -14,7 +14,7 @@ namespace Engine {
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
         {
             // Hides mouse cursor
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+            //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
             // Prevents camera from jumping on the first click
             if (firstClick)
@@ -82,13 +82,6 @@ namespace Engine {
 
             // Sets mouse cursor to the middle of the screen so that it doesn't end up roaming around
             glfwSetCursorPos(window, (m_Width / 2), (m_Height / 2));
-        }
-        else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
-        {
-            // Unhides cursor since camera is not looking around anymore
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            // Makes sure the next time the camera looks around it doesn't jump
-            firstClick = true;
         }
 
         m_View = glm::lookAt(m_Position, m_Position + m_Orientation, m_Up);

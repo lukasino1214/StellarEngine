@@ -15,7 +15,7 @@
 #include <iostream>
 #include <chrono>
 #include <math.h>
-#include <ImGuizmo.h>
+#include "../Vendor/imgui/imguizmo.h"
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Engine {
@@ -153,6 +153,18 @@ namespace Engine {
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
 
+        glm::vec3 Rotation = { 0, 0, 0 };
+        glm::vec3 Translation = { 2, 2, 2 };
+        glm::vec3 Scale = { 1, 1, 1 };
+
+        glm::mat4 Trotation = glm::toMat4(glm::quat(Rotation));
+
+        glm::mat4 test =  glm::translate(glm::mat4(1.0f), Translation)
+               * Trotation
+               * glm::scale(glm::mat4(1.0f), Scale);
+
+        //ImGui_ImplGlfw_InstallCallbacks(m_Window.getGLFWwindow());
+
         while (!m_Window.shouldClose()) {
             glfwPollEvents();
 
@@ -272,9 +284,6 @@ namespace Engine {
                 }
 
                 Entity selectedEntity = HierarchyPanel.GetSelectedEntity();
-                if(selectedEntity) {
-                    std::cout << "bruh" << std::endl;
-                }
                 if (selectedEntity && m_GizmoType != -1)
                 {
                     ImGuizmo::SetOrthographic(false);
@@ -293,6 +302,7 @@ namespace Engine {
                     ImGuizmo::Manipulate(glm::value_ptr(camera.getView()), glm::value_ptr(cameraProj), (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(mod_mat));
 
                     if (ImGuizmo::IsUsing()) {
+                        std::cout << "input" << std::endl;
                         glm::vec3 translation, rotation, scale;
                         Math::DecomposeTransform(mod_mat, translation, rotation, scale);
 
@@ -302,6 +312,10 @@ namespace Engine {
                     }
                 }
                 ImGui::End();
+
+                test =  glm::translate(glm::mat4(1.0f), Translation)
+                        * Trotation
+                        * glm::scale(glm::mat4(1.0f), Scale);
 
                 ImGui::Begin("Scene Info and Control");
                 ImGui::Text("Frame Time: %f", frameTime);
