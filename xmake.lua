@@ -11,15 +11,15 @@ elseif is_mode("release") then
 end
 
 set_optimize("fastest")
-packages = {"glfw", "glm", "spdlog", "yaml-cpp", "fmt", "tinyobjloader", "tinygltf", "vulkan", "entt", "stb", "shaderc"}
+packages = {"glfw", "glm", "spdlog", "yaml-cpp", "fmt", "tinyobjloader", "vulkan", "entt", "stb", "shaderc", "fx-gltf"}
 
 add_requires(packages)
 
 target("Vendor")
     set_kind("static")
     add_files("Vendor/*/*.cpp")
-    add_headerfiles("Vendor/*/*.h")
-    add_packages("glfw", "glm", "shaderc")
+    add_headerfiles("Vendor/*/*.h", "Vendor/*/*.hpp")
+    add_packages("glfw", "glm", "shaderc", "stb")
 target_end()
 
 target("Engine")

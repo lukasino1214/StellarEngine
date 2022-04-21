@@ -8,6 +8,7 @@
 #include "../Core/UUID.h"
 #include "../Core/Base.h"
 #include "../Graphics/model.h"
+#include "../Graphics/new_model.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -64,6 +65,16 @@ namespace Engine {
         ModelComponent(const std::shared_ptr<Model>& bruh) { model = bruh; path = bruh->getPath(); }
 
         std::shared_ptr<Model> GetModel() { return model; }
+    };
+
+    struct NewModelComponent {
+        std::shared_ptr<NewModel> model{};
+
+        NewModelComponent() = default;
+        //ModelComponent(const ModelComponent&) = default;
+        NewModelComponent(const std::shared_ptr<NewModel>& bruh) { model = bruh; }
+
+        std::shared_ptr<NewModel> GetModel() { return model; }
     };
 
     struct RigidBodyComponent {

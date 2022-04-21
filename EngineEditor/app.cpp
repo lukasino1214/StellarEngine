@@ -24,7 +24,7 @@ namespace Engine {
         glm::mat4 projectionMat{1.0f};
         glm::mat4 viewMat{1.0f};
         glm::vec4 ambientLightColor{1.0f, 1.0f, 1.0f, 0.02f};
-        glm::vec3 lightPosition{-1.0f};
+        glm::vec3 lightPosition{-20.0f};
         alignas(16) glm::vec4 lightColor{1.0f};
         glm::vec3 cameraPos{0.0f, 0.0f, 0.0f};
     };
@@ -45,10 +45,12 @@ namespace Engine {
 
         //std::shared_ptr<Model> model = Model::createModelfromFile(m_Device, "assets/models/sphere.obj");
         Ref<Model> model = CreateRef<Model>(m_Device, "assets/models/plane.obj");
+        Ref<NewModel> bruh = CreateRef<NewModel>(m_Device, "assets/Sponza.gltf");
 
         test.AddComponent<ModelComponent>(model);
         test.AddComponent<RigidBodyComponent>();
         test.GetComponent<RigidBodyComponent>().acceleration = {0.0f, 5.0f, 0.0f};
+        test.AddComponent<NewModelComponent>(bruh);
 
         Entity test2 = m_EditorScene->CreateEntity("Test 2");
         test2.GetComponent<TransformComponent>().SetRotation({glm::radians(180.0f), glm::radians(90.0f), 0.0f});
@@ -125,15 +127,9 @@ namespace Engine {
         }
 
         OffScreen screen(m_Device);
-
-        //RenderSystem simpleRenderSystem{m_Device, m_Renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
-        //GridSystem gridsystem{m_Device,m_Renderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
-
-        //GridSystem ScreenGridsystem{m_Device,screen.GetRenderPass(), globalSetLayout->getDescriptorSetLayout()};
         RenderSystem ScreenSimpleRenderSystem{m_Device, screen.GetRenderPass(), globalSetLayout->getDescriptorSetLayout()};
 
         Camera camera = Camera({10, 10, 10}, {0, 0, 0});
-        //camera.setViewTarget(glm::vec3(-1.f, -1.f, -1.f), glm::vec3(0.f, 0.f, 2.5f));
 
         Imgui m_Imgui{m_Window, m_Device, m_Renderer.getSwapChainRenderPass(), m_Renderer.getImageCount()};
 
@@ -152,18 +148,6 @@ namespace Engine {
         int m_GizmoType = 0;
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-
-        glm::vec3 Rotation = { 0, 0, 0 };
-        glm::vec3 Translation = { 2, 2, 2 };
-        glm::vec3 Scale = { 1, 1, 1 };
-
-        glm::mat4 Trotation = glm::toMat4(glm::quat(Rotation));
-
-        glm::mat4 test =  glm::translate(glm::mat4(1.0f), Translation)
-               * Trotation
-               * glm::scale(glm::mat4(1.0f), Scale);
-
-        //ImGui_ImplGlfw_InstallCallbacks(m_Window.getGLFWwindow());
 
         while (!m_Window.shouldClose()) {
             glfwPollEvents();
@@ -252,6 +236,7 @@ namespace Engine {
                     }
                 }
 
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
                 ImGui::Begin("Viewport");
                 ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
                 if (m_ViewportSize != *((glm::vec2*)&viewportPanelSize)) {
@@ -302,7 +287,6 @@ namespace Engine {
                     ImGuizmo::Manipulate(glm::value_ptr(camera.getView()), glm::value_ptr(cameraProj), (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(mod_mat));
 
                     if (ImGuizmo::IsUsing()) {
-                        std::cout << "input" << std::endl;
                         glm::vec3 translation, rotation, scale;
                         Math::DecomposeTransform(mod_mat, translation, rotation, scale);
 
@@ -312,10 +296,7 @@ namespace Engine {
                     }
                 }
                 ImGui::End();
-
-                test =  glm::translate(glm::mat4(1.0f), Translation)
-                        * Trotation
-                        * glm::scale(glm::mat4(1.0f), Scale);
+                ImGui::PopStyleVar();
 
                 ImGui::Begin("Scene Info and Control");
                 ImGui::Text("Frame Time: %f", frameTime);
@@ -327,8 +308,8 @@ namespace Engine {
                 }
 
                 else {
-                    //PhysicsSystem test{};
-                    //test.Update(m_EditorScene, frameTime);
+                    PhysicsSystem test{};
+                    test.Update(m_EditorScene, frameTime);
                     //simpleRenderSystem.renderGameObjects(frameInfo, m_EditorScene);
                     if(ImGui::Button("Stop")) {
                         scenePlaying = false;
@@ -360,12 +341,12 @@ namespace Engine {
                 io.DisplaySize = ImVec2((float)1280, (float)720);
 
                 m_Imgui.render(commandBuffer);
-                /*if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+                if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
                     GLFWwindow *backup_current_context = glfwGetCurrentContext();
                     ImGui::UpdatePlatformWindows();
                     ImGui::RenderPlatformWindowsDefault();
                     glfwMakeContextCurrent(backup_current_context);
-                }*/
+                }
 
                 m_Renderer.endSwapChainRenderPass(commandBuffer);  //vkEndRenderPass
                 m_Renderer.endFrame();

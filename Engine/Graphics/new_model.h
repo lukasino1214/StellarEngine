@@ -2,8 +2,8 @@
 // Created by lukas on 08.11.21.
 //
 
-#ifndef ENGINEEDITOR_MODEL_H
-#define ENGINEEDITOR_MODEL_H
+#ifndef ENGINEEDITOR_NEWMODEL_H
+#define ENGINEEDITOR_NEWMODEL_H
 
 #include "device.h"
 #include "buffer.h"
@@ -18,8 +18,16 @@
 #include <vector>
 
 namespace Engine {
-    class Model {
+    class NewModel {
     public:
+        struct Primitive {
+            uint32_t firstIndex;
+            uint32_t firstVertex;
+            uint32_t indexCount;
+            uint32_t vertexCount;
+        };
+
+
         struct Vertex {
             glm::vec3 position;
             glm::vec3 color;
@@ -34,38 +42,28 @@ namespace Engine {
             }
         };
 
-        struct Builder {
-            std::vector<Vertex> vertices{};
-            std::vector<uint32_t> indices{};
+        NewModel(Device &device, const std::string &filepath);
+        ~NewModel();
 
-            void loadModel(const std::string &filepath);
-        };
-
-        Model(Device &device, const std::string &filepath);
-        Model(Device &device, const Model::Builder &builder);
-        ~Model();
-
-        static std::unique_ptr<Model> createModelfromFile(Device &device, const std::string &filepath);
 
         void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer);
 
-        std::string getPath() { return m_Path; }
-
+        std::vector<Vertex> vertices;
+        std::vector<uint32_t> indices;
+        std::vector<Primitive> primitives;
     private:
         void createVertexBuffers(const std::vector<Vertex> &vertices);
         void createIndexBuffers(const std::vector<uint32_t> &indices);
 
         Device &m_Device;
         std::unique_ptr<Buffer> vertexBuffer;
-        uint32_t vertexCount;
 
         bool hasIndexBuffer = false;
         std::unique_ptr<Buffer> indexBuffer;
-        uint32_t indexCount;
         std::string m_Path;
     };
 }
 
 
-#endif //ENGINEEDITOR_MODEL_H
+#endif //ENGINEEDITOR_NEWMODEL_H

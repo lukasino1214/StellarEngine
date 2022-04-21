@@ -26,6 +26,7 @@
 #include "Graphics/descriptors.h"
 #include "Graphics/OffScreen.h"
 #include "Graphics/texture.h"
+#include "Graphics/new_model.h"
 
 #include "System/render_system.h"
 #include "System/physics_system.h"
