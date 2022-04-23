@@ -50,7 +50,7 @@ namespace Engine {
     }
 
 // class member functions
-    Device::Device(Window &window) : window{window} {
+    Device::Device(Window* window) : window{window} {
         createInstance();
         setupDebugMessenger();
         createSurface();
@@ -196,7 +196,7 @@ namespace Engine {
         }
     }
 
-    void Device::createSurface() { window.createWindowSurface(instance, &surface_); }
+    void Device::createSurface() { window->createWindowSurface(instance, &surface_); }
 
     bool Device::isDeviceSuitable(VkPhysicalDevice device) {
         QueueFamilyIndices indices = findQueueFamilies(device);

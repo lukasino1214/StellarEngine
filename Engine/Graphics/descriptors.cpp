@@ -3,6 +3,7 @@
 //
 
 #include "descriptors.h"
+#include "core.h"
 
 #include <cassert>
 #include <stdexcept>
@@ -23,12 +24,12 @@ namespace Engine {
     }
 
     std::unique_ptr<DescriptorSetLayout> DescriptorSetLayout::Builder::build() const {
-        return std::make_unique<DescriptorSetLayout>(m_Device, bindings);
+        return std::make_unique<DescriptorSetLayout>(bindings);
     }
 
 // *************** Descriptor Set Layout *********************
 
-    DescriptorSetLayout::DescriptorSetLayout(Device &Device, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings) : m_Device{Device}, bindings{bindings} {
+    DescriptorSetLayout::DescriptorSetLayout(std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings) : bindings{bindings} {
         std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings{};
         for (auto kv : bindings) {
             setLayoutBindings.push_back(kv.second);
@@ -40,7 +41,7 @@ namespace Engine {
         descriptorSetLayoutInfo.pBindings = setLayoutBindings.data();
 
         if (vkCreateDescriptorSetLayout(
-                m_Device.device(),
+                Core::m_Device->device(),
                 &descriptorSetLayoutInfo,
                 nullptr,
                 &descriptorSetLayout) != VK_SUCCESS) {
@@ -49,7 +50,7 @@ namespace Engine {
     }
 
     DescriptorSetLayout::~DescriptorSetLayout() {
-        vkDestroyDescriptorSetLayout(m_Device.device(), descriptorSetLayout, nullptr);
+        vkDestroyDescriptorSetLayout(Core::m_Device->device(), descriptorSetLayout, nullptr);
     }
 
 // *************** Descriptor Pool Builder *********************
@@ -71,13 +72,12 @@ namespace Engine {
     }
 
     std::unique_ptr<DescriptorPool> DescriptorPool::Builder::build() const {
-        return std::make_unique<DescriptorPool>(m_Device, maxSets, poolFlags, poolSizes);
+        return std::make_unique<DescriptorPool>(maxSets, poolFlags, poolSizes);
     }
 
 // *************** Descriptor Pool *********************
 
-    DescriptorPool::DescriptorPool(Device &Device, uint32_t maxSets, VkDescriptorPoolCreateFlags poolFlags, const std::vector<VkDescriptorPoolSize> &poolSizes)
-    : m_Device{Device} {
+    DescriptorPool::DescriptorPool(uint32_t maxSets, VkDescriptorPoolCreateFlags poolFlags, const std::vector<VkDescriptorPoolSize> &poolSizes) {
         VkDescriptorPoolCreateInfo descriptorPoolInfo{};
         descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         descriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
@@ -85,14 +85,14 @@ namespace Engine {
         descriptorPoolInfo.maxSets = maxSets;
         descriptorPoolInfo.flags = poolFlags;
 
-        if (vkCreateDescriptorPool(m_Device.device(), &descriptorPoolInfo, nullptr, &descriptorPool) !=
+        if (vkCreateDescriptorPool(Core::m_Device->device(), &descriptorPoolInfo, nullptr, &descriptorPool) !=
             VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");
         }
     }
 
     DescriptorPool::~DescriptorPool() {
-        vkDestroyDescriptorPool(m_Device.device(), descriptorPool, nullptr);
+        vkDestroyDescriptorPool(Core::m_Device->device(), descriptorPool, nullptr);
     }
 
     bool DescriptorPool::allocateDescriptor(
@@ -105,7 +105,7 @@ namespace Engine {
 
         // Might want to create a "DescriptorPoolManager" class that handles this case, and builds
         // a new pool whenever an old pool fills up. But this is beyond our current scope
-        if (vkAllocateDescriptorSets(m_Device.device(), &allocInfo, &descriptor) != VK_SUCCESS) {
+        if (vkAllocateDescriptorSets(Core::m_Device->device(), &allocInfo, &descriptor) != VK_SUCCESS) {
             return false;
         }
         return true;
@@ -113,14 +113,14 @@ namespace Engine {
 
     void DescriptorPool::freeDescriptors(std::vector<VkDescriptorSet> &descriptors) const {
         vkFreeDescriptorSets(
-                m_Device.device(),
+                Core::m_Device->device(),
                 descriptorPool,
                 static_cast<uint32_t>(descriptors.size()),
                 descriptors.data());
     }
 
     void DescriptorPool::resetPool() {
-        vkResetDescriptorPool(m_Device.device(), descriptorPool, 0);
+        vkResetDescriptorPool(Core::m_Device->device(), descriptorPool, 0);
     }
 
 // *************** Descriptor Writer *********************
@@ -180,7 +180,7 @@ namespace Engine {
         for (auto &write : writes) {
             write.dstSet = set;
         }
-        vkUpdateDescriptorSets(pool.m_Device.device(), writes.size(), writes.data(), 0, nullptr);
+        vkUpdateDescriptorSets(Core::m_Device->device(), writes.size(), writes.data(), 0, nullptr);
     }
 
 }

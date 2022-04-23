@@ -3,6 +3,7 @@
 //
 
 #include "GridSystem.h"
+#include "../Graphics/core.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -16,13 +17,13 @@
 
 namespace Engine {
 
-    GridSystem::GridSystem(Device& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout) : m_Device{device} {
+    GridSystem::GridSystem(VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout) {
         createPipelineLayout(globalSetLayout);
         createPipeline(renderPass);
     }
 
     GridSystem::~GridSystem() {
-        vkDestroyPipelineLayout(m_Device.device(), pipelineLayout, nullptr);
+        vkDestroyPipelineLayout(Core::m_Device->device(), pipelineLayout, nullptr);
     }
 
     void GridSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout) {
@@ -34,7 +35,7 @@ namespace Engine {
         pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
         pipelineLayoutInfo.pushConstantRangeCount = 0;
         pipelineLayoutInfo.pPushConstantRanges = nullptr;
-        if (vkCreatePipelineLayout(m_Device.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
+        if (vkCreatePipelineLayout(Core::m_Device->device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
             VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");
         }
@@ -54,7 +55,6 @@ namespace Engine {
         configInfo.colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 
         m_Pipeline = std::make_unique<Pipeline>(
-                m_Device,
                 "assets/shaders/grid.vert.spv",
                 "assets/shaders/grid.frag.spv",
                 configInfo, false);

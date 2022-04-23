@@ -17,7 +17,7 @@
 namespace Engine {
     class Renderer {
     public:
-        Renderer(Window &window, Device &device);
+        Renderer(Window &window);
         ~Renderer();
 
         Renderer(const Renderer &) = delete;
@@ -50,7 +50,6 @@ namespace Engine {
         void recreateSwapChain();
 
         Window &m_Window;
-        Device &m_Device;
         std::unique_ptr<SwapChain> m_SwapChain;
         std::vector<VkCommandBuffer> commandBuffers;
 

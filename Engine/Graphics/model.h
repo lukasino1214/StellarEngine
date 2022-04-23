@@ -41,11 +41,11 @@ namespace Engine {
             void loadModel(const std::string &filepath);
         };
 
-        Model(Device &device, const std::string &filepath);
-        Model(Device &device, const Model::Builder &builder);
+        Model(const std::string &filepath);
+        Model(const Model::Builder &builder);
         ~Model();
 
-        static std::unique_ptr<Model> createModelfromFile(Device &device, const std::string &filepath);
+        static std::unique_ptr<Model> createModelfromFile(const std::string &filepath);
 
         void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer);
@@ -56,7 +56,6 @@ namespace Engine {
         void createVertexBuffers(const std::vector<Vertex> &vertices);
         void createIndexBuffers(const std::vector<uint32_t> &indices);
 
-        Device &m_Device;
         std::unique_ptr<Buffer> vertexBuffer;
         uint32_t vertexCount;
 

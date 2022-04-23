@@ -21,9 +21,8 @@ namespace Engine {
     public:
         static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
-        SwapChain(Device &deviceRef, VkExtent2D windowExtent);
-        SwapChain(
-                Device &deviceRef, VkExtent2D windowExtent, std::shared_ptr<SwapChain> previous);
+        SwapChain(VkExtent2D windowExtent);
+        SwapChain(VkExtent2D windowExtent, std::shared_ptr<SwapChain> previous);
 
         ~SwapChain();
 
@@ -81,7 +80,6 @@ namespace Engine {
         std::vector<VkImage> swapChainImages;
         std::vector<VkImageView> swapChainImageViews;
 
-        Device &device;
         VkExtent2D windowExtent;
 
         VkSwapchainKHR swapChain;

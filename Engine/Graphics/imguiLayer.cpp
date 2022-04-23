@@ -11,6 +11,7 @@
 #include "../../Vendor/imgui/imgui.h"
 #include "../../Vendor/imgui/imgui_impl_glfw.h"
 #include "../../Vendor/imgui/imgui_impl_vulkan.h"
+#include "core.h"
 
 // std
 #include <stdexcept>
@@ -21,7 +22,8 @@ namespace Engine {
 // initialize the vulkan and glfw imgui implementations, since that's what our engine is built
 // using.
     Imgui::Imgui(
-            Window &window, Device &device, VkRenderPass renderPass, uint32_t imageCount) : m_Device{device} {
+            Window &window, VkRenderPass renderPass, uint32_t imageCount) {
+        auto device = Core::m_Device->device();
         // set up a descriptor pool stored on this instance, see header for more comments on this.
         VkDescriptorPoolSize pool_sizes[] = {
                 {VK_DESCRIPTOR_TYPE_SAMPLER, 2000},
@@ -41,7 +43,7 @@ namespace Engine {
         pool_info.maxSets = 2000 * IM_ARRAYSIZE(pool_sizes);
         pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
         pool_info.pPoolSizes = pool_sizes;
-        if (vkCreateDescriptorPool(device.device(), &pool_info, nullptr, &m_DescriptorPool) != VK_SUCCESS) {
+        if (vkCreateDescriptorPool(device, &pool_info, nullptr, &m_DescriptorPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to set up descriptor pool for imgui");
         }
 
@@ -94,11 +96,11 @@ namespace Engine {
         // Initialize imgui for vulkan
         ImGui_ImplGlfw_InitForVulkan(window.getGLFWwindow(), true);
         ImGui_ImplVulkan_InitInfo init_info = {};
-        init_info.Instance = device.getInstance();
-        init_info.PhysicalDevice = device.getPhysicalDevice();
-        init_info.Device = device.device();
-        init_info.QueueFamily = device.getGraphicsQueueFamily();
-        init_info.Queue = device.graphicsQueue();
+        init_info.Instance = Core::m_Device->getInstance();
+        init_info.PhysicalDevice = Core::m_Device->getPhysicalDevice();
+        init_info.Device = Core::m_Device->device();
+        init_info.QueueFamily = Core::m_Device->getGraphicsQueueFamily();
+        init_info.Queue = Core::m_Device->graphicsQueue();
 
         // pipeline cache is a potential future optimization, ignoring for now
         init_info.PipelineCache = VK_NULL_HANDLE;
@@ -114,14 +116,14 @@ namespace Engine {
 
         // upload fonts, this is done by recording and submitting a one time use command buffer
         // which can be done easily bye using some existing helper functions on the lve device object
-        auto commandBuffer = device.beginSingleTimeCommands();
+        auto commandBuffer = Core::m_Device->beginSingleTimeCommands();
         ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
-        device.endSingleTimeCommands(commandBuffer);
+        Core::m_Device->endSingleTimeCommands(commandBuffer);
         ImGui_ImplVulkan_DestroyFontUploadObjects();
     }
 
     Imgui::~Imgui() {
-        vkDestroyDescriptorPool(m_Device.device(), m_DescriptorPool, nullptr);
+        vkDestroyDescriptorPool(Core::m_Device->device(), m_DescriptorPool, nullptr);
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();

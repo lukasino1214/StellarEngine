@@ -11,7 +11,7 @@ elseif is_mode("release") then
 end
 
 set_optimize("fastest")
-packages = {"glfw", "glm", "spdlog", "yaml-cpp", "fmt", "tinyobjloader", "vulkan", "entt", "stb", "shaderc", "fx-gltf"}
+packages = {"glfw", "glm", "spdlog", "yaml-cpp", "fmt", "tinyobjloader", "vulkan", "entt", "stb", "shaderc", "fx-gltf", "tinygltf"}
 
 add_requires(packages)
 

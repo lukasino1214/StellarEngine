@@ -19,7 +19,7 @@
 namespace Engine {
     class GridSystem {
     public:
-        GridSystem(Device &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
+        GridSystem(VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
         ~GridSystem();
 
         GridSystem(const GridSystem &) = delete;
@@ -30,8 +30,6 @@ namespace Engine {
     private:
         void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
         void createPipeline(VkRenderPass renderPass);
-
-        Device &m_Device;
 
         std::unique_ptr<Pipeline> m_Pipeline;
         VkPipelineLayout pipelineLayout;

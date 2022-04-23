@@ -5,6 +5,7 @@
 #include "pipeline.h"
 
 #include "model.h"
+#include "core.h"
 #include <shaderc/shaderc.hpp>
 // std
 #include <cassert>
@@ -14,14 +15,15 @@
 
 namespace Engine {
 
-    Pipeline::Pipeline(Device& device, const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo, const bool& hasVertexAtrributes) : m_Device{device} {
+    Pipeline::Pipeline(const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo, const bool& hasVertexAtrributes) {
         createGraphicsPipeline(vertFilepath, fragFilepath, configInfo, hasVertexAtrributes);
     }
 
     Pipeline::~Pipeline() {
-        vkDestroyShaderModule(m_Device.device(), vertShaderModule, nullptr);
-        vkDestroyShaderModule(m_Device.device(), fragShaderModule, nullptr);
-        vkDestroyPipeline(m_Device.device(), graphicsPipeline, nullptr);
+        auto device = Core::m_Device->device();
+        vkDestroyShaderModule(device, vertShaderModule, nullptr);
+        vkDestroyShaderModule(device, fragShaderModule, nullptr);
+        vkDestroyPipeline(device, graphicsPipeline, nullptr);
     }
 
     std::string Pipeline::readFile(const std::string& filepath) {
@@ -59,6 +61,8 @@ namespace Engine {
         assert(
                 configInfo.renderPass != VK_NULL_HANDLE &&
                 "Cannot create graphics pipeline: no renderPass provided in configInfo");
+
+        auto device = Core::m_Device->device();
 
         auto vertCode = readFile(vertFilepath);
         auto fragCode = readFile(fragFilepath);
@@ -133,7 +137,7 @@ namespace Engine {
             pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
             if (vkCreateGraphicsPipelines(
-                    m_Device.device(),
+                    device,
                     VK_NULL_HANDLE,
                     1,
                     &pipelineInfo,
@@ -173,7 +177,7 @@ namespace Engine {
             pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
             if (vkCreateGraphicsPipelines(
-                    m_Device.device(),
+                    device,
                     VK_NULL_HANDLE,
                     1,
                     &pipelineInfo,
@@ -190,7 +194,7 @@ namespace Engine {
         createInfo.codeSize = 4*code.size();
         createInfo.pCode = code.data();
 
-        if (vkCreateShaderModule(m_Device.device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS) {
+        if (vkCreateShaderModule(Core::m_Device->device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS) {
             throw std::runtime_error("failed to create shader module");
         }
     }

@@ -33,10 +33,11 @@ namespace Engine {
         bool startPhysics = false;
 
         Window m_Window{WIDTH, HEIGHT, "Stellar Engine"};
-        Device m_Device{m_Window};
-        Renderer m_Renderer{m_Window, m_Device};
+        Renderer m_Renderer{m_Window};
 
         std::unique_ptr<DescriptorPool> globalPool{};
+        std::unique_ptr<DescriptorSetLayout> globalSetLayout{};
+        std::unique_ptr<DescriptorSetLayout> entitySetLayout{};
         SceneHierarchyPanel HierarchyPanel;
         Ref<Scene> m_EditorScene;
         Ref<Scene> m_ActiveScene;

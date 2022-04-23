@@ -13,7 +13,7 @@
 namespace Engine {
     class Texture {
     public:
-        Texture(Engine::Device &mDevice, const std::string &path);
+        Texture(const std::string &path);
         ~Texture();
 
         VkSampler GetSampler() { return m_Sampler; }
@@ -23,8 +23,6 @@ namespace Engine {
     private:
         void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 
-
-        Device& m_Device;
         VkImage m_Image;
         VkDeviceMemory m_ImageMemory;
         VkImageView m_ImageView;

@@ -145,7 +145,7 @@ namespace Engine {
         fout << out.c_str();
     }
 
-    bool SceneSerializer::Deserialize(const std::string &filepath, Device &m_Device) {
+    bool SceneSerializer::Deserialize(const std::string &filepath) {
         YAML::Node data;
         try {
             data = YAML::LoadFile(filepath);
@@ -186,7 +186,7 @@ namespace Engine {
                     deserializedEntity.AddComponent<ModelComponent>();
 
                     deserializedEntity.GetComponent<ModelComponent>().path = modelComponent["Path"].as<std::string>();
-                    deserializedEntity.GetComponent<ModelComponent>().model = Model::createModelfromFile(m_Device, deserializedEntity.GetComponent<ModelComponent>().path);
+                    deserializedEntity.GetComponent<ModelComponent>().model = Model::createModelfromFile(deserializedEntity.GetComponent<ModelComponent>().path);
                 }
 
                 auto rigidBodyComponent = entity["RigidBodyComponent"];

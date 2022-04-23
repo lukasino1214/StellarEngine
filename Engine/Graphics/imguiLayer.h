@@ -29,7 +29,7 @@ namespace Engine {
 
     class Imgui {
     public:
-        Imgui(Window &window, Device &device, VkRenderPass renderPass, uint32_t imageCount);
+        Imgui(Window &window, VkRenderPass renderPass, uint32_t imageCount);
         ~Imgui();
 
         void newFrame();
@@ -45,7 +45,6 @@ namespace Engine {
         //void runExample();
 
     private:
-        Device &m_Device;
 
         // We haven't yet covered descriptor pools in the tutorial series
         // so I'm just going to create one for just imgui and store it here for now.

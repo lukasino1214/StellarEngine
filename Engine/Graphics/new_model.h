@@ -16,17 +16,34 @@
 // std
 #include <memory>
 #include <vector>
+#include "texture.h"
+#include "descriptors.h"
+#include "frame_info.h"
+
+/*#define TINYGLTF_IMPLEMENTATION
+//#define STB_IMAGE_IMPLEMENTATION
+#define TINYGLTF_NO_STB_IMAGE_WRITE
+#include "../../Vendor/tinygltf/tiny_gltf.h"*/
 
 namespace Engine {
     class NewModel {
     public:
+        struct Material {
+            std::shared_ptr<Texture> albedoTexture;
+            std::shared_ptr<Texture> normalTexture;
+            std::shared_ptr<Texture> metallicRoughnessTexture;
+           // std::shared_ptr<Texture> normalTexture;
+            //std::shared_ptr<Texture> metallicRoughnessTexture;
+            VkDescriptorSet descriptorSet;
+        };
+
         struct Primitive {
             uint32_t firstIndex;
             uint32_t firstVertex;
             uint32_t indexCount;
             uint32_t vertexCount;
+            Material material;
         };
-
 
         struct Vertex {
             glm::vec3 position;
@@ -42,12 +59,12 @@ namespace Engine {
             }
         };
 
-        NewModel(Device &device, const std::string &filepath);
+        NewModel(const std::string &filepath, DescriptorPool &pool, DescriptorSetLayout &setLayout);
         ~NewModel();
 
 
         void bind(VkCommandBuffer commandBuffer);
-        void draw(VkCommandBuffer commandBuffer);
+        void draw(FrameInfo frameInfo, VkPipelineLayout pipelineLayout);
 
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
@@ -56,7 +73,6 @@ namespace Engine {
         void createVertexBuffers(const std::vector<Vertex> &vertices);
         void createIndexBuffers(const std::vector<uint32_t> &indices);
 
-        Device &m_Device;
         std::unique_ptr<Buffer> vertexBuffer;
 
         bool hasIndexBuffer = false;

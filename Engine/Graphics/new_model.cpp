@@ -5,9 +5,8 @@
 #include "new_model.h"
 
 #include "../Utils/utils.h"
+#include "core.h"
 
-#define TINYOBJECTLOADER_IMPLEMENTATION
-#include <tiny_obj_loader.h>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -18,6 +17,9 @@
 #include <iostream>
 
 #include <fx/gltf.h>
+
+#include <filesystem>
+#include "descriptors.h"
 
 namespace std {
     template <>
@@ -41,7 +43,6 @@ namespace Engine {
         uint32_t vertexSize = sizeof(vertices[0]);
 
         Buffer stagingBuffer{
-            m_Device,
             vertexSize,
             vertexCount,
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -52,13 +53,12 @@ namespace Engine {
         stagingBuffer.writeToBuffer((void *)vertices.data());
 
         vertexBuffer = std::make_unique<Buffer>(
-                m_Device,
                 vertexSize,
                 vertexCount,
                 VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-        m_Device.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize);
+        Core::m_Device->copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize);
     }
 
     void NewModel::createIndexBuffers(const std::vector<uint32_t> &indices) {
@@ -73,7 +73,6 @@ namespace Engine {
         uint32_t indexSize = sizeof(indices[0]);
 
         Buffer stagingBuffer{
-            m_Device,
             indexSize,
             indexCount,
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -84,27 +83,28 @@ namespace Engine {
         stagingBuffer.writeToBuffer((void *)indices.data());
 
         indexBuffer = std::make_unique<Buffer>(
-                m_Device,
                 indexSize,
                 indexCount,
                 VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
                 );
 
-        m_Device.copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), bufferSize);
+        Core::m_Device->copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), bufferSize);
     }
 
-    void NewModel::draw(VkCommandBuffer commandBuffer) {
+    void NewModel::draw(FrameInfo frameInfo, VkPipelineLayout pipelineLayout) {
         uint32_t vertexOffset = 0;
         uint32_t indexOffset = 0;
 
         for(auto& primitive : primitives) {
             if(hasIndexBuffer) {
-                vkCmdDrawIndexed(commandBuffer, primitive.indexCount, 1, indexOffset, vertexOffset, 0);
+                std::vector<VkDescriptorSet> sets{frameInfo.globalDescriptorSet, primitive.material.descriptorSet};
+                vkCmdBindDescriptorSets(frameInfo.commandBuffer,VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, sets.size(), sets.data(), 0,nullptr);
+                vkCmdDrawIndexed(frameInfo.commandBuffer, primitive.indexCount, 1, indexOffset, vertexOffset, 0);
             }
 
             else {
-                vkCmdDraw(commandBuffer, primitive.vertexCount, 1, 0, 0);
+                vkCmdDraw(frameInfo.commandBuffer, primitive.vertexCount, 1, 0, 0);
             }
 
             vertexOffset += primitive.vertexCount;
@@ -123,8 +123,39 @@ namespace Engine {
         }
     }
 
-    NewModel::NewModel(Device &device, const std::string &filepath) : m_Device{device}, m_Path{filepath} {
+    NewModel::NewModel(const std::string &filepath, DescriptorPool &pool, DescriptorSetLayout &setLayout) : m_Path{filepath} {
         fx::gltf::Document doc = fx::gltf::LoadFromText(filepath);
+
+        /*tinygltf::TinyGLTF tinyGLTF;
+        tinygltf::Model gltf;
+        std::string error;
+        std::string warning;
+
+        tinyGLTF.LoadASCIIFromFile(&gltf, &error, &warning, filepath);
+
+        for(auto& mesh : gltf.meshes) {
+            for(auto& primitive : mesh.primitives) {
+                uint32_t materialIndex = primitive.material;
+                uint32_t  textureIndex = gltf.materials[materialIndex].pbrMetallicRoughness.baseColorTexture.index;
+                std::cout << gltf.images[textureIndex].uri << std::endl;
+            }
+        }*/
+
+        for(auto& texture : doc.images) {
+            //std::cout << texture.uri << std::endl;
+        }
+
+        /*for(auto& mesh : doc.meshes) {
+            for(auto& primitive : mesh.primitives) {
+                uint32_t materialIndex = primitive.material;
+                uint32_t textureIndex = doc.materials[materialIndex].pbrMetallicRoughness.baseColorTexture.index;
+                std::cout << doc.images[textureIndex].uri << std::endl;
+                textureIndex = doc.materials[materialIndex].pbrMetallicRoughness.metallicRoughnessTexture.index;
+                std::cout << doc.images[textureIndex].uri << std::endl;
+                textureIndex = doc.materials[materialIndex].normalTexture.index;
+                std::cout << doc.images[textureIndex].uri << std::endl;
+            }
+        }*/
 
         for(auto& mesh : doc.meshes) {
             for(auto& primitive : mesh.primitives) {
@@ -155,6 +186,64 @@ namespace Engine {
                         texCoordsBuffer = reinterpret_cast<const float *>(&(doc.buffers[view.buffer].data[accessor.byteOffset + view.byteOffset]));
                     }
                 }
+
+                fx::gltf::Material& primitiveMaterial = doc.materials[primitive.material];
+                std::filesystem::path path = std::filesystem::path(filepath);
+                //auto albedoTexturePath = path.parent_path().append(doc.images[primitiveMaterial.pbrMetallicRoughness.baseColorTexture.index].uri);
+                //auto normalTexturePath = path.parent_path().append(doc.images[primitiveMaterial.normalTexture.index].uri);
+                //auto metallicRoughnessTexturePath = path.parent_path().append(doc.images[primitiveMaterial.pbrMetallicRoughness.metallicRoughnessTexture.index].uri);
+
+                //std::cout << primitiveMaterial.pbrMetallicRoughness.baseColorTexture.index << std::endl;
+
+                Material material{};
+                if(!primitiveMaterial.pbrMetallicRoughness.baseColorTexture.empty()) {
+                    uint32_t textureIndex = primitiveMaterial.pbrMetallicRoughness.baseColorTexture.index;
+                    uint32_t imageIndex = doc.textures[textureIndex].source;
+                    auto albedoTexturePath = path.parent_path().append(doc.images[imageIndex].uri);
+                    material.albedoTexture = std::make_shared<Texture>(albedoTexturePath.generic_string());
+                } else {
+                    material.albedoTexture = std::make_shared<Texture>("assets/white.png");
+                }
+
+                if(!primitiveMaterial.pbrMetallicRoughness.metallicRoughnessTexture.empty()) {
+                    uint32_t textureIndex = primitiveMaterial.pbrMetallicRoughness.metallicRoughnessTexture.index;
+                    uint32_t imageIndex = doc.textures[textureIndex].source;
+                    auto metallicRoughnessTexturePath = path.parent_path().append(doc.images[imageIndex].uri);
+                    material.metallicRoughnessTexture = std::make_shared<Texture>(metallicRoughnessTexturePath.generic_string());
+                } else {
+                    material.metallicRoughnessTexture = std::make_shared<Texture>("assets/white.png");
+                }
+
+                if(!primitiveMaterial.normalTexture.empty()) {
+                    uint32_t textureIndex = primitiveMaterial.normalTexture.index;
+                    uint32_t imageIndex = doc.textures[textureIndex].source;
+                    auto normalTexturePath = path.parent_path().append(doc.images[imageIndex].uri);
+                    material.normalTexture = std::make_shared<Texture>(normalTexturePath.generic_string());
+                } else {
+                    material.normalTexture = std::make_shared<Texture>("assets/white.png");
+                }
+
+                VkDescriptorImageInfo albedo_info = {};
+                albedo_info.sampler = material.albedoTexture->GetSampler();
+                albedo_info.imageView = material.albedoTexture->GetImageView();
+                albedo_info.imageLayout = material.albedoTexture->GetImageLayout();
+
+                VkDescriptorImageInfo normal_info = {};
+                normal_info.sampler = material.normalTexture->GetSampler();
+                normal_info.imageView = material.normalTexture->GetImageView();
+                normal_info.imageLayout = material.normalTexture->GetImageLayout();
+
+                VkDescriptorImageInfo metallicRoughness_info = {};
+                metallicRoughness_info.sampler = material.metallicRoughnessTexture->GetSampler();
+                metallicRoughness_info.imageView = material.metallicRoughnessTexture->GetImageView();
+                metallicRoughness_info.imageLayout = material.metallicRoughnessTexture->GetImageLayout();
+
+
+                DescriptorWriter(setLayout, pool)
+                    .writeImage(0, &albedo_info)
+                    .writeImage(1, &normal_info)
+                    .writeImage(2, &metallicRoughness_info)
+                    .build(material.descriptorSet);
 
                 for (size_t v = 0; v < vertexCount; v++) {
                     NewModel::Vertex vertex{};
@@ -205,6 +294,7 @@ namespace Engine {
                 mesh_primitive.vertexCount = vertexCount;
                 mesh_primitive.indexCount = indexCount;
                 mesh_primitive.firstIndex = static_cast<uint32_t>(indices.size());
+                mesh_primitive.material = material;
                 primitives.push_back(mesh_primitive);
 
             }

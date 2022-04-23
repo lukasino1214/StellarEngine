@@ -5,6 +5,7 @@
 #include "model.h"
 
 #include "../Utils/utils.h"
+#include "core.h"
 
 #define TINYOBJECTLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
@@ -29,20 +30,20 @@ namespace std {
 
 namespace Engine {
 
-    Model::Model(Device &device, const Model::Builder &builder) : m_Device{device} {
+    Model::Model(const Model::Builder &builder) {
         createVertexBuffers(builder.vertices);
         createIndexBuffers(builder.indices);
     }
 
     Model::~Model() {}
 
-    std::unique_ptr<Model> Model::createModelfromFile(Device &device, const std::string &filepath) {
+    std::unique_ptr<Model> Model::createModelfromFile(const std::string &filepath) {
         //m_Path = filepath; //TODO: bruh
         Builder builder{};
         builder.loadModel(filepath);
         std::cout << "Vertex count: " << builder.vertices.size() << std::endl;
 
-        return std::make_unique<Model>(device, builder);
+        return std::make_unique<Model>(builder);
     }
 
     void Model::createVertexBuffers(const std::vector<Vertex> &vertices) {
@@ -52,7 +53,6 @@ namespace Engine {
         uint32_t vertexSize = sizeof(vertices[0]);
 
         Buffer stagingBuffer{
-            m_Device,
             vertexSize,
             vertexCount,
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -63,13 +63,12 @@ namespace Engine {
         stagingBuffer.writeToBuffer((void *)vertices.data());
 
         vertexBuffer = std::make_unique<Buffer>(
-                m_Device,
                 vertexSize,
                 vertexCount,
                 VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-        m_Device.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize);
+        Core::m_Device->copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize);
     }
 
     void Model::createIndexBuffers(const std::vector<uint32_t> &indices) {
@@ -84,7 +83,6 @@ namespace Engine {
         uint32_t indexSize = sizeof(indices[0]);
 
         Buffer stagingBuffer{
-            m_Device,
             indexSize,
             indexCount,
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -95,14 +93,13 @@ namespace Engine {
         stagingBuffer.writeToBuffer((void *)indices.data());
 
         indexBuffer = std::make_unique<Buffer>(
-                m_Device,
                 indexSize,
                 indexCount,
                 VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
                 );
 
-        m_Device.copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), bufferSize);
+        Core::m_Device->copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), bufferSize);
     }
 
     void Model::draw(VkCommandBuffer commandBuffer) {
@@ -125,7 +122,7 @@ namespace Engine {
         }
     }
 
-    Model::Model(Device &device, const std::string &filepath) : m_Device{device}, m_Path{filepath} {
+    Model::Model(const std::string &filepath) : m_Path{filepath} {
         Builder builder{};
         builder.loadModel(filepath);
         createVertexBuffers(builder.vertices);

@@ -16,10 +16,14 @@ namespace Engine {
             // Hides mouse cursor
             //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
+            int width;
+            int height;
+            glfwGetWindowSize(window, &width, &height);
+
             // Prevents camera from jumping on the first click
             if (firstClick)
             {
-                glfwSetCursorPos(window, (m_Width / 2), (m_Height / 2));
+                glfwSetCursorPos(window, (width / 2), (height / 2));
                 firstClick = false;
             }
 
@@ -65,8 +69,8 @@ namespace Engine {
 
             // Normalizes and shifts the coordinates of the cursor such that they begin in the middle of the screen
             // and then "transforms" them into degrees
-            float rotX = sensitivity * (float)(mouseY - (m_Height / 2)) / m_Height;
-            float rotY = sensitivity * (float)(mouseX - (m_Width / 2)) / m_Width;
+            float rotX = sensitivity * (float)(mouseY - (height / 2)) / height;
+            float rotY = sensitivity * (float)(mouseX - (width / 2)) / width;
 
             // Calculates upcoming vertical change in the Orientation
             glm::vec3 newOrientation = glm::rotate(m_Orientation, glm::radians(-rotX), glm::normalize(glm::cross(m_Orientation, m_Up)));
@@ -81,7 +85,7 @@ namespace Engine {
             m_Orientation = glm::rotate(m_Orientation, glm::radians(-rotY), m_Up);
 
             // Sets mouse cursor to the middle of the screen so that it doesn't end up roaming around
-            glfwSetCursorPos(window, (m_Width / 2), (m_Height / 2));
+            glfwSetCursorPos(window, (width / 2), (height / 2));
         }
 
         m_View = glm::lookAt(m_Position, m_Position + m_Orientation, m_Up);

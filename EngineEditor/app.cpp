@@ -20,32 +20,47 @@
 
 namespace Engine {
 
+    struct PointLight {
+        glm::vec4 position{};  // ignore w
+        glm::vec4 color{};     // w is intensity
+    };
+
     struct GlobalUbo {
         glm::mat4 projectionMat{1.0f};
         glm::mat4 viewMat{1.0f};
-        glm::vec4 ambientLightColor{1.0f, 1.0f, 1.0f, 0.02f};
-        glm::vec3 lightPosition{-20.0f};
-        alignas(16) glm::vec4 lightColor{1.0f};
-        glm::vec3 cameraPos{0.0f, 0.0f, 0.0f};
+        glm::vec4 cameraPos{0.0f, 0.0f, 0.0f, 0.0f};
+        PointLight pointLights[10];
+        int numLights;
     };
 
     FirstApp::FirstApp() {
-        globalPool = DescriptorPool::Builder(m_Device)
-                .setMaxSets(SwapChain::MAX_FRAMES_IN_FLIGHT)
+        globalPool = DescriptorPool::Builder()
+                .setMaxSets(1000)
                 .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::MAX_FRAMES_IN_FLIGHT)
-                .addPoolSize(VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 2)
+                .addPoolSize(VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 500)
+                .build();
+
+        globalSetLayout = DescriptorSetLayout::Builder()
+                .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
+                .build();
+
+        entitySetLayout = DescriptorSetLayout::Builder()
+                .addBinding(0, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_SHADER_STAGE_ALL_GRAPHICS)
+                .addBinding(1, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_SHADER_STAGE_ALL_GRAPHICS)
+                .addBinding(2, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_SHADER_STAGE_ALL_GRAPHICS)
                 .build();
 
         m_EditorScene = CreateRef<Scene>();
 
 
         Entity test = m_EditorScene->CreateEntity("Test");
-        test.GetComponent<TransformComponent>().SetRotation({glm::radians(180.0f), glm::radians(90.0f), 0.0f});
-        test.GetComponent<TransformComponent>().SetTranslation({0.0f, 0.0f, 3.5f});
+        test.GetComponent<TransformComponent>().SetRotation({glm::radians(0.0f), glm::radians(90.0f), 0.0f});
+        test.GetComponent<TransformComponent>().SetScale({0.05f, 0.05f, 0.05f});
+        test.GetComponent<TransformComponent>().SetTranslation({12.0f, 0.0f, 0.0f});
 
         //std::shared_ptr<Model> model = Model::createModelfromFile(m_Device, "assets/models/sphere.obj");
-        Ref<Model> model = CreateRef<Model>(m_Device, "assets/models/plane.obj");
-        Ref<NewModel> bruh = CreateRef<NewModel>(m_Device, "assets/Sponza.gltf");
+        Ref<Model> model = CreateRef<Model>("assets/models/plane.obj");
+        Ref<NewModel> bruh = CreateRef<NewModel>("assets/models/Sponza/glTF/Sponza.gltf", *globalPool, *entitySetLayout);
 
         test.AddComponent<ModelComponent>(model);
         test.AddComponent<RigidBodyComponent>();
@@ -96,7 +111,6 @@ namespace Engine {
         std::vector<std::unique_ptr<Buffer>> uboBuffers(SwapChain::MAX_FRAMES_IN_FLIGHT);
         for (int i = 0; i < uboBuffers.size(); i++) {
             uboBuffers[i] = std::make_unique<Buffer>(
-                    m_Device,
                     sizeof(GlobalUbo),
                     1,
                     VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -104,34 +118,20 @@ namespace Engine {
             uboBuffers[i]->map();
         }
 
-        auto texture = Texture(m_Device, "assets/meme.png");
-
-
-        VkDescriptorImageInfo image_info = {};
-        image_info.sampler = texture.GetSampler();
-        image_info.imageView = texture.GetImageView();
-        image_info.imageLayout = texture.GetImageLayout();
-
-        auto globalSetLayout = DescriptorSetLayout::Builder(m_Device)
-                .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
-                .addBinding(1, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_SHADER_STAGE_ALL_GRAPHICS)
-                .build();
-
         std::vector<VkDescriptorSet> globalDescriptorSets(SwapChain::MAX_FRAMES_IN_FLIGHT);
         for(int i = 0; i < globalDescriptorSets.size(); i++) {
             auto bufferInfo = uboBuffers[i]->descriptorInfo();
             DescriptorWriter(*globalSetLayout, *globalPool)
                 .writeBuffer(0, &bufferInfo)
-                .writeImage(1, &image_info)
                 .build(globalDescriptorSets[i]);
         }
 
-        OffScreen screen(m_Device);
-        RenderSystem ScreenSimpleRenderSystem{m_Device, screen.GetRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+        OffScreen screen;
+        RenderSystem ScreenSimpleRenderSystem{screen.GetRenderPass(), globalSetLayout->getDescriptorSetLayout(), entitySetLayout->getDescriptorSetLayout()};
 
-        Camera camera = Camera({10, 10, 10}, {0, 0, 0});
+        Camera camera = Camera({0, 10, 0}, {10, 10, 0});
 
-        Imgui m_Imgui{m_Window, m_Device, m_Renderer.getSwapChainRenderPass(), m_Renderer.getImageCount()};
+        Imgui m_Imgui{m_Window, m_Renderer.getSwapChainRenderPass(), m_Renderer.getImageCount()};
 
         auto image = ImGui_ImplVulkan_AddTexture(screen.GetSampler(), screen.GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
@@ -176,7 +176,26 @@ namespace Engine {
                 GlobalUbo ubo{};
                 ubo.projectionMat = camera.getProjection();
                 ubo.viewMat = camera.getView();
-                ubo.cameraPos = camera.getPosition();
+                ubo.cameraPos = glm::vec4(camera.getPosition(), 1.0f);
+                ubo.numLights = 0;
+
+
+                m_EditorScene->m_Registry.each([&](auto entityID) {
+                    Entity entity = {entityID, m_EditorScene.get()};
+                    if (!entity)
+                        return;
+
+                    if(entity.HasComponent<PointLightComponent>()) {
+                        auto light = entity.GetComponent<PointLightComponent>();
+                        auto position = entity.GetComponent<TransformComponent>().Translation;
+
+                        ubo.pointLights[ubo.numLights].color = glm::vec4(light.color, light.intensity);
+                        ubo.pointLights[ubo.numLights].position = glm::vec4(position, 1.0);
+
+                        ubo.numLights += 1;
+                    }
+                });
+
                 uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 uboBuffers[frameIndex]->flush();
 
@@ -325,7 +344,7 @@ namespace Engine {
                     std::cout << "0" << std::endl;
                     m_EditorScene = CreateRef<Scene>();
                     SceneSerializer serializer(m_EditorScene);
-                    serializer.Deserialize("Example.scene", m_Device);
+                    serializer.Deserialize("Example.scene");
                     HierarchyPanel.SetContext(m_EditorScene);
                 }
                 ImGui::End();
@@ -354,6 +373,6 @@ namespace Engine {
             }
         }
 
-        vkDeviceWaitIdle(m_Device.device());
+        vkDeviceWaitIdle(Core::m_Device->device());
     }
 }

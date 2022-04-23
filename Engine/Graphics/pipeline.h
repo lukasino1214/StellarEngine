@@ -37,7 +37,6 @@ namespace Engine {
     class Pipeline {
     public:
         Pipeline(
-                Device& device,
                 const std::string& vertFilepath,
                 const std::string& fragFilepath,
                 const PipelineConfigInfo& configInfo, const bool& hasVertexAtrributes);
@@ -60,7 +59,6 @@ namespace Engine {
 
         void createShaderModule(const std::vector<uint32_t>& code, VkShaderModule* shaderModule);
 
-        Device& m_Device;
         VkPipeline graphicsPipeline;
         VkShaderModule vertShaderModule;
         VkShaderModule fragShaderModule;

@@ -37,7 +37,7 @@ namespace Engine {
         const bool enableValidationLayers = true;
 #endif
 
-        Device(Window &window);
+        Device(Window* window);
         ~Device();
 
         // Not copyable or movable
@@ -103,7 +103,7 @@ namespace Engine {
         VkInstance instance;
         VkDebugUtilsMessengerEXT debugMessenger;
         VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-        Window &window;
+        Window* window;
         VkCommandPool commandPool;
 
         VkDevice device_;

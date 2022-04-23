@@ -77,6 +77,11 @@ namespace Engine {
         std::shared_ptr<NewModel> GetModel() { return model; }
     };
 
+    struct PointLightComponent {
+        glm::vec3 color;
+        float intensity;
+    };
+
     struct RigidBodyComponent {
         glm::vec3 velocity = { 0.0f, 0.0f, 0.0f };
         glm::vec3 acceleration = { 0.0f, 0.0f, 0.0f };

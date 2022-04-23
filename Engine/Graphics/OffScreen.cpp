@@ -18,7 +18,7 @@ namespace Engine {
     };
 
 
-    OffScreen::OffScreen(Device &device) : m_Device{device} {
+    OffScreen::OffScreen() {
         pass.width = 1280;
         pass.height = 720;
 
@@ -42,8 +42,10 @@ namespace Engine {
             vkDestroyFramebuffer(m_Device.device(), pass.frameBuffer, nullptr);*/
         }
 
+        auto device = Core::m_Device->device();
+
         // Find a suitable depth format
-        VkFormat fbDepthFormat = m_Device.findSupportedFormat(
+        VkFormat fbDepthFormat = Core::m_Device->findSupportedFormat(
                 {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
                 VK_IMAGE_TILING_OPTIMAL,
                 VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
@@ -67,17 +69,17 @@ namespace Engine {
         memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         VkMemoryRequirements memReqs;
 
-        if (vkCreateImage(m_Device.device(), &image, nullptr, &pass.color.image) != VK_SUCCESS) {
+        if (vkCreateImage(device, &image, nullptr, &pass.color.image) != VK_SUCCESS) {
             std::cout << "Failed to create image" << std::endl;
         }
-        vkGetImageMemoryRequirements(m_Device.device(), pass.color.image, &memReqs);
+        vkGetImageMemoryRequirements(device, pass.color.image, &memReqs);
         memAlloc.allocationSize = memReqs.size;
-        memAlloc.memoryTypeIndex = m_Device.findMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        memAlloc.memoryTypeIndex = Core::m_Device->findMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
         //memAlloc.memoryTypeIndex = getMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        if (vkAllocateMemory(m_Device.device(), &memAlloc, nullptr, &pass.color.mem) != VK_SUCCESS) {
+        if (vkAllocateMemory(device, &memAlloc, nullptr, &pass.color.mem) != VK_SUCCESS) {
             std::cout << "Failed to allocate memory" << std::endl;
         }
-        if (vkBindImageMemory(m_Device.device(), pass.color.image, pass.color.mem, 0) != VK_SUCCESS) {
+        if (vkBindImageMemory(device, pass.color.image, pass.color.mem, 0) != VK_SUCCESS) {
             std::cout << "Failed to bind memory" << std::endl;
         }
 
@@ -92,7 +94,7 @@ namespace Engine {
         colorImageView.subresourceRange.baseArrayLayer = 0;
         colorImageView.subresourceRange.layerCount = 1;
         colorImageView.image = pass.color.image;
-        if (vkCreateImageView(m_Device.device(), &colorImageView, nullptr, &pass.color.view) != VK_SUCCESS) {
+        if (vkCreateImageView(device, &colorImageView, nullptr, &pass.color.view) != VK_SUCCESS) {
             std::cout << "Failed to create color image view" << std::endl;
         }
 
@@ -110,7 +112,7 @@ namespace Engine {
         samplerInfo.minLod = 0.0f;
         samplerInfo.maxLod = 1.0f;
         samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-        if (vkCreateSampler(m_Device.device(), &samplerInfo, nullptr, &pass.sampler) != VK_SUCCESS) {
+        if (vkCreateSampler(device, &samplerInfo, nullptr, &pass.sampler) != VK_SUCCESS) {
             std::cout << "Failed to create sampler" << std::endl;
         }
 
@@ -118,16 +120,16 @@ namespace Engine {
         image.format = fbDepthFormat;
         image.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
-        if (vkCreateImage(m_Device.device(), &image, nullptr, &pass.depth.image) != VK_SUCCESS) {
+        if (vkCreateImage(device, &image, nullptr, &pass.depth.image) != VK_SUCCESS) {
             std::cout << "Failed to create image" << std::endl;
         }
-        vkGetImageMemoryRequirements(m_Device.device(), pass.depth.image, &memReqs);
+        vkGetImageMemoryRequirements(device, pass.depth.image, &memReqs);
         memAlloc.allocationSize = memReqs.size;
-        memAlloc.memoryTypeIndex = m_Device.findMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        if (vkAllocateMemory(m_Device.device(), &memAlloc, nullptr, &pass.depth.mem) != VK_SUCCESS) {
+        memAlloc.memoryTypeIndex = Core::m_Device->findMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        if (vkAllocateMemory(device, &memAlloc, nullptr, &pass.depth.mem) != VK_SUCCESS) {
             std::cout << "Failed to allocate memory" << std::endl;
         }
-        if (vkBindImageMemory(m_Device.device(), pass.depth.image, pass.depth.mem, 0) != VK_SUCCESS) {
+        if (vkBindImageMemory(device, pass.depth.image, pass.depth.mem, 0) != VK_SUCCESS) {
             std::cout << "Failed to bind memory" << std::endl;
         }
 
@@ -145,7 +147,7 @@ namespace Engine {
         depthStencilView.subresourceRange.baseArrayLayer = 0;
         depthStencilView.subresourceRange.layerCount = 1;
         depthStencilView.image = pass.depth.image;
-        if (vkCreateImageView(m_Device.device(), &depthStencilView, nullptr, &pass.depth.view) != VK_SUCCESS) {
+        if (vkCreateImageView(device, &depthStencilView, nullptr, &pass.depth.view) != VK_SUCCESS) {
             std::cout << "Failed to create depth stencil view" << std::endl;
         }
 
@@ -209,7 +211,7 @@ namespace Engine {
         renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
         renderPassInfo.pDependencies = dependencies.data();
 
-        if (vkCreateRenderPass(m_Device.device(), &renderPassInfo, nullptr, &pass.renderPass) != VK_SUCCESS) {
+        if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &pass.renderPass) != VK_SUCCESS) {
             std::cout << "Failed to create render pass" << std::endl;
         }
 
@@ -226,7 +228,7 @@ namespace Engine {
         fbufCreateInfo.height = pass.height;
         fbufCreateInfo.layers = 1;
 
-        if (vkCreateFramebuffer(m_Device.device(), &fbufCreateInfo, nullptr, &pass.frameBuffer) != VK_SUCCESS) {
+        if (vkCreateFramebuffer(device, &fbufCreateInfo, nullptr, &pass.frameBuffer) != VK_SUCCESS) {
             std::cout << "Failed to create framebuffer" << std::endl;
         }
 

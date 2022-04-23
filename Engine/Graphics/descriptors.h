@@ -19,7 +19,7 @@ namespace Engine {
     public:
         class Builder {
         public:
-            Builder(Device &Device) : m_Device{Device} {}
+            Builder() {}
 
             Builder &addBinding(
                     uint32_t binding,
@@ -29,12 +29,10 @@ namespace Engine {
             std::unique_ptr<DescriptorSetLayout> build() const;
 
         private:
-            Device &m_Device;
             std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings{};
         };
 
-        DescriptorSetLayout(
-                Device &Device, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings);
+        DescriptorSetLayout(std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings);
         ~DescriptorSetLayout();
         DescriptorSetLayout(const DescriptorSetLayout &) = delete;
         DescriptorSetLayout &operator=(const DescriptorSetLayout &) = delete;
@@ -42,7 +40,6 @@ namespace Engine {
         VkDescriptorSetLayout getDescriptorSetLayout() const { return descriptorSetLayout; }
 
     private:
-        Device &m_Device;
         VkDescriptorSetLayout descriptorSetLayout;
         std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings;
 
@@ -53,7 +50,7 @@ namespace Engine {
     public:
         class Builder {
         public:
-            Builder(Device &Device) : m_Device{Device} {}
+            Builder() {}
 
             Builder &addPoolSize(VkDescriptorType descriptorType, uint32_t count);
             Builder &setPoolFlags(VkDescriptorPoolCreateFlags flags);
@@ -61,14 +58,12 @@ namespace Engine {
             std::unique_ptr<DescriptorPool> build() const;
 
         private:
-            Device &m_Device;
             std::vector<VkDescriptorPoolSize> poolSizes{};
             uint32_t maxSets = 1000;
             VkDescriptorPoolCreateFlags poolFlags = 0;
         };
 
         DescriptorPool(
-                Device &m_Device,
                 uint32_t maxSets,
                 VkDescriptorPoolCreateFlags poolFlags,
                 const std::vector<VkDescriptorPoolSize> &poolSizes);
@@ -84,7 +79,6 @@ namespace Engine {
         void resetPool();
 
     private:
-        Device &m_Device;
         VkDescriptorPool descriptorPool;
 
         friend class DescriptorWriter;

@@ -3,12 +3,15 @@
 //
 
 #include "Window.h"
+#include "../Graphics/core.h"
 
 #include <stdexcept>
+#include <memory>
 
 namespace Engine {
     Window::Window(const int& width, const int& height, const std::string& name) : m_Width{width}, m_Height{height}, m_Name{name} {
         initWindow();
+        Core::m_Device = std::make_shared<Device>(this);
     }
 
     Window::~Window() {

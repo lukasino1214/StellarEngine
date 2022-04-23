@@ -4,13 +4,14 @@
 
 #include "texture.h"
 #include "buffer.h"
+#include "core.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include <iostream>
 
 namespace Engine {
-    Texture::Texture(Engine::Device &mDevice, const std::string &path) : m_Device(mDevice) {
+    Texture::Texture(const std::string &path) {
         int width;
         int height;
         int channels;
@@ -19,7 +20,6 @@ namespace Engine {
         auto data = stbi_load(path.c_str(), &width, &height, &m_BytesPerPixel, 4);
 
         Buffer stagingBuffer{
-                m_Device,
                 4,
                 static_cast<uint32_t>(width * height),
                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -46,7 +46,7 @@ namespace Engine {
         imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
 
-        m_Device.createImageWithInfo(imageCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Image, m_ImageMemory);
+        Core::m_Device->createImageWithInfo(imageCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Image, m_ImageMemory);
 
         TransitionImageLayout
                 (
@@ -56,7 +56,7 @@ namespace Engine {
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
                 );
 
-        m_Device.copyBufferToImage
+        Core::m_Device->copyBufferToImage
                 (
                         stagingBuffer.getBuffer(),
                         m_Image,
@@ -95,7 +95,9 @@ namespace Engine {
         sampler.anisotropyEnable = VK_FALSE;
         sampler.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 
-        vkCreateSampler(m_Device.device(), &sampler, nullptr, &m_Sampler);
+        auto device = Core::m_Device->device();
+
+        vkCreateSampler(device, &sampler, nullptr, &m_Sampler);
 
         VkImageViewCreateInfo view {};
         view.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -114,13 +116,13 @@ namespace Engine {
         // The view will be based on the texture's image
         view.image = m_Image;
 
-        vkCreateImageView(m_Device.device(), &view, nullptr, &m_ImageView);
+        vkCreateImageView(device, &view, nullptr, &m_ImageView);
 
         stbi_image_free(data);
     }
 
     void Texture::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
-        VkCommandBuffer commandBuffer = m_Device.beginSingleTimeCommands();
+        VkCommandBuffer commandBuffer = Core::m_Device->beginSingleTimeCommands();
 
         VkImageMemoryBarrier barrier{};
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -169,13 +171,14 @@ namespace Engine {
                         1, &barrier
                 );
 
-        m_Device.endSingleTimeCommands(commandBuffer);
+        Core::m_Device->endSingleTimeCommands(commandBuffer);
     }
 
     Texture::~Texture() {
-        vkDestroyImage(m_Device.device(), m_Image, nullptr);
-        vkFreeMemory(m_Device.device(), m_ImageMemory, nullptr);
-        vkDestroyImageView(m_Device.device(), m_ImageView, nullptr);
-        vkDestroySampler(m_Device.device(), m_Sampler, nullptr);
+        auto device = Core::m_Device->device();
+        vkDestroyImage(device, m_Image, nullptr);
+        vkFreeMemory(device, m_ImageMemory, nullptr);
+        vkDestroyImageView(device, m_ImageView, nullptr);
+        vkDestroySampler(device, m_Sampler, nullptr);
     }
 }

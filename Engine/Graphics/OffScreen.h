@@ -13,6 +13,7 @@
 #include "../Data/Scene.h"
 #include "../Data/Entity.h"
 #include "../System/GridSystem.h"
+#include "core.h"
 
 namespace Engine {
 
@@ -32,21 +33,22 @@ namespace Engine {
 
     class OffScreen {
     public:
-        OffScreen(Device &device);
+        OffScreen();
         //void Init(Device device);
         ~OffScreen() {
-            vkDestroyImageView(m_Device.device(), pass.color.view, nullptr);
-            vkDestroyImage(m_Device.device(), pass.color.image, nullptr);
-            vkFreeMemory(m_Device.device(), pass.color.mem, nullptr);
+            auto device = Core::m_Device->device();
+            vkDestroyImageView(device, pass.color.view, nullptr);
+            vkDestroyImage(device, pass.color.image, nullptr);
+            vkFreeMemory(device, pass.color.mem, nullptr);
 
             // Depth attachment
-            vkDestroyImageView(m_Device.device(), pass.depth.view, nullptr);
-            vkDestroyImage(m_Device.device(), pass.depth.image, nullptr);
-            vkFreeMemory(m_Device.device(), pass.depth.mem, nullptr);
+            vkDestroyImageView(device, pass.depth.view, nullptr);
+            vkDestroyImage(device, pass.depth.image, nullptr);
+            vkFreeMemory(device, pass.depth.mem, nullptr);
 
-            vkDestroyRenderPass(m_Device.device(), pass.renderPass, nullptr);
-            vkDestroySampler(m_Device.device(), pass.sampler, nullptr);
-            vkDestroyFramebuffer(m_Device.device(), pass.frameBuffer, nullptr);
+            vkDestroyRenderPass(device, pass.renderPass, nullptr);
+            vkDestroySampler(device, pass.sampler, nullptr);
+            vkDestroyFramebuffer(device, pass.frameBuffer, nullptr);
         }
 
         VkSampler GetSampler() { return pass.sampler; }
@@ -65,7 +67,6 @@ namespace Engine {
         void CreateImages();
 
         OffscreenPass pass;
-        Device &m_Device;
         bool after = false;
     };
 }

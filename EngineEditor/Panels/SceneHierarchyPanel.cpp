@@ -11,6 +11,7 @@
 
 #include "../../Engine/Data/Components.h"
 #include <cstring>
+#include <iostream>
 
 #include <filesystem>
 
@@ -214,7 +215,14 @@ namespace Engine {
             ImGui::OpenPopup("AddComponent");
 
         if (ImGui::BeginPopup("AddComponent")) {
-
+            if (ImGui::MenuItem("Point Light"))
+            {
+                if (!m_SelectionContext.HasComponent<PointLightComponent>())
+                    m_SelectionContext.AddComponent<PointLightComponent>();
+                else
+                    std::cout << "screw this" << std::endl;
+                ImGui::CloseCurrentPopup();
+            }
             ImGui::EndPopup();
         }
 
@@ -235,6 +243,11 @@ namespace Engine {
             DrawVec3Control("Velocity", component.velocity);
             ImGui::SliderFloat("Radius", &component.radius, 0.0f, 100.0f);
             ImGui::SliderFloat("Mass", &component.mass, 0.0f, 100.0f);
+        });
+
+        DrawComponent<PointLightComponent>("PointLight", entity, [](auto& component) {
+            ImGui::ColorPicker3("Light Color", &component.color.r, ImGuiColorEditFlags_DisplayRGB);
+            ImGui::SliderFloat("Light Intensity", &component.intensity, 0.0f, 100.0f);
         });
 
         /*DrawComponent<TransformComponent>("Transform", entity, [](auto& component)
