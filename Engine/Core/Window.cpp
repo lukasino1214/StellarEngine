@@ -3,7 +3,7 @@
 //
 
 #include "Window.h"
-#include "../Graphics/core.h"
+#include "../Graphics/Core.h"
 
 #include <stdexcept>
 #include <memory>

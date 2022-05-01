@@ -10,7 +10,7 @@
 #include <entt/entt.hpp>
 
 #include "../Core/Timestamp.h"
-#include "../Graphics/frame_info.h"
+#include "../Graphics/FrameInfo.h"
 
 namespace Engine {
     class Entity;

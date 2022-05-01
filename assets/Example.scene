@@ -1,0 +1,100 @@
+Scene: Untitled
+Entities:
+  - Entity: 6971222555093260300
+    TagComponent:
+      Tag: Light 8
+    TransformComponent:
+      Translation: [0.459577471, 23.3252754, 21.4391155]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Color: [0.950980365, 0, 0.69925046]
+      Intensity: 100
+  - Entity: 5461666278780618778
+    TagComponent:
+      Tag: Light 7
+    TransformComponent:
+      Translation: [0.221050262, 52.7820816, 38.9909401]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Color: [0, 1, 0.411764622]
+      Intensity: 100
+  - Entity: 11800289072423983417
+    TagComponent:
+      Tag: Light 6
+    TransformComponent:
+      Translation: [18.7481098, 6.65280676, 29.8394108]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Color: [0.617647052, 1, 0]
+      Intensity: 100
+  - Entity: 140621740645355952
+    TagComponent:
+      Tag: Light 5
+    TransformComponent:
+      Translation: [5.9643755, 7.82659769, 32.7196045]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Color: [0, 0.0579585321, 0.985294104]
+      Intensity: 100
+  - Entity: 12702976971528232424
+    TagComponent:
+      Tag: Sponza
+    TransformComponent:
+      Translation: [12, 0, 0]
+      Rotation: [0, 1.57079637, 0]
+      Scale: [0.0500000007, 0.0500000007, 0.0500000007]
+    ModelComponent:
+      Path: assets/models/Sponza/glTF/Sponza.gltf
+  - Entity: 18353141737289715654
+    TagComponent:
+      Tag: Light 1
+    TransformComponent:
+      Translation: [12.4421806, 4.19758129, -41.8459473]
+      Rotation: [0, 1.57079637, 0]
+      Scale: [0.999969244, 0.999999881, 0.999969244]
+    PointLightComponent:
+      Color: [1, 0, 0]
+      Intensity: 100
+  - Entity: 11127256157757769942
+    TagComponent:
+      Tag: Light 2
+    TransformComponent:
+      Translation: [-1.89428234, 32.2453384, -40.973629]
+      Rotation: [0, 1.57079637, 0]
+      Scale: [0.999958575, 0.999999881, 0.999958575]
+    PointLightComponent:
+      Color: [0, 0.382353067, 1]
+      Intensity: 100
+  - Entity: 9081770916099689838
+    TagComponent:
+      Tag: Light 3
+    TransformComponent:
+      Translation: [3.76359248, 18.6490784, 1.56391561]
+      Rotation: [0, 1.57079637, 0]
+      Scale: [0.999970973, 0.999999881, 0.999970973]
+    PointLightComponent:
+      Color: [0.329355866, 0.882352948, 0.0648789033]
+      Intensity: 100
+  - Entity: 16622590632928977485
+    TagComponent:
+      Tag: Light 4
+    TransformComponent:
+      Translation: [18.2467251, 4.38424683, 3.2713623]
+      Rotation: [0, 1.57079637, 0]
+      Scale: [0.999988616, 0.999999881, 0.999988616]
+    PointLightComponent:
+      Color: [0.823529243, 0, 1]
+      Intensity: 100
+  - Entity: 12368325980104956638
+    TagComponent:
+      Tag: Helmet
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 4.405828, 0]
+      Scale: [1, 1, 1]
+    NewModelComponent:
+      Path: ./assets/models/SciFiHelmet/glTF/SciFiHelmet.gltf

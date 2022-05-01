@@ -4,7 +4,7 @@
 
 using namespace Engine;
 
-#include "app.h"
+#include "App.h"
 
 #include <cstdlib>
 #include <iostream>

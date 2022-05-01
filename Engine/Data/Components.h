@@ -7,7 +7,7 @@
 
 #include "../Core/UUID.h"
 #include "../Core/Base.h"
-#include "../Graphics/model.h"
+#include "../Graphics/Model.h"
 #include "../Scripting/NativeScript.h"
 
 #include <glm/glm.hpp>

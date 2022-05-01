@@ -8,9 +8,9 @@
 
 
 #include "../Graphics/Camera.h"
-#include "../Graphics/device.h"
-#include "../Graphics/frame_info.h"
-#include "../Graphics/pipeline.h"
+#include "../Graphics/Device.h"
+#include "../Graphics/FrameInfo.h"
+#include "../Graphics/Pipeline.h"
 
 // std
 #include <memory>

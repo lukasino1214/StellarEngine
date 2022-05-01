@@ -6,8 +6,8 @@
 #define VENDOR_CONTENTBROWSERPANEL_H
 
 #include <filesystem>
-#include "../../Engine/Graphics/texture.h"
-#include "../../Engine/Graphics/descriptors.h"
+#include "../../Engine/Graphics/Texture.h"
+#include "../../Engine/Graphics/Descriptors.h"
 
 namespace Engine {
 

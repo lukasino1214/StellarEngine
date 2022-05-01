@@ -10,7 +10,6 @@
 #include "../Data/Scene.h"
 #include "../Data/Entity.h"
 #include "../Core/Base.h"
-#include "../Graphics/device.h"
 
 namespace Engine {
     class SceneSerializer {

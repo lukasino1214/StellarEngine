@@ -3,7 +3,7 @@
 //
 
 #include "GridSystem.h"
-#include "../Graphics/core.h"
+#include "../Graphics/Core.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE

@@ -18,9 +18,7 @@ namespace Engine {
     };
 
 
-    OffScreen::OffScreen() {
-        pass.width = 1280;
-        pass.height = 720;
+    OffScreen::OffScreen(uint32_t width, uint32_t height) : m_Width{width}, m_Height{height} {
 
         CreateImages();
         after = true;
@@ -55,8 +53,8 @@ namespace Engine {
         image.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         image.imageType = VK_IMAGE_TYPE_2D;
         image.format = VK_FORMAT_B8G8R8A8_SRGB;
-        image.extent.width = pass.width;
-        image.extent.height = pass.height;
+        image.extent.width = m_Width;
+        image.extent.height = m_Height;
         image.extent.depth = 1;
         image.mipLevels = 1;
         image.arrayLayers = 1;
@@ -69,17 +67,17 @@ namespace Engine {
         memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         VkMemoryRequirements memReqs;
 
-        if (vkCreateImage(device, &image, nullptr, &pass.color.image) != VK_SUCCESS) {
+        if (vkCreateImage(device, &image, nullptr, &color.image) != VK_SUCCESS) {
             std::cout << "Failed to create image" << std::endl;
         }
-        vkGetImageMemoryRequirements(device, pass.color.image, &memReqs);
+        vkGetImageMemoryRequirements(device, color.image, &memReqs);
         memAlloc.allocationSize = memReqs.size;
         memAlloc.memoryTypeIndex = Core::m_Device->findMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
         //memAlloc.memoryTypeIndex = getMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        if (vkAllocateMemory(device, &memAlloc, nullptr, &pass.color.mem) != VK_SUCCESS) {
+        if (vkAllocateMemory(device, &memAlloc, nullptr, &color.mem) != VK_SUCCESS) {
             std::cout << "Failed to allocate memory" << std::endl;
         }
-        if (vkBindImageMemory(device, pass.color.image, pass.color.mem, 0) != VK_SUCCESS) {
+        if (vkBindImageMemory(device, color.image, color.mem, 0) != VK_SUCCESS) {
             std::cout << "Failed to bind memory" << std::endl;
         }
 
@@ -93,8 +91,8 @@ namespace Engine {
         colorImageView.subresourceRange.levelCount = 1;
         colorImageView.subresourceRange.baseArrayLayer = 0;
         colorImageView.subresourceRange.layerCount = 1;
-        colorImageView.image = pass.color.image;
-        if (vkCreateImageView(device, &colorImageView, nullptr, &pass.color.view) != VK_SUCCESS) {
+        colorImageView.image = color.image;
+        if (vkCreateImageView(device, &colorImageView, nullptr, &color.view) != VK_SUCCESS) {
             std::cout << "Failed to create color image view" << std::endl;
         }
 
@@ -112,7 +110,7 @@ namespace Engine {
         samplerInfo.minLod = 0.0f;
         samplerInfo.maxLod = 1.0f;
         samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-        if (vkCreateSampler(device, &samplerInfo, nullptr, &pass.sampler) != VK_SUCCESS) {
+        if (vkCreateSampler(device, &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
             std::cout << "Failed to create sampler" << std::endl;
         }
 
@@ -120,16 +118,16 @@ namespace Engine {
         image.format = fbDepthFormat;
         image.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
-        if (vkCreateImage(device, &image, nullptr, &pass.depth.image) != VK_SUCCESS) {
+        if (vkCreateImage(device, &image, nullptr, &depth.image) != VK_SUCCESS) {
             std::cout << "Failed to create image" << std::endl;
         }
-        vkGetImageMemoryRequirements(device, pass.depth.image, &memReqs);
+        vkGetImageMemoryRequirements(device, depth.image, &memReqs);
         memAlloc.allocationSize = memReqs.size;
         memAlloc.memoryTypeIndex = Core::m_Device->findMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        if (vkAllocateMemory(device, &memAlloc, nullptr, &pass.depth.mem) != VK_SUCCESS) {
+        if (vkAllocateMemory(device, &memAlloc, nullptr, &depth.mem) != VK_SUCCESS) {
             std::cout << "Failed to allocate memory" << std::endl;
         }
-        if (vkBindImageMemory(device, pass.depth.image, pass.depth.mem, 0) != VK_SUCCESS) {
+        if (vkBindImageMemory(device, depth.image, depth.mem, 0) != VK_SUCCESS) {
             std::cout << "Failed to bind memory" << std::endl;
         }
 
@@ -146,8 +144,8 @@ namespace Engine {
         depthStencilView.subresourceRange.levelCount = 1;
         depthStencilView.subresourceRange.baseArrayLayer = 0;
         depthStencilView.subresourceRange.layerCount = 1;
-        depthStencilView.image = pass.depth.image;
-        if (vkCreateImageView(device, &depthStencilView, nullptr, &pass.depth.view) != VK_SUCCESS) {
+        depthStencilView.image = depth.image;
+        if (vkCreateImageView(device, &depthStencilView, nullptr, &depth.view) != VK_SUCCESS) {
             std::cout << "Failed to create depth stencil view" << std::endl;
         }
 
@@ -211,31 +209,31 @@ namespace Engine {
         renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
         renderPassInfo.pDependencies = dependencies.data();
 
-        if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &pass.renderPass) != VK_SUCCESS) {
+        if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
             std::cout << "Failed to create render pass" << std::endl;
         }
 
         VkImageView attachments[2];
-        attachments[0] = pass.color.view;
-        attachments[1] = pass.depth.view;
+        attachments[0] = color.view;
+        attachments[1] = depth.view;
 
         VkFramebufferCreateInfo fbufCreateInfo = {};
         fbufCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        fbufCreateInfo.renderPass = pass.renderPass;
+        fbufCreateInfo.renderPass = renderPass;
         fbufCreateInfo.attachmentCount = 2;
         fbufCreateInfo.pAttachments = attachments;
-        fbufCreateInfo.width = pass.width;
-        fbufCreateInfo.height = pass.height;
+        fbufCreateInfo.width = m_Width;
+        fbufCreateInfo.height = m_Height;
         fbufCreateInfo.layers = 1;
 
-        if (vkCreateFramebuffer(device, &fbufCreateInfo, nullptr, &pass.frameBuffer) != VK_SUCCESS) {
+        if (vkCreateFramebuffer(device, &fbufCreateInfo, nullptr, &frameBuffer) != VK_SUCCESS) {
             std::cout << "Failed to create framebuffer" << std::endl;
         }
 
         // Fill a descriptor for later use in a descriptor set
-        pass.descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        pass.descriptor.imageView = pass.color.view;
-        pass.descriptor.sampler = pass.sampler;
+        descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        descriptor.imageView = color.view;
+        descriptor.sampler = sampler;
     };
 
     void OffScreen::Start(FrameInfo frameInfo) {
@@ -246,25 +244,25 @@ namespace Engine {
 
         VkRenderPassBeginInfo renderPassBeginInfo{};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassBeginInfo.renderPass = pass.renderPass;
-        renderPassBeginInfo.framebuffer = pass.frameBuffer;
-        renderPassBeginInfo.renderArea.extent.width = pass.width;
-        renderPassBeginInfo.renderArea.extent.height = pass.height;
+        renderPassBeginInfo.renderPass = renderPass;
+        renderPassBeginInfo.framebuffer = frameBuffer;
+        renderPassBeginInfo.renderArea.extent.width = m_Width;
+        renderPassBeginInfo.renderArea.extent.height = m_Height;
         renderPassBeginInfo.clearValueCount = 2;
         renderPassBeginInfo.pClearValues = clearValues.data();
 
         vkCmdBeginRenderPass(frameInfo.commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         VkViewport viewport = {};
-        viewport.width = (float) pass.width;
-        viewport.height = (float) pass.height;
+        viewport.width = (float)m_Width;
+        viewport.height = (float)m_Height;
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
         vkCmdSetViewport(frameInfo.commandBuffer, 0, 1, &viewport);
 
         VkRect2D scissor = {};
-        scissor.extent.width = pass.width;
-        scissor.extent.height = pass.height;
+        scissor.extent.width = m_Width;
+        scissor.extent.height = m_Height;
         scissor.offset.x = 0;
         scissor.offset.y = 0;
         vkCmdSetScissor(frameInfo.commandBuffer, 0, 1, &scissor);
