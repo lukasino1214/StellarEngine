@@ -5,6 +5,7 @@
 #include "SceneSerializer.h"
 
 #include <fstream>
+#include <iostream>
 
 namespace YAML {
     template<>
@@ -122,6 +123,17 @@ namespace Engine {
             out << YAML::EndMap; // ModelComponent
         }
 
+        if (entity.HasComponent<PointLightComponent>()) {
+            out << YAML::Key << "PointLightComponent";
+            out << YAML::BeginMap; // PointLightComponent
+
+            auto& light = entity.GetComponent<PointLightComponent>();
+            out << YAML::Key << "Color" << YAML::Value << light.color;
+            out << YAML::Key << "Intensity" << YAML::Value << light.intensity;
+
+            out << YAML::EndMap; // PointLightComponent
+        }
+
         out << YAML::EndMap; // Entity
     }
 
@@ -181,14 +193,6 @@ namespace Engine {
                     tc.Scale = transformComponent["Scale"].as<glm::vec3>();
                 }
 
-                auto modelComponent = entity["ModelComponent"];
-                if (modelComponent) {
-                    deserializedEntity.AddComponent<ModelComponent>();
-
-                    deserializedEntity.GetComponent<ModelComponent>().path = modelComponent["Path"].as<std::string>();
-                    deserializedEntity.GetComponent<ModelComponent>().model = Model::createModelfromFile(deserializedEntity.GetComponent<ModelComponent>().path);
-                }
-
                 auto rigidBodyComponent = entity["RigidBodyComponent"];
                 if (rigidBodyComponent) {
                     deserializedEntity.AddComponent<RigidBodyComponent>();
@@ -200,6 +204,19 @@ namespace Engine {
                     deserializedEntity.GetComponent<RigidBodyComponent>().isStatic = rigidBodyComponent["isStatic"].as<bool>();
                 }
 
+                auto modelComponent = entity["ModelComponent"];
+                if (modelComponent) {
+                    auto model = std::make_shared<Model>(modelComponent["Path"].as<std::string>());
+                    deserializedEntity.AddComponent<ModelComponent>(model);
+                }
+
+                auto lightPointComponent = entity["PointLightComponent"];
+                if (lightPointComponent) {
+                    deserializedEntity.AddComponent<PointLightComponent>();
+
+                    deserializedEntity.GetComponent<PointLightComponent>().color = lightPointComponent["Color"].as<glm::vec3>();
+                    deserializedEntity.GetComponent<PointLightComponent>().intensity = lightPointComponent["Intensity"].as<float>();
+                }
 
                 /*auto CubeComponent = entity["CubeComponent"];
                 if (CubeComponent) {

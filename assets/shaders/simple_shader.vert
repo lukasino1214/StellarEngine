@@ -7,14 +7,20 @@ layout(location = 3) in vec2 uv;
 
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec2 uv_out;
+layout(location = 2) out vec3 out_position;
+layout(location = 3) out vec3 out_normal;
+
+struct PointLight {
+    vec4 position;
+    vec4 color;
+};
 
 layout(set = 0, binding = 0) uniform GlobalUbo {
   mat4 projectionMatrix;
   mat4 viewMatrix;
-  vec4 ambientLightColor; // w is intensity
-  vec3 lightPosition;
-  vec4 lightColor;
-  vec3 cameraPos;
+  vec4 cameraPos;
+  PointLight pointLights[10];
+  int numberPointLights;
 } ubo;
 layout(set = 0, binding = 1) uniform sampler2D albedo;
 
@@ -28,17 +34,10 @@ void main() {
   mat4 projectionViewMatrix = ubo.projectionMatrix * ubo.viewMatrix;
   gl_Position = projectionViewMatrix * positionWorld;
 
-  vec3 normalWorldSpace = normalize(mat3(push.normalMatrix) * normal);
-
-  vec3 directionToLight = ubo.lightPosition - positionWorld.xyz;
-  float attenuation = (1.0 / dot(directionToLight, directionToLight)) * 15.0; // distance squared
-
-  vec3 lightColor = ubo.lightColor.xyz * ubo.lightColor.w * attenuation;
-  vec3 ambientLight = ubo.ambientLightColor.xyz * ubo.ambientLightColor.w;
-  vec3 diffuseLight = lightColor * max(dot(normalWorldSpace, normalize(directionToLight)), 0);
-
-  fragColor = (diffuseLight + ambientLight) * color;
+  fragColor = color;
   uv_out = uv;
+  out_position = positionWorld.xyz;
+  out_normal = normal;
   //fragColor *= texture(albedo, uv);
   //fragColor = vec3(1.0);
 }

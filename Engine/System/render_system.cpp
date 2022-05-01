@@ -19,8 +19,8 @@ namespace Engine {
         glm::mat4 normalMatrix{1.0f};
     };
 
-    RenderSystem::RenderSystem(VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout, VkDescriptorSetLayout entitySetLayout) {
-        createPipelineLayout(globalSetLayout, entitySetLayout);
+    RenderSystem::RenderSystem(VkRenderPass renderPass) {
+        createPipelineLayout();
         createPipeline(renderPass);
     }
 
@@ -28,13 +28,13 @@ namespace Engine {
         vkDestroyPipelineLayout(Core::m_Device->device(), pipelineLayout, nullptr);
     }
 
-    void RenderSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout, VkDescriptorSetLayout entitySetLayout) {
+    void RenderSystem::createPipelineLayout() {
         VkPushConstantRange pushConstantRange{};
         pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
         pushConstantRange.offset = 0;
         pushConstantRange.size = sizeof(SimplePushConstantData);
 
-        std::vector<VkDescriptorSetLayout> descriptorSetLayouts{globalSetLayout, entitySetLayout};
+        std::vector<VkDescriptorSetLayout> descriptorSetLayouts{Core::m_GlobalSetLayout->getDescriptorSetLayout(), Core::m_EntitySetLayout->getDescriptorSetLayout()};
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -66,35 +66,18 @@ namespace Engine {
             if (!entity)
                 return;
 
-            /*if(entity.HasComponent<ModelComponent>()) {
+            if(entity.HasComponent<ModelComponent>()) {
                 SimplePushConstantData push{};
 
                 auto Transform = entity.GetComponent<TransformComponent>();
                 push.modelMatrix = Transform.mat4();
                 push.normalMatrix = Transform.normalMatrix();
 
-                vkCmdBindDescriptorSets(frameInfo.commandBuffer,VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &frameInfo.globalDescriptorSet, 0,nullptr);
                 vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData), &push);
 
 
                 //TODO: THIS SHIT
                 auto Model = entity.GetComponent<ModelComponent>().GetModel();
-                Model->bind(frameInfo.commandBuffer);
-                Model->draw(frameInfo.commandBuffer);
-            }*/
-
-            if(entity.HasComponent<NewModelComponent>()) {
-                SimplePushConstantData push{};
-
-                auto Transform = entity.GetComponent<TransformComponent>();
-                push.modelMatrix = Transform.mat4();
-                push.normalMatrix = Transform.normalMatrix();
-
-                vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData), &push);
-
-
-                //TODO: THIS SHIT
-                auto Model = entity.GetComponent<NewModelComponent>().GetModel();
                 Model->bind(frameInfo.commandBuffer);
                 Model->draw(frameInfo, pipelineLayout);
             }

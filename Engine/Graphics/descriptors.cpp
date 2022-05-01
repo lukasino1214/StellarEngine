@@ -23,8 +23,12 @@ namespace Engine {
         return *this;
     }
 
-    std::unique_ptr<DescriptorSetLayout> DescriptorSetLayout::Builder::build() const {
+    std::unique_ptr<DescriptorSetLayout> DescriptorSetLayout::Builder::UniqueBuild() const {
         return std::make_unique<DescriptorSetLayout>(bindings);
+    }
+
+    std::shared_ptr<DescriptorSetLayout> DescriptorSetLayout::Builder::SharedBuild() const {
+        return std::make_shared<DescriptorSetLayout>(bindings);
     }
 
 // *************** Descriptor Set Layout *********************
@@ -71,8 +75,12 @@ namespace Engine {
         return *this;
     }
 
-    std::unique_ptr<DescriptorPool> DescriptorPool::Builder::build() const {
+    std::unique_ptr<DescriptorPool> DescriptorPool::Builder::UniqueBuild() const {
         return std::make_unique<DescriptorPool>(maxSets, poolFlags, poolSizes);
+    }
+
+    std::shared_ptr<DescriptorPool> DescriptorPool::Builder::SharedBuild() const {
+        return std::make_shared<DescriptorPool>(maxSets, poolFlags, poolSizes);
     }
 
 // *************** Descriptor Pool *********************

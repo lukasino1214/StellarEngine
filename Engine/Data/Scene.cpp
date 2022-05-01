@@ -35,99 +35,34 @@ namespace Engine {
         m_Registry.destroy(entity);
     }
 
-    /*void Scene::OnUpdateRuntime(Timestep ts)
-    {
-        // Update scripts
-        {
-            m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
-                                                          {
-                                                              // TODO: Move to Scene::OnScenePlay
-                                                              if (!nsc.Instance)
-                                                              {
-                                                                  nsc.Instance = nsc.InstantiateScript();
-                                                                  nsc.Instance->m_Entity = Entity{ entity, this };
-                                                                  nsc.Instance->OnCreate();
-                                                              }
+    void Scene::UpdateLightsUbo(GlobalUbo &ubo) {
+        m_Registry.each([&](auto entityID) {
+            Entity entity = {entityID, this};
+            if (!entity)
+                return;
 
-                                                              nsc.Instance->OnUpdate(ts);
-                                                          });
-        }
+            if(entity.HasComponent<PointLightComponent>()) {
+                auto light = entity.GetComponent<PointLightComponent>();
+                auto position = entity.GetComponent<TransformComponent>().Translation;
 
-        // Render 2D
-        Camera* mainCamera = nullptr;
-        glm::mat4 cameraTransform;
-        {
-            auto view = m_Registry.view<TransformComponent, CameraComponent>();
-            for (auto entity : view)
-            {
-                auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
+                ubo.pointLights[ubo.numLights].color = glm::vec4(light.color, light.intensity);
+                ubo.pointLights[ubo.numLights].position = glm::vec4(position, 1.0);
 
-                if (camera.Primary)
-                {
-                    mainCamera = &camera.Camera;
-                    cameraTransform = transform.GetTransform();
-                    break;
-                }
+                ubo.numLights += 1;
             }
-        }
+        });
+    }
 
-        if (mainCamera)
-        {
-            Renderer2D::BeginScene(*mainCamera, cameraTransform);
+    void Scene::OnUpdate(const float& deltaTime) {
+        m_Registry.each([&](auto entityID) {
+            Entity entity = {entityID, this};
+            if (!entity)
+                return;
 
-            auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-            for (auto entity : group)
-            {
-                auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-
-                Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+            if(entity.HasComponent<ScriptComponent>()) {
+                auto script = entity.GetComponent<ScriptComponent>();
+                script.m_Script->OnUpdate(deltaTime);
             }
-
-            Renderer2D::EndScene();
-        }
-
-    }*/
-
-    /*void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
-    {
-        Renderer2D::BeginScene(camera);
-
-        auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-        for (auto entity : group)
-        {
-            auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-
-            Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
-        }
-
-        Renderer2D::EndScene();
-    }*/
-
-    /*void Scene::OnViewportResize(uint32_t width, uint32_t height)
-    {
-        m_ViewportWidth = width;
-        m_ViewportHeight = height;
-
-        // Resize our non-FixedAspectRatio cameras
-        auto view = m_Registry.view<CameraComponent>();
-        for (auto entity : view)
-        {
-            auto& cameraComponent = view.get<CameraComponent>(entity);
-            if (!cameraComponent.FixedAspectRatio)
-                cameraComponent.Camera.SetViewportSize(width, height);
-        }
-
-    }*/
-
-    /*Entity Scene::GetPrimaryCameraEntity()
-    {
-        auto view = m_Registry.view<CameraComponent>();
-        for (auto entity : view)
-        {
-            const auto& camera = view.get<CameraComponent>(entity);
-            if (camera.Primary)
-                return Entity{entity, this};
-        }
-        return {};
-    }*/
+        });
+    }
 }

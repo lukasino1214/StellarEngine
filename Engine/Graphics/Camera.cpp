@@ -7,7 +7,7 @@
 namespace Engine {
     Camera::Camera(glm::vec3 position, glm::vec3 target) : m_Position(position) {
         m_View = glm::lookAt(m_Position, target, m_Up);
-        m_Projection = glm::perspective(glm::radians(m_FOV), (float)m_Width / m_Height, nearPlane, farPlane);
+        m_Projection = glm::perspective(glm::radians(m_FOV), (float)m_Width/m_Height, nearPlane, farPlane);
     }
 
     void Camera::Move(GLFWwindow* window, float dt) {

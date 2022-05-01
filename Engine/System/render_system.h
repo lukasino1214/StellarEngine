@@ -20,7 +20,7 @@
 namespace Engine {
     class RenderSystem {
     public:
-        RenderSystem(VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout, VkDescriptorSetLayout entitySetLayout);
+        RenderSystem(VkRenderPass renderPass);
         ~RenderSystem();
 
         RenderSystem(const RenderSystem &) = delete;
@@ -29,7 +29,7 @@ namespace Engine {
         void renderGameObjects(FrameInfo &frameInfo, const Ref<Scene> &Scene);
 
     private:
-        void createPipelineLayout(VkDescriptorSetLayout globalSetLayout, VkDescriptorSetLayout entitySetLayout);
+        void createPipelineLayout();
         void createPipeline(VkRenderPass renderPass);
 
         std::unique_ptr<Pipeline> m_Pipeline;

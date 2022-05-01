@@ -8,7 +8,7 @@
 #include "../Core/UUID.h"
 #include "../Core/Base.h"
 #include "../Graphics/model.h"
-#include "../Graphics/new_model.h"
+#include "../Scripting/NativeScript.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -67,14 +67,11 @@ namespace Engine {
         std::shared_ptr<Model> GetModel() { return model; }
     };
 
-    struct NewModelComponent {
-        std::shared_ptr<NewModel> model{};
+    struct ScriptComponent {
+        std::shared_ptr<NativeScript> m_Script{};
 
-        NewModelComponent() = default;
-        //ModelComponent(const ModelComponent&) = default;
-        NewModelComponent(const std::shared_ptr<NewModel>& bruh) { model = bruh; }
-
-        std::shared_ptr<NewModel> GetModel() { return model; }
+        ScriptComponent() = default;
+        ScriptComponent(const std::shared_ptr<NativeScript>& script) { m_Script = script; }
     };
 
     struct PointLightComponent {

@@ -35,7 +35,6 @@ build/
 .idea/
 .xmake/
 cmake-build-debug/
-CMakeLists.txt
 *.sh
 *.cmake
 *.txt
@@ -43,3 +42,9 @@ CMakeLists.txt
 Testing/
 CMakeFiles/
 Makefile
+Vendor/llvm-project
+Vendor/mono
+Vendor/miniaudio
+Vendor/qoi
+Vendor/meshoptimizer
+Vendor/VulkanMemoryAllocator

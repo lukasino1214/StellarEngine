@@ -8,6 +8,7 @@
 #include "../Data/Scene.h"
 #include "../Data/Entity.h"
 #include "../pgepch.h"
+#include <Jolt/Jolt.h>
 
 namespace Engine {
     class PhysicsSystem {

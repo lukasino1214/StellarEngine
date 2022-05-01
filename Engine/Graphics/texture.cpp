@@ -29,12 +29,12 @@ namespace Engine {
         stagingBuffer.map();
         stagingBuffer.writeToBuffer(data);
 
-        m_Format = VK_FORMAT_R8G8B8A8_SRGB;
+        m_Format = VK_FORMAT_R8G8B8A8_UNORM;
 
         VkImageCreateInfo imageCreateInfo = {};
         imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-        imageCreateInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+        imageCreateInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
         imageCreateInfo.mipLevels = 1;
         imageCreateInfo.arrayLayers = 1;
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -51,7 +51,7 @@ namespace Engine {
         TransitionImageLayout
                 (
                         m_Image,
-                        VK_FORMAT_R8G8B8A8_SRGB,
+                        VK_FORMAT_R8G8B8A8_UNORM,
                         VK_IMAGE_LAYOUT_UNDEFINED,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
                 );
@@ -68,7 +68,7 @@ namespace Engine {
         TransitionImageLayout
                 (
                         m_Image,
-                        VK_FORMAT_R8G8B8A8_SRGB,
+                        VK_FORMAT_R8G8B8A8_UNORM,
                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
                 );
@@ -102,7 +102,7 @@ namespace Engine {
         VkImageViewCreateInfo view {};
         view.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         view.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        view.format = VK_FORMAT_R8G8B8A8_SRGB;
+        view.format = VK_FORMAT_R8G8B8A8_UNORM;
         view.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
         // A subresource range describes the set of mip levels (and array layers) that can be accessed through this image view
         // It's possible to create multiple image views for a single image referring to different (and/or overlapping) ranges of the image

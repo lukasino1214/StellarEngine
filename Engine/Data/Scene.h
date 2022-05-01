@@ -10,6 +10,7 @@
 #include <entt/entt.hpp>
 
 #include "../Core/Timestamp.h"
+#include "../Graphics/frame_info.h"
 
 namespace Engine {
     class Entity;
@@ -22,6 +23,9 @@ namespace Engine {
         Entity CreateEntity(const std::string& name = std::string());
         Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
         void DestroyEntity(Entity entity);
+
+        void UpdateLightsUbo(GlobalUbo& ubo);
+        void OnUpdate(const float& deltaTime);
 
         //void OnUpdateRuntime(Timestep ts);
         //void OnUpdateEditor(Timestep ts, EditorCamera& camera);
@@ -40,6 +44,7 @@ namespace Engine {
         friend class FirstApp;
         friend class PhysicsSystem;
         friend class OffScreen;
+        friend class NativeScript;
     };
 
 }

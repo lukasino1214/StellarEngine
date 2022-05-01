@@ -26,7 +26,8 @@ namespace Engine {
                     VkDescriptorType descriptorType,
                     VkShaderStageFlags stageFlags,
                     uint32_t count = 1);
-            std::unique_ptr<DescriptorSetLayout> build() const;
+            std::unique_ptr<DescriptorSetLayout> UniqueBuild() const;
+            std::shared_ptr<DescriptorSetLayout> SharedBuild() const;
 
         private:
             std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings{};
@@ -55,7 +56,8 @@ namespace Engine {
             Builder &addPoolSize(VkDescriptorType descriptorType, uint32_t count);
             Builder &setPoolFlags(VkDescriptorPoolCreateFlags flags);
             Builder &setMaxSets(uint32_t count);
-            std::unique_ptr<DescriptorPool> build() const;
+            std::unique_ptr<DescriptorPool> UniqueBuild() const;
+            std::shared_ptr<DescriptorPool> SharedBuild() const;
 
         private:
             std::vector<VkDescriptorPoolSize> poolSizes{};

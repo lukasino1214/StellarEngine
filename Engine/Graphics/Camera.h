@@ -69,10 +69,10 @@ namespace Engine {
         glm::vec3 getPosition() { return m_Position; }
 
     private:
-        int m_Width;
-        int m_Height;
+        int m_Width = 1280;
+        int m_Height = 720;
         float m_FOV = { 90.0f };
-        float nearPlane = { 0.001f };
+        float nearPlane = { 0.01f };
         float farPlane = { 1000.0f };
 
         glm::mat4 m_View = glm::mat4(1.0f);

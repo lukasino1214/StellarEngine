@@ -15,7 +15,7 @@
 
 namespace Engine {
 
-    Renderer::Renderer(Window& window) : m_Window{window} {
+    Renderer::Renderer(std::shared_ptr<Window> window, std::shared_ptr<Device> device) : m_Window{window}, m_Device{device} {
         recreateSwapChain();
         createCommandBuffers();
     }
@@ -23,9 +23,9 @@ namespace Engine {
     Renderer::~Renderer() { freeCommandBuffers(); }
 
     void Renderer::recreateSwapChain() {
-        auto extent = m_Window.getExtent();
+        auto extent = m_Window->getExtent();
         while (extent.width == 0 || extent.height == 0) {
-            extent = m_Window.getExtent();
+            extent = m_Window->getExtent();
             glfwWaitEvents();
         }
         vkDeviceWaitIdle(Core::m_Device->device());
@@ -100,8 +100,8 @@ namespace Engine {
 
         auto result = m_SwapChain->submitCommandBuffers(&commandBuffer, &currentImageIndex);
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
-            m_Window.wasWindowResized()) {
-            m_Window.resetWindowResizedFlag();
+            m_Window->wasWindowResized()) {
+            m_Window->resetWindowResizedFlag();
             recreateSwapChain();
         } else if (result != VK_SUCCESS) {
             throw std::runtime_error("failed to present swap chain image!");

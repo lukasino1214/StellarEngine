@@ -2,8 +2,8 @@
 // Created by lukas on 08.11.21.
 //
 
-#ifndef ENGINEEDITOR_MODEL_H
-#define ENGINEEDITOR_MODEL_H
+#ifndef ENGINEEDITOR_NEWMODEL_H
+#define ENGINEEDITOR_NEWMODEL_H
 
 #include "device.h"
 #include "buffer.h"
@@ -16,14 +16,33 @@
 // std
 #include <memory>
 #include <vector>
+#include "texture.h"
+#include "descriptors.h"
+#include "frame_info.h"
 
 namespace Engine {
     class Model {
     public:
+        struct Material {
+            std::shared_ptr<Texture> albedoTexture;
+            std::shared_ptr<Texture> normalTexture;
+            std::shared_ptr<Texture> metallicRoughnessTexture;
+            VkDescriptorSet descriptorSet;
+        };
+
+        struct Primitive {
+            uint32_t firstIndex;
+            uint32_t firstVertex;
+            uint32_t indexCount;
+            uint32_t vertexCount;
+            Material material;
+        };
+
         struct Vertex {
-            glm::vec3 position;
-            glm::vec3 color;
+            glm::vec3 position{};
+            glm::vec3 color{};
             glm::vec3 normal{};
+            glm::vec4 tangent{};
             glm::vec2 uv{};
 
             static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
@@ -34,37 +53,29 @@ namespace Engine {
             }
         };
 
-        struct Builder {
-            std::vector<Vertex> vertices{};
-            std::vector<uint32_t> indices{};
-
-            void loadModel(const std::string &filepath);
-        };
-
         Model(const std::string &filepath);
-        Model(const Model::Builder &builder);
         ~Model();
 
-        static std::unique_ptr<Model> createModelfromFile(const std::string &filepath);
 
         void bind(VkCommandBuffer commandBuffer);
-        void draw(VkCommandBuffer commandBuffer);
+        void draw(FrameInfo frameInfo, VkPipelineLayout pipelineLayout);
 
         std::string getPath() { return m_Path; }
 
+        std::vector<Vertex> vertices;
+        std::vector<uint32_t> indices;
+        std::vector<Primitive> primitives;
     private:
         void createVertexBuffers(const std::vector<Vertex> &vertices);
         void createIndexBuffers(const std::vector<uint32_t> &indices);
 
         std::unique_ptr<Buffer> vertexBuffer;
-        uint32_t vertexCount;
 
         bool hasIndexBuffer = false;
         std::unique_ptr<Buffer> indexBuffer;
-        uint32_t indexCount;
         std::string m_Path;
     };
 }
 
 
-#endif //ENGINEEDITOR_MODEL_H
+#endif //ENGINEEDITOR_NEWMODEL_H

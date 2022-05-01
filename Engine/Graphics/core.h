@@ -7,14 +7,19 @@
 
 #include <memory>
 #include "device.h"
+#include "descriptors.h"
 
 namespace Engine {
     class Core
     {
 
     public:
-
+        static std::shared_ptr<DescriptorPool> m_GlobalPool;
+        static std::shared_ptr<DescriptorSetLayout> m_GlobalSetLayout;
+        static std::shared_ptr<DescriptorSetLayout> m_EntitySetLayout;
         static std::shared_ptr<Device> m_Device;
+
+        static void Init();
 
     };
 }

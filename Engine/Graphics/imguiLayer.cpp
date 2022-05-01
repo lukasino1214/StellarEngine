@@ -8,9 +8,6 @@
 #include "../Core/Window.h"
 
 // libs
-#include "../../Vendor/imgui/imgui.h"
-#include "../../Vendor/imgui/imgui_impl_glfw.h"
-#include "../../Vendor/imgui/imgui_impl_vulkan.h"
 #include "core.h"
 
 // std
@@ -56,6 +53,9 @@ namespace Engine {
         // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+        //io.Fonts->AddFontFromFileTTF("assets/UbuntuMono-Regular.ttf", 14);
+        io.Fonts->AddFontFromFileTTF("assets/Roboto-Regular.ttf", 15);
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();

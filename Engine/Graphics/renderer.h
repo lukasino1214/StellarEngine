@@ -17,7 +17,7 @@
 namespace Engine {
     class Renderer {
     public:
-        Renderer(Window &window);
+        Renderer(std::shared_ptr<Window> window, std::shared_ptr<Device> device);
         ~Renderer();
 
         Renderer(const Renderer &) = delete;
@@ -49,7 +49,8 @@ namespace Engine {
         void freeCommandBuffers();
         void recreateSwapChain();
 
-        Window &m_Window;
+        std::shared_ptr<Window> m_Window;
+        std::shared_ptr<Device> m_Device;
         std::unique_ptr<SwapChain> m_SwapChain;
         std::vector<VkCommandBuffer> commandBuffers;
 
