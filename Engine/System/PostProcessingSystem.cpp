@@ -2,13 +2,10 @@
 // Created by lukas on 27.11.21.
 //
 
-#include "OffScreen.h"
+#include "PostProcessingSystem.h"
 
-#include <array>
 #include <iostream>
 #include <glm/glm.hpp>
-#include "pipeline.h"
-#include <memory>
 
 namespace Engine {
 
@@ -18,28 +15,13 @@ namespace Engine {
     };
 
 
-    OffScreen::OffScreen(uint32_t width, uint32_t height) : m_Width{width}, m_Height{height} {
-
+    PostProcessingSystem::PostProcessingSystem(uint32_t width, uint32_t height) : m_Width{width}, m_Height{height} {
         CreateImages();
-        after = true;
+        createPipelineLayout();
+        createPipeline(renderPass);
     }
 
-    void OffScreen::CreateImages() {
-        if(after) {
-            /*vkDestroyImageView(m_Device.device(), pass.color.view, nullptr);
-            vkDestroyImage(m_Device.device(), pass.color.image, nullptr);
-            vkFreeMemory(m_Device.device(), pass.color.mem, nullptr);
-
-            // Depth attachment
-            vkDestroyImageView(m_Device.device(), pass.depth.view, nullptr);
-            vkDestroyImage(m_Device.device(), pass.depth.image, nullptr);
-            vkFreeMemory(m_Device.device(), pass.depth.mem, nullptr);
-
-            vkDestroyRenderPass(m_Device.device(), pass.renderPass, nullptr);
-            vkDestroySampler(m_Device.device(), pass.sampler, nullptr);
-            vkDestroyFramebuffer(m_Device.device(), pass.frameBuffer, nullptr);*/
-        }
-
+    void PostProcessingSystem::CreateImages() {
         auto device = Core::m_Device->device();
 
         // Find a suitable depth format
@@ -236,7 +218,48 @@ namespace Engine {
         descriptor.sampler = sampler;
     };
 
-    void OffScreen::Start(FrameInfo frameInfo) {
+    void PostProcessingSystem::createPipelineLayout() {
+        /*VkPushConstantRange pushConstantRange{};
+        pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+        pushConstantRange.offset = 0;
+        pushConstantRange.size = sizeof(PointLightPushConstantData);*/
+
+        std::vector<VkDescriptorSetLayout> descriptorSetLayouts{Core::m_PostProcessingLayout->getDescriptorSetLayout()};
+
+        VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
+        pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
+        pipelineLayoutInfo.pushConstantRangeCount = 0;
+        pipelineLayoutInfo.pPushConstantRanges = nullptr;
+        if (vkCreatePipelineLayout(Core::m_Device->device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
+            VK_SUCCESS) {
+            throw std::runtime_error("failed to create pipeline layout!");
+        }
+    }
+
+    void PostProcessingSystem::createPipeline(VkRenderPass render_pass) {
+        assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
+
+        PipelineConfigInfo pipelineConfig{};
+        Pipeline::defaultPipelineConfigInfo(pipelineConfig);
+        pipelineConfig.attributeDescriptions.clear();
+        pipelineConfig.bindingDescriptions.clear();
+        pipelineConfig.renderPass = render_pass;
+        pipelineConfig.pipelineLayout = pipelineLayout;
+        m_Pipeline = std::make_unique<Pipeline>("assets/shaders/post_processing.vert",
+                                                "assets/shaders/post_processing.frag", pipelineConfig);
+    }
+
+    void PostProcessingSystem::Render(FrameInfo &frameInfo, VkDescriptorSet &set) {
+        Start(frameInfo);
+        m_Pipeline->bind(frameInfo.commandBuffer);
+        vkCmdBindDescriptorSets(frameInfo.commandBuffer,VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &set, 0,nullptr);
+        vkCmdDraw(frameInfo.commandBuffer, 6, 1, 0, 0);
+        End(frameInfo);
+    }
+
+    void PostProcessingSystem::Start(FrameInfo &frameInfo) {
         std::array<VkClearValue, 2> clearValues{};
         clearValues[0].color = {0.01f, 0.01f, 0.01f, 1.0f};
         clearValues[1].depthStencil = {1.0f, 0};
@@ -268,7 +291,23 @@ namespace Engine {
         vkCmdSetScissor(frameInfo.commandBuffer, 0, 1, &scissor);
     }
 
-    void OffScreen::End(FrameInfo frameInfo) {
+    void PostProcessingSystem::End(FrameInfo &frameInfo) {
         vkCmdEndRenderPass(frameInfo.commandBuffer);
+    }
+
+    PostProcessingSystem::~PostProcessingSystem() {
+            auto device = Core::m_Device->device();
+            vkDestroyImageView(device, color.view, nullptr);
+            vkDestroyImage(device, color.image, nullptr);
+            vkFreeMemory(device, color.mem, nullptr);
+
+            // Depth attachment
+            vkDestroyImageView(device, depth.view, nullptr);
+            vkDestroyImage(device, depth.image, nullptr);
+            vkFreeMemory(device, depth.mem, nullptr);
+
+            vkDestroyRenderPass(device, renderPass, nullptr);
+            vkDestroySampler(device, sampler, nullptr);
+            vkDestroyFramebuffer(device, frameBuffer, nullptr);
     }
 }

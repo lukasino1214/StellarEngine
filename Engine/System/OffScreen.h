@@ -6,14 +6,11 @@
 #define ENGINEEDITOR_OFFSCREEN_H
 
 #include <vulkan/vulkan.h>
-#include "Device.h"
+#include "../Graphics/Device.h"
 #include "pipeline.h"
-#include <memory>
-#include "FrameInfo.h"
-#include "../Data/Scene.h"
-#include "../Data/Entity.h"
-#include "../System/GridSystem.h"
-#include "Core.h"
+#include "../pgepch.h"
+#include "../Graphics/FrameInfo.h"
+#include "../Graphics/Core.h"
 
 namespace Engine {
 
@@ -27,21 +24,7 @@ namespace Engine {
     public:
         OffScreen(uint32_t width, uint32_t height);
         //void Init(Device device);
-        ~OffScreen() {
-            auto device = Core::m_Device->device();
-            vkDestroyImageView(device, color.view, nullptr);
-            vkDestroyImage(device, color.image, nullptr);
-            vkFreeMemory(device, color.mem, nullptr);
-
-            // Depth attachment
-            vkDestroyImageView(device, depth.view, nullptr);
-            vkDestroyImage(device, depth.image, nullptr);
-            vkFreeMemory(device, depth.mem, nullptr);
-
-            vkDestroyRenderPass(device, renderPass, nullptr);
-            vkDestroySampler(device, sampler, nullptr);
-            vkDestroyFramebuffer(device, frameBuffer, nullptr);
-        }
+        ~OffScreen();
 
         VkSampler GetSampler() { return sampler; }
         VkImageView GetImageView() { return color.view; }
@@ -64,7 +47,6 @@ namespace Engine {
         VkRenderPass renderPass;
         VkSampler sampler;
         VkDescriptorImageInfo descriptor;
-        bool after = false;
     };
 }
 

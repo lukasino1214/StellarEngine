@@ -10,11 +10,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
-// std
-#include <array>
-#include <cassert>
-#include <stdexcept>
-
 namespace Engine {
 
     GridSystem::GridSystem(VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout) {
@@ -57,7 +52,7 @@ namespace Engine {
         m_Pipeline = std::make_unique<Pipeline>(
                 "assets/shaders/grid.vert.spv",
                 "assets/shaders/grid.frag.spv",
-                configInfo, false);
+                configInfo);
     }
 
     void GridSystem::render(FrameInfo& frameInfo) {

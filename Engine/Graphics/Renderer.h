@@ -10,9 +10,7 @@
 #include "../Core/Window.h"
 
 // std
-#include <cassert>
-#include <memory>
-#include <vector>
+#include "../pgepch.h"
 
 namespace Engine {
     class Renderer {

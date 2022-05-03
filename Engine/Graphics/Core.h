@@ -5,7 +5,7 @@
 #ifndef ENGINEEDITOR_CORE_H
 #define ENGINEEDITOR_CORE_H
 
-#include <memory>
+#include "../pgepch.h"
 #include "Device.h"
 #include "Descriptors.h"
 
@@ -17,6 +17,7 @@ namespace Engine {
         static std::shared_ptr<DescriptorPool> m_GlobalPool;
         static std::shared_ptr<DescriptorSetLayout> m_GlobalSetLayout;
         static std::shared_ptr<DescriptorSetLayout> m_EntitySetLayout;
+        static std::shared_ptr<DescriptorSetLayout> m_PostProcessingLayout;
         static std::shared_ptr<Device> m_Device;
 
         static void Init();

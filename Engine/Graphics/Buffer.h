@@ -6,6 +6,7 @@
 #define ENGINEEDITOR_BUFFER_H
 
 #include "Device.h"
+#include "../pgepch.h"
 
 namespace Engine {
 

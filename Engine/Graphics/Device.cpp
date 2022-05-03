@@ -4,12 +4,6 @@
 
 #include "Device.h"
 
-// std headers
-#include <cstring>
-#include <iostream>
-#include <set>
-#include <unordered_set>
-
 namespace Engine {
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(

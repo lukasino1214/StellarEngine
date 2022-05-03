@@ -24,13 +24,15 @@
 #include "Graphics/ImGuiLayer.h"
 #include "Graphics/Buffer.h"
 #include "Graphics/Descriptors.h"
-#include "Graphics/OffScreen.h"
 #include "Graphics/Texture.h"
 #include "Graphics/Core.h"
 
 #include "System/RenderSystem.h"
 #include "System/GridSystem.h"
 #include "System/PhysicsSystem.h"
+#include "System/PointLightSystem.h"
+#include "System/OffScreen.h"
+#include "System/PostProcessingSystem.h"
 
 #include "Math/Math.h"
 

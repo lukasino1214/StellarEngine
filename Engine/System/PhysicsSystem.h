@@ -160,6 +160,12 @@ namespace Engine {
     class PhysicsSystem {
     public:
         PhysicsSystem();
+
+        void Update();
+
+        BodyInterface& GetBodyInterface() { return physics_system.GetBodyInterface(); }
+
+        void RemoveBody(BodyID id);
     private:
         TempAllocatorImpl temp_allocator;
         JobSystemThreadPool job_system;
@@ -174,6 +180,15 @@ namespace Engine {
 
         MyBodyActivationListener body_activation_listener;
         MyContactListener contact_listener;
+
+        const float cDeltaTime = 1.0f / 60.0f;
+    };
+
+    class Physics {
+    public:
+        static std::shared_ptr<Engine::PhysicsSystem> m_PhysicsSystem;
+
+        static void Init();
     };
 }
 

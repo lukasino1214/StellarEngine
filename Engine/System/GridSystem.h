@@ -11,11 +11,7 @@
 #include "../Graphics/Device.h"
 #include "../Graphics/FrameInfo.h"
 #include "../Graphics/Pipeline.h"
-
-// std
-#include <memory>
-#include <vector>
-
+#include "../pgepch.h"
 namespace Engine {
     class GridSystem {
     public:

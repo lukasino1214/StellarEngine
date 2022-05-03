@@ -5,14 +5,6 @@
 #include "Renderer.h"
 #include "Core.h"
 
-#include <array>
-#include <cassert>
-#include <stdexcept>
-
-#include <array>
-#include <cassert>
-#include <stdexcept>
-
 namespace Engine {
 
     Renderer::Renderer(std::shared_ptr<Window> window, std::shared_ptr<Device> device) : m_Window{window}, m_Device{device} {

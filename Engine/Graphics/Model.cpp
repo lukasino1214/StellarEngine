@@ -12,14 +12,8 @@
 #include <glm/gtx/hash.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <cassert>
-#include <cstring>
-#include <unordered_map>
-#include <iostream>
-
 #include <fx/gltf.h>
 
-#include <filesystem>
 #include "Descriptors.h"
 
 namespace std {

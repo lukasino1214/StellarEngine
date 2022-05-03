@@ -2,8 +2,8 @@
 // Created by lukas on 14.11.21.
 //
 
-#ifndef ENGINEEDITOR_RENDER_SYSTEM_H
-#define ENGINEEDITOR_RENDER_SYSTEM_H
+#ifndef ENGINEEDITOR_POINT_LIGHT_SYSTEM_H
+#define ENGINEEDITOR_POINT_LIGHT_SYSTEM_H
 
 #include "../Graphics/Camera.h"
 #include "../Graphics/Device.h"
@@ -13,14 +13,13 @@
 #include "../Data/Entity.h"
 #include "../pgepch.h"
 
-
 namespace Engine {
-    class RenderSystem {
+    class PointLightSystem {
     public:
-        RenderSystem(VkRenderPass renderPass);
-        ~RenderSystem();
-        RenderSystem(const RenderSystem &) = delete;
-        RenderSystem &operator=(const RenderSystem &) = delete;
+        PointLightSystem(VkRenderPass renderPass);
+        ~PointLightSystem();
+        PointLightSystem(const PointLightSystem &) = delete;
+        PointLightSystem &operator=(const PointLightSystem &) = delete;
 
         void renderGameObjects(FrameInfo &frameInfo, const Ref<Scene> &Scene);
 
@@ -34,4 +33,4 @@ namespace Engine {
     };
 }
 
-#endif //ENGINEEDITOR_RENDER_SYSTEM_H
+#endif //ENGINEEDITOR_POINT_LIGHT_SYSTEM_H

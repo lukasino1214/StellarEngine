@@ -5,9 +5,6 @@
 #include "Descriptors.h"
 #include "Core.h"
 
-#include <cassert>
-#include <stdexcept>
-
 namespace Engine {
 
 // *************** Descriptor Set Layout Builder *********************

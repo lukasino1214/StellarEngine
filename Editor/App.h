@@ -39,6 +39,8 @@ namespace Engine {
 
         std::unique_ptr<OffScreen> m_OffScreenRenderingSystem;
         std::unique_ptr<RenderSystem> m_SimpleRenderSystem;
+        std::unique_ptr<PointLightSystem> m_PointLightSystem;
+        std::unique_ptr<PostProcessingSystem> m_PostProcessingSystem;
 
         std::shared_ptr<Camera> m_Camera;
 
@@ -47,7 +49,12 @@ namespace Engine {
         std::unique_ptr<ContentBrowserPanel> m_ContentBrowserPanel;
         std::unique_ptr<DockSpacePanel> m_DockSpacePanel;
 
+        bool startPhysics = false;
+        VkDescriptorSet PostProcessingSet;
+
         glm::vec2 m_ViewportSize = {500, 200};
+        BodyID floor_id;
+        BodyID sphere_id;
     };
 }
 

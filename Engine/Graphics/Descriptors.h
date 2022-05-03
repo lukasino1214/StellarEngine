@@ -7,11 +7,7 @@
 
 
 #include "Device.h"
-
-// std
-#include <memory>
-#include <unordered_map>
-#include <vector>
+#include "../pgepch.h"
 
 namespace Engine {
 

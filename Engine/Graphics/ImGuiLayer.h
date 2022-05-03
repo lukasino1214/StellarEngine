@@ -13,8 +13,7 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 
-// std
-#include <stdexcept>
+#include "../pgepch.h"
 
 // This whole class is only necessary right now because it needs to manage the descriptor pool
 // because we haven't set one up anywhere else in the application, and we manage the

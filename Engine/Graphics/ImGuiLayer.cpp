@@ -5,13 +5,9 @@
 #include "ImGuiLayer.h"
 
 #include "Device.h"
-#include "../Core/Window.h"
 
 // libs
 #include "Core.h"
-
-// std
-#include <stdexcept>
 
 namespace Engine {
 

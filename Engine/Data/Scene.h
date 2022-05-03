@@ -41,10 +41,9 @@ namespace Engine {
         friend class SceneSerializer;
         friend class SceneHierarchyPanel;
         friend class RenderSystem;
-        friend class FirstApp;
         friend class PhysicsSystem;
-        friend class OffScreen;
         friend class NativeScript;
+        friend class PointLightSystem;
     };
 
 }

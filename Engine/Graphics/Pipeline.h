@@ -6,10 +6,7 @@
 #define ENGINEEDITOR_PIPELINE_H
 
 #include "Device.h"
-
-// std
-#include <string>
-#include <vector>
+#include "../pgepch.h"
 
 namespace Engine {
 
@@ -39,7 +36,7 @@ namespace Engine {
         Pipeline(
                 const std::string& vertFilepath,
                 const std::string& fragFilepath,
-                const PipelineConfigInfo& configInfo, const bool& hasVertexAtrributes);
+                const PipelineConfigInfo& configInfo);
         ~Pipeline();
 
         Pipeline(const Pipeline&) = delete;
@@ -48,6 +45,7 @@ namespace Engine {
         void bind(VkCommandBuffer commandBuffer);
 
         static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo);
+        static void enebleAlphaBlending(PipelineConfigInfo& configInfo);
 
     private:
         static std::string readFile(const std::string& filepath);
@@ -55,7 +53,7 @@ namespace Engine {
         void createGraphicsPipeline(
                 const std::string& vertFilepath,
                 const std::string& fragFilepath,
-                const PipelineConfigInfo& configInfo, const bool& hasVertexAtrributes);
+                const PipelineConfigInfo& configInfo);
 
         void createShaderModule(const std::vector<uint32_t>& code, VkShaderModule* shaderModule);
 

@@ -63,6 +63,18 @@ namespace Engine {
                 auto script = entity.GetComponent<ScriptComponent>();
                 script.m_Script->OnUpdate(deltaTime);
             }
+
+            if(entity.template HasComponent<PhysicsComponent>()) {
+                auto id = entity.GetComponent<PhysicsComponent>().id;
+                BodyInterface& body_interface = Physics::m_PhysicsSystem->GetBodyInterface();
+               if(body_interface.IsActive(id)) {
+                    auto position = body_interface.GetCenterOfMassPosition(id);
+                    glm::vec3& changed_position = entity.GetComponent<TransformComponent>().Translation;
+                    changed_position.x = position.GetX();
+                    changed_position.y = position.GetY();
+                    changed_position.z = position.GetZ();
+                }
+            }
         });
     }
 }

@@ -7,16 +7,11 @@
 #include "Model.h"
 #include "Core.h"
 #include <shaderc/shaderc.hpp>
-// std
-#include <cassert>
-#include <fstream>
-#include <iostream>
-#include <stdexcept>
 
 namespace Engine {
 
-    Pipeline::Pipeline(const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo, const bool& hasVertexAtrributes) {
-        createGraphicsPipeline(vertFilepath, fragFilepath, configInfo, hasVertexAtrributes);
+    Pipeline::Pipeline(const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo) {
+        createGraphicsPipeline(vertFilepath, fragFilepath, configInfo);
     }
 
     Pipeline::~Pipeline() {
@@ -54,7 +49,7 @@ namespace Engine {
     void Pipeline::createGraphicsPipeline(
             const std::string& vertFilepath,
             const std::string& fragFilepath,
-            const PipelineConfigInfo& configInfo, const bool& hasVertexAtrributes) {
+            const PipelineConfigInfo& configInfo) {
         assert(
                 configInfo.pipelineLayout != VK_NULL_HANDLE &&
                 "Cannot create graphics pipeline: no pipelineLayout provided in configInfo");
@@ -104,88 +99,47 @@ namespace Engine {
         shaderStages[1].pNext = nullptr;
         shaderStages[1].pSpecializationInfo = nullptr;
 
-        if(hasVertexAtrributes) {
-            auto bindingDescriptions = Model::Vertex::getBindingDescriptions();
-            auto attributeDescriptions = Model::Vertex::getAttributeDescriptions();
-            VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-            vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-            vertexInputInfo.vertexAttributeDescriptionCount =
-                    static_cast<uint32_t>(attributeDescriptions.size());
-            vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
-            vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-            vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
+        auto& bindingDescriptions = configInfo.bindingDescriptions;
+        auto& attributeDescriptions = configInfo.attributeDescriptions;
+        VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+        vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        vertexInputInfo.vertexAttributeDescriptionCount =
+                static_cast<uint32_t>(attributeDescriptions.size());
+        vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
+        vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+        vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
 
 
-            VkGraphicsPipelineCreateInfo pipelineInfo{};
-            pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-            pipelineInfo.stageCount = 2;
-            pipelineInfo.pStages = shaderStages;
-            pipelineInfo.pVertexInputState = &vertexInputInfo;
-            pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo;
-            pipelineInfo.pViewportState = &configInfo.viewportInfo;
-            pipelineInfo.pRasterizationState = &configInfo.rasterizationInfo;
-            pipelineInfo.pMultisampleState = &configInfo.multisampleInfo;
-            pipelineInfo.pColorBlendState = &configInfo.colorBlendInfo;
-            pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo;
-            pipelineInfo.pDynamicState = &configInfo.dynamicStateInfo;
+        VkGraphicsPipelineCreateInfo pipelineInfo{};
+        pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+        pipelineInfo.stageCount = 2;
+        pipelineInfo.pStages = shaderStages;
+        pipelineInfo.pVertexInputState = &vertexInputInfo;
+        pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo;
+        pipelineInfo.pViewportState = &configInfo.viewportInfo;
+        pipelineInfo.pRasterizationState = &configInfo.rasterizationInfo;
+        pipelineInfo.pMultisampleState = &configInfo.multisampleInfo;
+        pipelineInfo.pColorBlendState = &configInfo.colorBlendInfo;
+        pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo;
+        pipelineInfo.pDynamicState = &configInfo.dynamicStateInfo;
 
-            pipelineInfo.layout = configInfo.pipelineLayout;
-            pipelineInfo.renderPass = configInfo.renderPass;
-            pipelineInfo.subpass = configInfo.subpass;
+        pipelineInfo.layout = configInfo.pipelineLayout;
+        pipelineInfo.renderPass = configInfo.renderPass;
+        pipelineInfo.subpass = configInfo.subpass;
 
-            pipelineInfo.basePipelineIndex = -1;
-            pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+        pipelineInfo.basePipelineIndex = -1;
+        pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-            if (vkCreateGraphicsPipelines(
-                    device,
-                    VK_NULL_HANDLE,
-                    1,
-                    &pipelineInfo,
-                    nullptr,
-                    &graphicsPipeline) != VK_SUCCESS) {
-                throw std::runtime_error("failed to create graphics pipeline");
-            }
+        if (vkCreateGraphicsPipelines(
+                device,
+                VK_NULL_HANDLE,
+                1,
+                &pipelineInfo,
+                nullptr,
+                &graphicsPipeline) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create graphics pipeline");
         }
 
-        else {
-            VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-            vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-            vertexInputInfo.vertexAttributeDescriptionCount = 0;
-            vertexInputInfo.vertexBindingDescriptionCount = 0;
-            vertexInputInfo.pVertexAttributeDescriptions = nullptr;
-            vertexInputInfo.pVertexBindingDescriptions = nullptr;
-
-
-            VkGraphicsPipelineCreateInfo pipelineInfo{};
-            pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-            pipelineInfo.stageCount = 2;
-            pipelineInfo.pStages = shaderStages;
-            pipelineInfo.pVertexInputState = &vertexInputInfo;
-            pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo;
-            pipelineInfo.pViewportState = &configInfo.viewportInfo;
-            pipelineInfo.pRasterizationState = &configInfo.rasterizationInfo;
-            pipelineInfo.pMultisampleState = &configInfo.multisampleInfo;
-            pipelineInfo.pColorBlendState = &configInfo.colorBlendInfo;
-            pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo;
-            pipelineInfo.pDynamicState = &configInfo.dynamicStateInfo;
-
-            pipelineInfo.layout = configInfo.pipelineLayout;
-            pipelineInfo.renderPass = configInfo.renderPass;
-            pipelineInfo.subpass = configInfo.subpass;
-
-            pipelineInfo.basePipelineIndex = -1;
-            pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-
-            if (vkCreateGraphicsPipelines(
-                    device,
-                    VK_NULL_HANDLE,
-                    1,
-                    &pipelineInfo,
-                    nullptr,
-                    &graphicsPipeline) != VK_SUCCESS) {
-                throw std::runtime_error("failed to create graphics pipeline");
-            }
-        }
     }
 
     void Pipeline::createShaderModule(const std::vector<uint32_t>& code, VkShaderModule* shaderModule) {
@@ -272,6 +226,22 @@ namespace Engine {
         configInfo.dynamicStateInfo.dynamicStateCount =
                 static_cast<uint32_t>(configInfo.dynamicStateEnables.size());
         configInfo.dynamicStateInfo.flags = 0;
+
+        configInfo.bindingDescriptions = Model::Vertex::getBindingDescriptions();
+        configInfo.attributeDescriptions = Model::Vertex::getAttributeDescriptions();
+    }
+
+    void Pipeline::enebleAlphaBlending(PipelineConfigInfo &configInfo) {
+        configInfo.colorBlendAttachment.blendEnable = VK_TRUE;
+        configInfo.colorBlendAttachment.colorWriteMask =
+                VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
+                VK_COLOR_COMPONENT_A_BIT;
+        configInfo.colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        configInfo.colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        configInfo.colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+        configInfo.colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        configInfo.colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+        configInfo.colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
     }
 
 }

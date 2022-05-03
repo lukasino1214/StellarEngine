@@ -8,10 +8,7 @@
 #include <vulkan/vulkan.h>
 
 #include "../Core/Window.h"
-
-// std lib headers
-#include <string>
-#include <vector>
+#include "../pgepch.h"
 
 namespace Engine {
 

@@ -14,8 +14,7 @@
 #include <glm/glm.hpp>
 
 // std
-#include <memory>
-#include <vector>
+#include "../pgepch.h"
 #include "Texture.h"
 #include "Descriptors.h"
 #include "FrameInfo.h"

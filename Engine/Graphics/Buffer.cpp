@@ -12,10 +12,6 @@
 #include "Buffer.h"
 #include "Core.h"
 
-// std
-#include <cassert>
-#include <cstring>
-
 namespace Engine {
 
 /**

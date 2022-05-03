@@ -1,4 +1,4 @@
-#include "RenderSystem.h"
+#include "PointLightSystem.h"
 #include "../Graphics/Core.h"
 
 // libs
@@ -8,30 +8,34 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
+// std
+#include <array>
+#include <cassert>
+#include <stdexcept>
+
 namespace Engine {
 
-    struct SimplePushConstantData {
-        glm::mat4 modelMatrix{1.0f};
-        glm::mat4 normalMatrix{1.0f};
+    struct PointLightPushConstantData {
+        glm::vec4 position;
+        glm::vec4 color;
     };
 
-    RenderSystem::RenderSystem(VkRenderPass renderPass) {
+    PointLightSystem::PointLightSystem(VkRenderPass renderPass) {
         createPipelineLayout();
         createPipeline(renderPass);
     }
 
-    RenderSystem::~RenderSystem() {
+    PointLightSystem::~PointLightSystem() {
         vkDestroyPipelineLayout(Core::m_Device->device(), pipelineLayout, nullptr);
     }
 
-    void RenderSystem::createPipelineLayout() {
+    void PointLightSystem::createPipelineLayout() {
         VkPushConstantRange pushConstantRange{};
         pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
         pushConstantRange.offset = 0;
-        pushConstantRange.size = sizeof(SimplePushConstantData);
+        pushConstantRange.size = sizeof(PointLightPushConstantData);
 
-        std::vector<VkDescriptorSetLayout> descriptorSetLayouts{Core::m_GlobalSetLayout->getDescriptorSetLayout(),
-                                                                Core::m_EntitySetLayout->getDescriptorSetLayout()};
+        std::vector<VkDescriptorSetLayout> descriptorSetLayouts{Core::m_GlobalSetLayout->getDescriptorSetLayout()};
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -45,44 +49,45 @@ namespace Engine {
         }
     }
 
-    void RenderSystem::createPipeline(VkRenderPass renderPass) {
+    void PointLightSystem::createPipeline(VkRenderPass renderPass) {
         assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
 
         PipelineConfigInfo pipelineConfig{};
         Pipeline::defaultPipelineConfigInfo(pipelineConfig);
+        Pipeline::enebleAlphaBlending(pipelineConfig);
+        pipelineConfig.attributeDescriptions.clear();
+        pipelineConfig.bindingDescriptions.clear();
         pipelineConfig.renderPass = renderPass;
         pipelineConfig.pipelineLayout = pipelineLayout;
-        m_Pipeline = std::make_unique<Pipeline>("assets/shaders/simple_shader.vert",
-                                                "assets/shaders/simple_shader.frag", pipelineConfig);
+        m_Pipeline = std::make_unique<Pipeline>("assets/shaders/point_light.vert",
+                                                "assets/shaders/point_light.frag", pipelineConfig);
     }
 
-    void RenderSystem::renderGameObjects(FrameInfo &frameInfo, const Ref<Scene> &Scene) {
+    void PointLightSystem::renderGameObjects(FrameInfo &frameInfo, const Ref<Scene> &Scene) {
         m_Pipeline->bind(frameInfo.commandBuffer);
+
+        vkCmdBindDescriptorSets(frameInfo.commandBuffer,VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &frameInfo.globalDescriptorSet, 0,nullptr);
 
         Scene->m_Registry.each([&](auto entityID) {
             Entity entity = {entityID, Scene.get()};
             if (!entity)
                 return;
 
-            if (entity.HasComponent<ModelComponent>()) {
-                SimplePushConstantData push{};
+            if (entity.HasComponent<PointLightComponent>()) {
+                PointLightPushConstantData push{};
 
                 auto Transform = entity.GetComponent<TransformComponent>();
-                push.modelMatrix = Transform.mat4();
-                push.normalMatrix = Transform.normalMatrix();
+                push.position = glm::vec4(Transform.GetTranslation(), 1.0);
+                push.color = glm::vec4(entity.GetComponent<PointLightComponent>().color, 1.0);
+
 
                 vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,
                                    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0,
-                                   sizeof(SimplePushConstantData), &push);
+                                   sizeof(PointLightPushConstantData), &push);
 
-
-                //TODO: THIS SHIT
-                auto Model = entity.GetComponent<ModelComponent>().GetModel();
-                Model->bind(frameInfo.commandBuffer);
-                Model->draw(frameInfo, pipelineLayout);
+                vkCmdDraw(frameInfo.commandBuffer, 6, 1, 0, 0);
             }
         });
-
     }
 
 }  // namespace lve

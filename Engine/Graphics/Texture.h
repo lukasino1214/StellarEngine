@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include <memory>
+#include "../pgepch.h"
 #include "Device.h"
 
 namespace Engine {

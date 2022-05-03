@@ -3,9 +3,7 @@
 //
 
 #include "SceneSerializer.h"
-
-#include <fstream>
-#include <iostream>
+#include "../pgepch.h"
 
 namespace YAML {
     template<>
