@@ -64,7 +64,7 @@ namespace Engine {
                 script.m_Script->OnUpdate(deltaTime);
             }
 
-            if(entity.template HasComponent<PhysicsComponent>()) {
+            /*if(entity.template HasComponent<PhysicsComponent>()) {
                 auto id = entity.GetComponent<PhysicsComponent>().id;
                 BodyInterface& body_interface = Physics::m_PhysicsSystem->GetBodyInterface();
                if(body_interface.IsActive(id)) {
@@ -74,7 +74,7 @@ namespace Engine {
                     changed_position.y = position.GetY();
                     changed_position.z = position.GetZ();
                 }
-            }
+            }*/
         });
     }
 }

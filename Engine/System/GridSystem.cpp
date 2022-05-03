@@ -12,8 +12,8 @@
 
 namespace Engine {
 
-    GridSystem::GridSystem(VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout) {
-        createPipelineLayout(globalSetLayout);
+    GridSystem::GridSystem(VkRenderPass renderPass) {
+        createPipelineLayout();
         createPipeline(renderPass);
     }
 
@@ -21,8 +21,8 @@ namespace Engine {
         vkDestroyPipelineLayout(Core::m_Device->device(), pipelineLayout, nullptr);
     }
 
-    void GridSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout) {
-        std::vector<VkDescriptorSetLayout> descriptorSetLayouts{globalSetLayout};
+    void GridSystem::createPipelineLayout() {
+        std::vector<VkDescriptorSetLayout> descriptorSetLayouts{Core::m_GlobalSetLayout->getDescriptorSetLayout()};
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -41,6 +41,8 @@ namespace Engine {
 
         PipelineConfigInfo configInfo{};
         Pipeline::defaultPipelineConfigInfo(configInfo);
+        configInfo.attributeDescriptions.clear();
+        configInfo.bindingDescriptions.clear();
         configInfo.renderPass = renderPass;
         configInfo.pipelineLayout = pipelineLayout;
         configInfo.bindingDescriptions.clear();
@@ -50,8 +52,8 @@ namespace Engine {
         configInfo.colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 
         m_Pipeline = std::make_unique<Pipeline>(
-                "assets/shaders/grid.vert.spv",
-                "assets/shaders/grid.frag.spv",
+                "assets/shaders/grid.vert",
+                "assets/shaders/grid.frag",
                 configInfo);
     }
 

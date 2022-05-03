@@ -32,12 +32,12 @@ namespace Engine {
         m_SimpleRenderSystem = std::make_unique<RenderSystem>(m_OffScreenRenderingSystem->GetRenderPass());
         m_PointLightSystem = std::make_unique<PointLightSystem>(m_OffScreenRenderingSystem->GetRenderPass());
         m_PostProcessingSystem = std::make_unique<PostProcessingSystem>(m_ViewportSize.x , m_ViewportSize.y);
+        m_GridSystem = std::make_unique<GridSystem>(m_OffScreenRenderingSystem->GetRenderPass());
         m_Camera = std::make_shared<Camera>(glm::vec3(5, 10, 5), glm::vec3(10, 10, 0));
         m_Imgui = std::make_unique<ImGuiLayer>(*m_Window, m_Renderer->getSwapChainRenderPass(), m_Renderer->getImageCount());
 
 
-        Physics::Init();
-
+        /*Physics::Init();
         BodyInterface &body_interface = Physics::m_PhysicsSystem->GetBodyInterface();
         BoxShapeSettings floor_shape_settings(Vec3(100.0f, 1.0f, 100.0f));
         ShapeSettings::ShapeResult floor_shape_result = floor_shape_settings.Create();
@@ -50,9 +50,7 @@ namespace Engine {
         body_interface.SetLinearVelocity(sphere_id, Vec3(0.0f, -5.0f, 0.0f));
         Vec3 position = body_interface.GetCenterOfMassPosition(sphere_id);
         Vec3 velocity = body_interface.GetLinearVelocity(sphere_id);
-        floor_id = floor->GetID();
-
-
+        floor_id = floor->GetID();*/
 
 
         auto entity = m_EditorScene->CreateEntity("Helmet");
@@ -134,9 +132,9 @@ namespace Engine {
             currentTime = newTime;
 
             m_Camera->Move(m_Window->getGLFWwindow(), frameTime);
-            if(body_interface.IsActive(sphere_id) && startPhysics) {
+            /*if(body_interface.IsActive(sphere_id) && startPhysics) {
                 Physics::m_PhysicsSystem->Update();
-            }
+            }*/
 
             if (auto commandBuffer = m_Renderer->beginFrame()) {
                 int frameIndex = m_Renderer->getFrameIndex();
@@ -158,6 +156,7 @@ namespace Engine {
                 m_OffScreenRenderingSystem->Start(frameInfo);
                 m_SimpleRenderSystem->renderGameObjects(frameInfo, m_EditorScene);
                 m_PointLightSystem->renderGameObjects(frameInfo, m_EditorScene);
+                m_GridSystem->render(frameInfo);
                 m_OffScreenRenderingSystem->End(frameInfo);
                 m_PostProcessingSystem->Render(frameInfo, PostProcessingSet);
 
@@ -235,9 +234,9 @@ namespace Engine {
                     SceneSerializer serializer(m_EditorScene);
                     serializer.Serialize("./assets/Example.scene");
                 }
-                if(ImGui::Button("Start Physics")) {
+                /*if(ImGui::Button("Start Physics")) {
                     startPhysics = true;
-                }
+                }*/
                 ImGui::End();
 
 
@@ -250,14 +249,14 @@ namespace Engine {
             }
         }
 
-        body_interface.RemoveBody(sphere_id);
+        /*body_interface.RemoveBody(sphere_id);
 
         // Destroy the sphere. After this the sphere ID is no longer valid.
         body_interface.DestroyBody(sphere_id);
 
         // Remove and destroy the floor
         body_interface.RemoveBody(floor_id);
-        body_interface.DestroyBody(floor_id);
+        body_interface.DestroyBody(floor_id);*/
 
         vkDeviceWaitIdle(Core::m_Device->device());
     }

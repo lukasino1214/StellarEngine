@@ -80,6 +80,7 @@ namespace Engine {
 
             ImGui::PushID(filenameString.c_str());
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetColumnWidth() / 2) - (thumbnailSize / 2));
             if(directoryEntry.is_directory()) {
                 ImGui::ImageButton(directory_set, { thumbnailSize, thumbnailSize });
             } else {
@@ -94,6 +95,7 @@ namespace Engine {
 
             }
 
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (ImGui::GetColumnWidth() / 2) - (ImGui::CalcTextSize(filenameString.c_str()).x / 2));
             ImGui::TextWrapped("%s", filenameString.c_str());
 
             ImGui::NextColumn();

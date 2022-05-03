@@ -15,7 +15,7 @@
 namespace Engine {
     class GridSystem {
     public:
-        GridSystem(VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
+        GridSystem(VkRenderPass renderPass);
         ~GridSystem();
 
         GridSystem(const GridSystem &) = delete;
@@ -24,7 +24,7 @@ namespace Engine {
         void render(FrameInfo &frameInfo);
 
     private:
-        void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
+        void createPipelineLayout();
         void createPipeline(VkRenderPass renderPass);
 
         std::unique_ptr<Pipeline> m_Pipeline;

@@ -15,7 +15,7 @@ namespace Engine {
         m_GlobalPool = DescriptorPool::Builder()
                 .setMaxSets(1000)
                 .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2)
-                .addPoolSize(VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 500)
+                .addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 500)
                 .SharedBuild();
 
         m_GlobalSetLayout = DescriptorSetLayout::Builder()
@@ -23,13 +23,13 @@ namespace Engine {
                 .SharedBuild();
 
         m_EntitySetLayout = DescriptorSetLayout::Builder()
-                .addBinding(0, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_SHADER_STAGE_ALL_GRAPHICS)
-                .addBinding(1, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_SHADER_STAGE_ALL_GRAPHICS)
-                .addBinding(2, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_SHADER_STAGE_ALL_GRAPHICS)
+                .addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL_GRAPHICS)
+                .addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL_GRAPHICS)
+                .addBinding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL_GRAPHICS)
                 .SharedBuild();
 
         m_PostProcessingLayout = DescriptorSetLayout::Builder()
-                .addBinding(0, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_SHADER_STAGE_ALL_GRAPHICS)
+                .addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL_GRAPHICS)
                 .SharedBuild();
     }
 }
