@@ -36,11 +36,8 @@ build/
 .xmake/
 cmake-build-debug/
 *.sh
-*.cmake
-*.txt
 *.cbp
 Testing/
-CMakeFiles/
 Makefile
 Vendor/llvm-project
 Vendor/mono
