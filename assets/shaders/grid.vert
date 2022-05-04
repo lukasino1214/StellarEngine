@@ -1,12 +1,17 @@
 #version 450
 
+struct PointLight {
+    vec4 position;
+    vec3 color;
+    float intensity;
+};
+
 layout(set = 0, binding = 0) uniform GlobalUbo {
     mat4 projectionMatrix;
     mat4 viewMatrix;
-    vec4 ambientLightColor; // w is intensity
-    vec3 lightPosition;
-    vec4 lightColor;
-    vec3 cameraPos;
+    vec4 cameraPos;
+    PointLight pointLights[10];
+    int numLights;
 } ubo;
 
 layout(location = 1) out vec3 nearPoint;

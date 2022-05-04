@@ -1,5 +1,19 @@
 #version 450
 
+struct PointLight {
+    vec4 position;
+    vec3 color;
+    float intensity;
+};
+
+layout(set = 0, binding = 0) uniform GlobalUbo {
+    mat4 projectionMatrix;
+    mat4 viewMatrix;
+    vec4 cameraPos;
+    PointLight pointLights[10];
+    int numLights;
+} ubo;
+
 layout(location = 1) in vec3 nearPoint;
 layout(location = 2) in vec3 farPoint;
 layout(location = 3) in mat4 fragView;
