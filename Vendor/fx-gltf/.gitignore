@@ -1,0 +1,9 @@
+# User-specific files
+.vs
+*.suo
+*.user
+*.sln.docstates
+
+build
+
+examples/viewer/x64
