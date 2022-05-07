@@ -33,6 +33,7 @@
 #include "System/PointLightSystem.h"
 #include "System/OffScreen.h"
 #include "System/PostProcessingSystem.h"
+#include "System/ShadowSystem.h"
 
 #include "Math/Math.h"
 

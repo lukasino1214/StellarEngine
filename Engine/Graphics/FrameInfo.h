@@ -15,6 +15,12 @@ namespace Engine {
         float frameTime;
         VkCommandBuffer commandBuffer;
         VkDescriptorSet globalDescriptorSet;
+        VkDescriptorSet ShadowSet;
+    };
+
+    struct DirectionalLight {
+        glm::mat4 mvp{1.0};
+        glm::vec4 position{0.0f, 0.0f, 0.0f, 0.0f};
     };
 
     struct PointLight {
@@ -27,7 +33,9 @@ namespace Engine {
         glm::mat4 viewMat{1.0f};
         glm::vec4 cameraPos{0.0f, 0.0f, 0.0f, 0.0f};
         PointLight pointLights[10];
-        int numLights;
+        DirectionalLight directionalLights[10];
+        int numPointLights;
+        int numDirectionalLights;
     };
 }
 

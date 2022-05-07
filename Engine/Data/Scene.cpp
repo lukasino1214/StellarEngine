@@ -45,10 +45,10 @@ namespace Engine {
                 auto light = entity.GetComponent<PointLightComponent>();
                 auto position = entity.GetComponent<TransformComponent>().Translation;
 
-                ubo.pointLights[ubo.numLights].color = glm::vec4(light.color, light.intensity);
-                ubo.pointLights[ubo.numLights].position = glm::vec4(position, 1.0);
+                ubo.pointLights[ubo.numPointLights].color = glm::vec4(light.color, light.intensity);
+                ubo.pointLights[ubo.numPointLights].position = glm::vec4(position, 1.0);
 
-                ubo.numLights += 1;
+                ubo.numPointLights += 1;
             }
         });
     }

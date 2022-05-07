@@ -1,7 +1,10 @@
 #version 450
 
-layout (location = 0) in vec2 fragOffset;
-layout (location = 0) out vec4 outColor;
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec3 color;
+layout(location = 2) in vec3 normal;
+layout(location = 3) in vec4 tangent;
+layout(location = 4) in vec2 uv;
 
 struct PointLight {
     vec4 position;
@@ -25,18 +28,15 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 } ubo;
 
 layout(push_constant) uniform Push {
-    vec4 position;
-    vec4 color;
+    mat4 modelMatrix;
+    mat4 normalMatrix;
 } push;
 
-const float M_PI = 3.1415926538;
+out gl_PerVertex
+{
+    vec4 gl_Position;
+};
 
 void main() {
-    float dis = sqrt(dot(fragOffset, fragOffset));
-    if (dis >= 1.0) {
-        discard;
-    }
-
-    float cosDis = 0.5 * (cos(dis * M_PI) + 1.0); // ranges from 1 -> 0
-    outColor = vec4(push.color.xyz + 0.5 * cosDis, cosDis);
+    gl_Position = ubo.directionalLights[0].mvp * push.modelMatrix * vec4(position, 1.0);
 }

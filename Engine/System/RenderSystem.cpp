@@ -31,7 +31,8 @@ namespace Engine {
         pushConstantRange.size = sizeof(SimplePushConstantData);
 
         std::vector<VkDescriptorSetLayout> descriptorSetLayouts{Core::m_GlobalSetLayout->getDescriptorSetLayout(),
-                                                                Core::m_EntitySetLayout->getDescriptorSetLayout()};
+                                                                Core::m_EntitySetLayout->getDescriptorSetLayout(),
+                                                                Core::m_ShadowLayout->getDescriptorSetLayout()};
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -79,6 +80,7 @@ namespace Engine {
                 //TODO: THIS SHIT
                 auto Model = entity.GetComponent<ModelComponent>().GetModel();
                 Model->bind(frameInfo.commandBuffer);
+                vkCmdBindDescriptorSets(frameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &frameInfo.ShadowSet, 0, nullptr);
                 Model->draw(frameInfo, pipelineLayout);
             }
         });

@@ -9,6 +9,7 @@ namespace Engine {
     std::shared_ptr<DescriptorSetLayout> Core::m_GlobalSetLayout;
     std::shared_ptr<DescriptorSetLayout> Core::m_EntitySetLayout;
     std::shared_ptr<DescriptorSetLayout> Core::m_PostProcessingLayout;
+    std::shared_ptr<DescriptorSetLayout> Core::m_ShadowLayout;
     std::shared_ptr<Device> Core::m_Device;
 
     void Core::Init() {
@@ -29,6 +30,10 @@ namespace Engine {
                 .SharedBuild();
 
         m_PostProcessingLayout = DescriptorSetLayout::Builder()
+                .addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL_GRAPHICS)
+                .SharedBuild();
+
+        m_ShadowLayout = DescriptorSetLayout::Builder()
                 .addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL_GRAPHICS)
                 .SharedBuild();
     }

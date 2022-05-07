@@ -42,6 +42,7 @@ namespace Engine {
         std::unique_ptr<PointLightSystem> m_PointLightSystem;
         std::unique_ptr<PostProcessingSystem> m_PostProcessingSystem;
         std::unique_ptr<GridSystem> m_GridSystem;
+        std::unique_ptr<ShadowSystem> m_ShadowSystem;
 
         std::shared_ptr<Camera> m_Camera;
 

@@ -3,7 +3,8 @@
 layout(location = 0) in vec3 fragColor;
 layout(location = 1) in vec2 uv;
 layout(location = 2) in vec3 position;
-layout(location = 3) in mat3 TBN;
+layout(location = 3) in vec4 inShadowCoord;
+layout(location = 4) in mat3 TBN;
 
 struct PointLight {
     vec4 position;
@@ -11,16 +12,25 @@ struct PointLight {
     float intensity;
 };
 
+struct DirectionalLight {
+    mat4 mvp;
+    vec4 position;
+};
+
 layout(set = 0, binding = 0) uniform GlobalUbo {
-  mat4 projectionMatrix;
-  mat4 viewMatrix;
-  vec4 cameraPos;
-  PointLight pointLights[10];
-  int numLights;
+    mat4 projectionMatrix;
+    mat4 viewMatrix;
+    vec4 cameraPos;
+    PointLight pointLights[10];
+    DirectionalLight directionalLights[10];
+    int numPointLights;
+    int numDirectionalLights;
 } ubo;
+
 layout(set = 1, binding = 0) uniform sampler2D albedo;
 layout(set = 1, binding = 1) uniform sampler2D normal;
 layout(set = 1, binding = 2) uniform sampler2D metallicRoughness;
+layout(set = 2, binding = 0) uniform sampler2D shadowMap;
 
 layout(push_constant) uniform Push {
   mat4 modelMatrix;
@@ -75,6 +85,38 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 // ----------------------------------------------------------------------------
 
 
+float textureProj(vec4 shadowCoord, vec2 off) {
+    float shadow = 1.0;
+    if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 ) {
+        float dist = texture( shadowMap, shadowCoord.st + off ).r;
+        if ( shadowCoord.w > 0.0 && dist < shadowCoord.z - 0.00005) {
+            shadow = 0.03;
+        }
+    }
+    return shadow;
+}
+
+float filterPCF(vec4 sc) {
+    ivec2 texDim = textureSize(shadowMap, 0);
+    float scale = 1.5;
+    float dx = scale * 1.0 / float(texDim.x);
+    float dy = scale * 1.0 / float(texDim.y);
+
+    float shadowFactor = 0.0;
+    int count = 0;
+    int range = 1;
+
+    for (int x = -range; x <= range; x++) {
+        for (int y = -range; y <= range; y++) {
+            shadowFactor += textureProj(sc, vec2(dx*x, dy*y));
+            count++;
+        }
+
+    }
+    return shadowFactor / count;
+}
+
+
 void main() {
     vec3 fragColor = vec3(1.0);
 
@@ -98,7 +140,7 @@ void main() {
 
     // reflectance equation
     vec3 Lo = vec3(0.0);
-    for (int i = 0; i < ubo.numLights; i++) {
+    for (int i = 0; i < ubo.numPointLights; i++) {
         PointLight light = ubo.pointLights[i];
         vec3 L = normalize(light.position.xyz - position);
         vec3 H = normalize(V + L);
@@ -144,5 +186,9 @@ void main() {
     // gamma correct
     color = pow(color, vec3(1.0/2.2));
 
-    outColor = albedo * vec4(color, 1.0);
+    //float shadow = textureProj(inShadowCoord / inShadowCoord.w, vec2(0.0));
+    float shadow = filterPCF(inShadowCoord / inShadowCoord.w);
+
+    outColor = albedo * vec4(color * shadow, 1.0);
+    //outColor = vec4(vec3(texture( shadowMap, shadowCoord.st).r), 1.0);
 }

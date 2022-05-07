@@ -44,6 +44,7 @@ namespace Engine {
         friend class PhysicsSystem;
         friend class NativeScript;
         friend class PointLightSystem;
+        friend class ShadowSystem;
     };
 
 }

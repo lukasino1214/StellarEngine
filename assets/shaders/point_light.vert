@@ -17,12 +17,19 @@ struct PointLight {
     float intensity;
 };
 
+struct DirectionalLight {
+    mat4 mvp;
+    vec4 position;
+};
+
 layout(set = 0, binding = 0) uniform GlobalUbo {
     mat4 projectionMatrix;
     mat4 viewMatrix;
     vec4 cameraPos;
     PointLight pointLights[10];
-    int numLights;
+    DirectionalLight directionalLights[10];
+    int numPointLights;
+    int numDirectionalLights;
 } ubo;
 
 const float LIGHT_RADIUS = 0.75;

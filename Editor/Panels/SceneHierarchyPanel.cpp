@@ -260,7 +260,8 @@ namespace Engine {
             }
             ImGui::SameLine();
             if(ImGui::Button("Load")) {
-                component.model = std::make_shared<Model>(path);
+                auto model = std::make_shared<Model>(path);
+                component.model = model;
             }
         });
     }

@@ -33,6 +33,7 @@ namespace Engine {
         m_PointLightSystem = std::make_unique<PointLightSystem>(m_OffScreenRenderingSystem->GetRenderPass());
         m_PostProcessingSystem = std::make_unique<PostProcessingSystem>(m_ViewportSize.x , m_ViewportSize.y);
         m_GridSystem = std::make_unique<GridSystem>(m_OffScreenRenderingSystem->GetRenderPass());
+        m_ShadowSystem = std::make_unique<ShadowSystem>();
         m_Camera = std::make_shared<Camera>(glm::vec3(5, 10, 5), glm::vec3(10, 10, 0));
         m_Imgui = std::make_unique<ImGuiLayer>(*m_Window, m_Renderer->getSwapChainRenderPass(), m_Renderer->getImageCount());
 
@@ -56,7 +57,7 @@ namespace Engine {
         auto entity = m_EditorScene->CreateEntity("Helmet");
         auto helmet = std::make_shared<Model>("assets/models/SciFiHelmet/glTF/SciFiHelmet.gltf");
         auto script = std::make_shared<HelmetScript>(entity.GetHandle(), m_EditorScene);
-        entity.GetComponent<TransformComponent>().Translation = {0, 8, 0};
+        entity.GetComponent<TransformComponent>().Translation = {10, 8, 0};
         entity.AddComponent<ModelComponent>(helmet);
         entity.AddComponent<ScriptComponent>(script);
         entity.AddComponent<PhysicsComponent>(sphere_id);
@@ -101,6 +102,19 @@ namespace Engine {
                 .build(PostProcessingSet);
         }
 
+        VkDescriptorSet set;
+
+        {
+            VkDescriptorImageInfo image_info = {};
+            image_info.sampler = m_ShadowSystem->GetSampler();
+            image_info.imageView = m_ShadowSystem->GetImageView();
+            image_info.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
+            DescriptorWriter(*Core::m_ShadowLayout, *Core::m_GlobalPool)
+                    .writeImage(0, &image_info)
+                    .build(set);
+        }
+
         auto image = ImGui_ImplVulkan_AddTexture(m_PostProcessingSystem->GetSampler(), m_PostProcessingSystem->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         auto currentTime = std::chrono::high_resolution_clock::now();
@@ -109,8 +123,16 @@ namespace Engine {
 
         int m_GizmoType = 0;
 
+        float timer = 0.0;
+
+        glm::vec3 light = {10.0, 10.0, 10.0};
+
         while (!m_Window->shouldClose()) {
             glfwPollEvents();
+
+            /*light.x = cos(glm::radians(timer * 360.0f)) * 40.0f;
+            light.y = -50.0f + sin(glm::radians(timer * 360.0f)) * 20.0f;
+            light.z = 25.0f + sin(glm::radians(timer * 360.0f)) * 5.0f;*/
 
             if(resize) {
                 m_OffScreenRenderingSystem->SetViewportSize(m_ViewportSize);
@@ -130,6 +152,7 @@ namespace Engine {
             auto newTime = std::chrono::high_resolution_clock::now();
             float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
             currentTime = newTime;
+            timer += frameTime;
 
             m_Camera->Move(m_Window->getGLFWwindow(), frameTime);
             /*if(body_interface.IsActive(sphere_id) && startPhysics) {
@@ -138,14 +161,19 @@ namespace Engine {
 
             if (auto commandBuffer = m_Renderer->beginFrame()) {
                 int frameIndex = m_Renderer->getFrameIndex();
-                FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, globalDescriptorSets[frameIndex]};
+                FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, globalDescriptorSets[frameIndex], set};
 
                 // update
                 GlobalUbo ubo{};
                 ubo.projectionMat = m_Camera->getProjection();
                 ubo.viewMat = m_Camera->getView();
+                //ubo.viewMat = glm::lookAt({20.0f, 20.0f, 20.0f}, glm::vec3(0.0f), glm::vec3(0, 1, 0));
                 ubo.cameraPos = glm::vec4(m_Camera->getPosition(), 1.0f);
-                ubo.numLights = 0;
+                ubo.numPointLights = 0;
+                ubo.numDirectionalLights = 1;
+                //ubo.directionalLights[0].mvp = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, 312.0f) * glm::lookAt(light, glm::vec3(0.0f), glm::vec3(0, 1, 0)) * glm::mat4(1.0f);
+                ubo.directionalLights[0].position = {50.0, 180.0, 50.0, 0.0};
+                ubo.directionalLights[0].mvp = glm::perspective(glm::radians(90.0f), 1.0f, 0.01f, 1000.0f) * glm::lookAt(light, glm::vec3(0.0f), glm::vec3(0, 1, 0));
 
                 m_EditorScene->UpdateLightsUbo(ubo);
                 m_EditorScene->OnUpdate(frameTime);
@@ -153,6 +181,7 @@ namespace Engine {
                 uboBuffers[frameIndex]->writeToBuffer(&ubo);
                 uboBuffers[frameIndex]->flush();
 
+                m_ShadowSystem->Render(frameInfo, m_EditorScene);
                 m_OffScreenRenderingSystem->Start(frameInfo);
                 m_SimpleRenderSystem->renderGameObjects(frameInfo, m_EditorScene);
                 m_PointLightSystem->renderGameObjects(frameInfo, m_EditorScene);
@@ -166,6 +195,10 @@ namespace Engine {
                 m_DockSpacePanel->OnImGuiRender();
                 m_ContentBrowserPanel->OnImGuiRender();
                 m_SceneHierarchyPanel->OnImGuiRender();
+
+                ImGui::Begin("FUCK SHADOWMAPPING");
+                ImGui::DragFloat3("Pos", &light[0]);
+                ImGui::End();
 
                 ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
                 ImGui::Begin("Viewport");
