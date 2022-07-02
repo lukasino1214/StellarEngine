@@ -18,14 +18,20 @@ namespace Engine {
     class Scene {
     public:
         Scene();
+
         ~Scene();
 
-        Entity CreateEntity(const std::string& name = std::string());
-        Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
+        Entity CreateEntity(const std::string &name = std::string());
+
+        Entity CreateEntityWithUUID(UUID uuid, const std::string &name = std::string());
+
         void DestroyEntity(Entity entity);
 
-        void UpdateLightsUbo(GlobalUbo& ubo);
-        void OnUpdate(const float& deltaTime);
+        void UpdateLightsUbo(GlobalUbo &ubo);
+
+        void OnUpdate(const float &deltaTime);
+
+        void UpdateTransforms();
 
         //void OnUpdateRuntime(Timestep ts);
         //void OnUpdateEditor(Timestep ts, EditorCamera& camera);
@@ -34,17 +40,30 @@ namespace Engine {
         //Entity GetPrimaryCameraEntity();
         //entt::registry m_Registry;
     private:
+        void UpdateChildren(Entity entity);
+    private:
         entt::registry m_Registry;
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
 
         friend class Entity;
+
         friend class SceneSerializer;
+
         friend class SceneHierarchyPanel;
+
         friend class RenderSystem;
+
         friend class PhysicsSystem;
+
         friend class NativeScript;
+
         friend class PointLightSystem;
+
         friend class ShadowSystem;
+
+        friend class FirstApp;
+
+        friend class App;
     };
 
 }

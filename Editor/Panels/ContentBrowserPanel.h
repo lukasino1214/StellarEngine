@@ -11,15 +11,16 @@
 
 namespace Engine {
 
-    class ContentBrowserPanel
-    {
+    class ContentBrowserPanel {
     public:
-        ContentBrowserPanel();
+        ContentBrowserPanel(std::shared_ptr<Device> device);
 
         void OnImGuiRender();
+
     private:
         std::filesystem::path m_CurrentDirectory;
-        void FileTree(const std::filesystem::path& path);
+
+        void FileTree(const std::filesystem::path &path);
 
         std::unique_ptr<Texture> m_FileIcon;
         std::unique_ptr<Texture> m_DirectoryIcon;

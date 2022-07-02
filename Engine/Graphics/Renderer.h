@@ -16,15 +16,21 @@ namespace Engine {
     class Renderer {
     public:
         Renderer(std::shared_ptr<Window> window, std::shared_ptr<Device> device);
+
         ~Renderer();
 
         Renderer(const Renderer &) = delete;
+
         Renderer &operator=(const Renderer &) = delete;
 
         VkRenderPass getSwapChainRenderPass() const { return m_SwapChain->getRenderPass(); }
+
         uint32_t getImageCount() const { return m_SwapChain->imageCount(); }
+
         float getAspectRatio() const { return m_SwapChain->extentAspectRatio(); }
+
         bool isFrameInProgress() const { return isFrameStarted; }
+
         VkImageView getImageView(int index) { return m_SwapChain->getImageView(index); }
 
         VkCommandBuffer getCurrentCommandBuffer() const {
@@ -38,13 +44,18 @@ namespace Engine {
         }
 
         VkCommandBuffer beginFrame();
+
         void endFrame();
+
         void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
+
         void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
 
     private:
         void createCommandBuffers();
+
         void freeCommandBuffers();
+
         void recreateSwapChain();
 
         std::shared_ptr<Window> m_Window;

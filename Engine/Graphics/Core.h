@@ -10,8 +10,7 @@
 #include "Descriptors.h"
 
 namespace Engine {
-    class Core
-    {
+    class Core {
 
     public:
         static std::shared_ptr<DescriptorPool> m_GlobalPool;
@@ -19,9 +18,8 @@ namespace Engine {
         static std::shared_ptr<DescriptorSetLayout> m_EntitySetLayout;
         static std::shared_ptr<DescriptorSetLayout> m_PostProcessingLayout;
         static std::shared_ptr<DescriptorSetLayout> m_ShadowLayout;
-        static std::shared_ptr<Device> m_Device;
 
-        static void Init();
+        static void Init(std::shared_ptr<Device> device);
 
     };
 }

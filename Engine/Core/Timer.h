@@ -20,7 +20,8 @@ namespace Engine {
         }
 
         float Timer::Elapsed() {
-            return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - m_Start).count() * 0.001f * 0.001f * 0.001f;
+            return std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    std::chrono::high_resolution_clock::now() - m_Start).count() * 0.001f * 0.001f * 0.001f;
         }
 
         float Timer::ElapsedMillis() {

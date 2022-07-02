@@ -19,7 +19,7 @@ add_subdirectory(fx-gltf)
 add_subdirectory(imgui)
 add_subdirectory(ImGuizmo)
 add_subdirectory(stb)
-add_subdirectory(JoltPhysics/Build)
+#add_subdirectory(JoltPhysics/Build)
 
 link_libraries(LINK_PUBLIC IMGUI)
 link_libraries(LINK_PUBLIC IMGUIZMO)
@@ -47,5 +47,4 @@ find_package(Vulkan REQUIRED)
 find_library(Vulkan_LIBRARY NAMES vulkan HINTS "$ENV{VULKAN_SDK}/lib" "${CMAKE_SOURCE_DIR}/libs/vulkan" REQUIRED)
 link_libraries(${Vulkan_LIBRARY})
 
-#TODO: JoltPhysics
 #TODO: qoi

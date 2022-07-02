@@ -30,24 +30,25 @@ namespace Engine {
         return instanceSize;
     }
 
-    Buffer::Buffer(
-            VkDeviceSize instanceSize,
-            uint32_t instanceCount,
-            VkBufferUsageFlags usageFlags,
-            VkMemoryPropertyFlags memoryPropertyFlags,
-            VkDeviceSize minOffsetAlignment)
+    Buffer::Buffer(std::shared_ptr<Device> device,
+                   VkDeviceSize instanceSize,
+                   uint32_t instanceCount,
+                   VkBufferUsageFlags usageFlags,
+                   VkMemoryPropertyFlags memoryPropertyFlags,
+                   VkDeviceSize minOffsetAlignment)
             : instanceSize{instanceSize},
               instanceCount{instanceCount},
               usageFlags{usageFlags},
-              memoryPropertyFlags{memoryPropertyFlags} {
+              memoryPropertyFlags{memoryPropertyFlags},
+              m_Device{device} {
         alignmentSize = getAlignment(instanceSize, minOffsetAlignment);
         bufferSize = alignmentSize * instanceCount;
-        Core::m_Device->createBuffer(bufferSize, usageFlags, memoryPropertyFlags, buffer, memory);
+        m_Device->createBuffer(bufferSize, usageFlags, memoryPropertyFlags, buffer, memory);
     }
 
     Buffer::~Buffer() {
         unmap();
-        auto device = Core::m_Device->device();
+        auto device = m_Device->device();
         vkDestroyBuffer(device, buffer, nullptr);
         vkFreeMemory(device, memory, nullptr);
     }
@@ -63,7 +64,7 @@ namespace Engine {
  */
     VkResult Buffer::map(VkDeviceSize size, VkDeviceSize offset) {
         assert(buffer && memory && "Called map on buffer before create");
-        return vkMapMemory(Core::m_Device->device(), memory, offset, size, 0, &mapped);
+        return vkMapMemory(m_Device->device(), memory, offset, size, 0, &mapped);
     }
 
 /**
@@ -73,7 +74,7 @@ namespace Engine {
  */
     void Buffer::unmap() {
         if (mapped) {
-            vkUnmapMemory(Core::m_Device->device(), memory);
+            vkUnmapMemory(m_Device->device(), memory);
             mapped = nullptr;
         }
     }
@@ -93,7 +94,7 @@ namespace Engine {
         if (size == VK_WHOLE_SIZE) {
             memcpy(mapped, data, bufferSize);
         } else {
-            char *memOffset = (char *)mapped;
+            char *memOffset = (char *) mapped;
             memOffset += offset;
             memcpy(memOffset, data, size);
         }
@@ -116,7 +117,7 @@ namespace Engine {
         mappedRange.memory = memory;
         mappedRange.offset = offset;
         mappedRange.size = size;
-        return vkFlushMappedMemoryRanges(Core::m_Device->device(), 1, &mappedRange);
+        return vkFlushMappedMemoryRanges(m_Device->device(), 1, &mappedRange);
     }
 
 /**
@@ -136,7 +137,7 @@ namespace Engine {
         mappedRange.memory = memory;
         mappedRange.offset = offset;
         mappedRange.size = size;
-        return vkInvalidateMappedMemoryRanges(Core::m_Device->device(), 1, &mappedRange);
+        return vkInvalidateMappedMemoryRanges(m_Device->device(), 1, &mappedRange);
     }
 
 /**

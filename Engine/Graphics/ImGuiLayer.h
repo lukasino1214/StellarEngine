@@ -28,12 +28,14 @@ namespace Engine {
 
     class ImGuiLayer {
     public:
-        ImGuiLayer(Window &window, VkRenderPass renderPass, uint32_t imageCount);
+        ImGuiLayer(std::shared_ptr<Device> device, Window &window, VkRenderPass renderPass, uint32_t imageCount);
+
         ~ImGuiLayer();
 
         void newFrame();
 
         void render(VkCommandBuffer commandBuffer);
+
         VkDescriptorPool GetDescriptorPool() { return m_DescriptorPool; }
         //static VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo);
 
@@ -50,6 +52,7 @@ namespace Engine {
         // maybe its preferred to have a separate descriptor pool for imgui anyway,
         // I haven't looked into imgui best practices at all.
         VkDescriptorPool m_DescriptorPool;
+        std::shared_ptr<Device> m_Device;
     };
 }  // namespace lve
 

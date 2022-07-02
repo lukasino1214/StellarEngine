@@ -24,7 +24,7 @@
 #include <stdexcept>
 
 #include "Core/Base.h"
-
 #include "Core/Log.h"
+#include "Core/Types.h"
 
 #endif //ENGINE_PGEPCH_H

@@ -14,10 +14,12 @@
 namespace Engine {
     class SceneSerializer {
     public:
-        SceneSerializer(const Ref<Scene>& scene);
+        SceneSerializer(const Ref<Scene> &scene);
 
-        void Serialize(const std::string& filepath);
-        bool Deserialize(const std::string& filepath);
+        void Serialize(const std::string &filepath);
+
+        bool Deserialize(std::shared_ptr<Device> device, const std::string &filepath);
+
     private:
         Ref<Scene> m_Scene;
     };

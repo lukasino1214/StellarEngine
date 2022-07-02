@@ -7,29 +7,27 @@
 
 #include <vulkan/vulkan.h>
 #include "../Graphics/Device.h"
-#include "pipeline.h"
 #include "../pgepch.h"
 #include "../Graphics/FrameInfo.h"
 #include "../Graphics/Core.h"
+#include "../Graphics/FrameBufferAttachment.h"
 
 namespace Engine {
-
-    struct FrameBufferAttachment {
-        VkImage image;
-        VkDeviceMemory mem;
-        VkImageView view;
+    struct NewFrameBufferAttachment {
+        Image* image;
+        ImageView* view;
     };
 
     class OffScreen {
     public:
-        OffScreen(uint32_t width, uint32_t height);
-        //void Init(Device device);
+        OffScreen(std::shared_ptr<Device> device, uint32_t width, uint32_t height);
         ~OffScreen();
 
-        VkSampler GetSampler() { return sampler; }
-        VkImageView GetImageView() { return color.view; }
+        VkSampler GetSampler() { return sampler->GetSampler(); }
+        VkImageView GetImageView() { return color->view->GetImageView(); }
         VkRenderPass GetRenderPass() { return renderPass; }
-        void SetViewportSize(const glm::vec2& size) {
+
+        void SetViewportSize(const glm::vec2 &size) {
             m_Width = size.x;
             m_Height = size.y;
 
@@ -37,16 +35,22 @@ namespace Engine {
         }
 
         void Start(FrameInfo frameInfo);
+
         void End(FrameInfo frameInfo);
+
     private:
         void CreateImages();
 
+        bool first = true;
         uint32_t m_Width, m_Height;
         VkFramebuffer frameBuffer;
-        FrameBufferAttachment color, depth;
+        FrameBufferAttachment* color;
+        FrameBufferAttachment* depth;
+        Sampler* sampler;
         VkRenderPass renderPass;
-        VkSampler sampler;
         VkDescriptorImageInfo descriptor;
+
+        std::shared_ptr<Device> m_Device;
     };
 }
 

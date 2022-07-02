@@ -36,6 +36,8 @@ namespace Engine {
         DirectionalLight directionalLights[10];
         int numPointLights;
         int numDirectionalLights;
+        float width;
+        float height;
     };
 }
 

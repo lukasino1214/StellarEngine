@@ -14,6 +14,7 @@ namespace Engine {
         GameLoop(std::shared_ptr<Scene> scene);
 
         void Update();
+
     private:
         std::shared_ptr<Scene> m_Scene;
     };

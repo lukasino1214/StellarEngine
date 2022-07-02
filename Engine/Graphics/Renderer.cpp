@@ -7,7 +7,8 @@
 
 namespace Engine {
 
-    Renderer::Renderer(std::shared_ptr<Window> window, std::shared_ptr<Device> device) : m_Window{window}, m_Device{device} {
+    Renderer::Renderer(std::shared_ptr<Window> window, std::shared_ptr<Device> device) : m_Window{window},
+                                                                                         m_Device{device} {
         recreateSwapChain();
         createCommandBuffers();
     }
@@ -20,13 +21,13 @@ namespace Engine {
             extent = m_Window->getExtent();
             glfwWaitEvents();
         }
-        vkDeviceWaitIdle(Core::m_Device->device());
+        vkDeviceWaitIdle(m_Device->device());
 
         if (m_SwapChain == nullptr) {
-            m_SwapChain = std::make_unique<SwapChain>(extent);
+            m_SwapChain = std::make_unique<SwapChain>(m_Device, extent);
         } else {
             std::shared_ptr<SwapChain> oldSwapChain = std::move(m_SwapChain);
-            m_SwapChain = std::make_unique<SwapChain>(extent, oldSwapChain);
+            m_SwapChain = std::make_unique<SwapChain>(m_Device, extent, oldSwapChain);
 
             if (!oldSwapChain->compareSwapFormats(*m_SwapChain.get())) {
                 throw std::runtime_error("Swap chain image(or depth) format has changed!");
@@ -40,10 +41,10 @@ namespace Engine {
         VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandPool = Core::m_Device->getCommandPool();
+        allocInfo.commandPool = m_Device->getCommandPool();
         allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
 
-        if (vkAllocateCommandBuffers(Core::m_Device->device(), &allocInfo, commandBuffers.data()) !=
+        if (vkAllocateCommandBuffers(m_Device->device(), &allocInfo, commandBuffers.data()) !=
             VK_SUCCESS) {
             throw std::runtime_error("failed to allocate command buffers!");
         }
@@ -51,8 +52,8 @@ namespace Engine {
 
     void Renderer::freeCommandBuffers() {
         vkFreeCommandBuffers(
-                Core::m_Device->device(),
-                Core::m_Device->getCommandPool(),
+                m_Device->device(),
+                m_Device->getCommandPool(),
                 static_cast<uint32_t>(commandBuffers.size()),
                 commandBuffers.data());
         commandBuffers.clear();

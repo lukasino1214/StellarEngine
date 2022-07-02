@@ -15,13 +15,13 @@ namespace Engine {
         glm::mat4 normalMatrix{1.0f};
     };
 
-    RenderSystem::RenderSystem(VkRenderPass renderPass) {
+    RenderSystem::RenderSystem(std::shared_ptr<Device> device, VkRenderPass renderPass) : m_Device{device} {
         createPipelineLayout();
         createPipeline(renderPass);
     }
 
     RenderSystem::~RenderSystem() {
-        vkDestroyPipelineLayout(Core::m_Device->device(), pipelineLayout, nullptr);
+        vkDestroyPipelineLayout(m_Device->device(), pipelineLayout, nullptr);
     }
 
     void RenderSystem::createPipelineLayout() {
@@ -40,7 +40,7 @@ namespace Engine {
         pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
         pipelineLayoutInfo.pushConstantRangeCount = 1;
         pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-        if (vkCreatePipelineLayout(Core::m_Device->device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
+        if (vkCreatePipelineLayout(m_Device->device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
             VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");
         }
@@ -53,8 +53,13 @@ namespace Engine {
         Pipeline::defaultPipelineConfigInfo(pipelineConfig);
         pipelineConfig.renderPass = renderPass;
         pipelineConfig.pipelineLayout = pipelineLayout;
-        m_Pipeline = std::make_unique<Pipeline>("assets/shaders/simple_shader.vert",
-                                                "assets/shaders/simple_shader.frag", pipelineConfig);
+        /*m_Pipeline = std::make_unique<Pipeline>(m_Device, pipelineConfig,  "assets/shaders/simple_shader.vert",
+                                                "assets/shaders/simple_shader.frag");*/
+
+        m_Pipeline = std::make_unique<Pipeline>(m_Device, pipelineConfig, ShaderPaths {
+            .vertPath = "assets/shaders/simple_shader.vert",
+            .fragPath = "assets/shaders/simple_shader.frag"
+        });
     }
 
     void RenderSystem::renderGameObjects(FrameInfo &frameInfo, const Ref<Scene> &Scene) {
@@ -69,7 +74,7 @@ namespace Engine {
                 SimplePushConstantData push{};
 
                 auto Transform = entity.GetComponent<TransformComponent>();
-                push.modelMatrix = Transform.mat4();
+                push.modelMatrix = Transform.ModelMatrix;
                 push.normalMatrix = Transform.normalMatrix();
 
                 vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,
@@ -80,7 +85,8 @@ namespace Engine {
                 //TODO: THIS SHIT
                 auto Model = entity.GetComponent<ModelComponent>().GetModel();
                 Model->bind(frameInfo.commandBuffer);
-                vkCmdBindDescriptorSets(frameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &frameInfo.ShadowSet, 0, nullptr);
+                vkCmdBindDescriptorSets(frameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1,
+                                        &frameInfo.ShadowSet, 0, nullptr);
                 Model->draw(frameInfo, pipelineLayout);
             }
         });

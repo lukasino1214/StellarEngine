@@ -15,6 +15,7 @@ namespace Engine {
         DockSpacePanel() = default;
 
         void OnImGuiRender();
+
     private:
         bool p_open = true;
         bool opt_fullscreen = true;

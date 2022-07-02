@@ -20,13 +20,13 @@ namespace Engine {
         glm::vec4 color;
     };
 
-    PointLightSystem::PointLightSystem(VkRenderPass renderPass) {
+    PointLightSystem::PointLightSystem(std::shared_ptr<Device> device, VkRenderPass renderPass) : m_Device{device} {
         createPipelineLayout();
         createPipeline(renderPass);
     }
 
     PointLightSystem::~PointLightSystem() {
-        vkDestroyPipelineLayout(Core::m_Device->device(), pipelineLayout, nullptr);
+        vkDestroyPipelineLayout(m_Device->device(), pipelineLayout, nullptr);
     }
 
     void PointLightSystem::createPipelineLayout() {
@@ -43,7 +43,7 @@ namespace Engine {
         pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
         pipelineLayoutInfo.pushConstantRangeCount = 1;
         pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-        if (vkCreatePipelineLayout(Core::m_Device->device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
+        if (vkCreatePipelineLayout(m_Device->device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
             VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");
         }
@@ -59,14 +59,17 @@ namespace Engine {
         pipelineConfig.bindingDescriptions.clear();
         pipelineConfig.renderPass = renderPass;
         pipelineConfig.pipelineLayout = pipelineLayout;
-        m_Pipeline = std::make_unique<Pipeline>("assets/shaders/point_light.vert",
-                                                "assets/shaders/point_light.frag", pipelineConfig);
+        m_Pipeline = std::make_unique<Pipeline>(m_Device, pipelineConfig, ShaderPaths {
+            .vertPath = "assets/shaders/point_light.vert",
+            .fragPath = "assets/shaders/point_light.frag"
+        });
     }
 
     void PointLightSystem::renderGameObjects(FrameInfo &frameInfo, const Ref<Scene> &Scene) {
         m_Pipeline->bind(frameInfo.commandBuffer);
 
-        vkCmdBindDescriptorSets(frameInfo.commandBuffer,VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &frameInfo.globalDescriptorSet, 0,nullptr);
+        vkCmdBindDescriptorSets(frameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                                &frameInfo.globalDescriptorSet, 0, nullptr);
 
         Scene->m_Registry.each([&](auto entityID) {
             Entity entity = {entityID, Scene.get()};

@@ -8,7 +8,7 @@
 namespace YAML {
     template<>
     struct convert<glm::vec3> {
-        static Node encode(const glm::vec3& rhs) {
+        static Node encode(const glm::vec3 &rhs) {
             Node node;
             node.push_back(rhs.x);
             node.push_back(rhs.y);
@@ -17,7 +17,7 @@ namespace YAML {
             return node;
         }
 
-        static bool decode(const Node& node, glm::vec3& rhs) {
+        static bool decode(const Node &node, glm::vec3 &rhs) {
             if (!node.IsSequence() || node.size() != 3)
                 return false;
 
@@ -30,7 +30,7 @@ namespace YAML {
 
     template<>
     struct convert<glm::vec4> {
-        static Node encode(const glm::vec4& rhs) {
+        static Node encode(const glm::vec4 &rhs) {
             Node node;
             node.push_back(rhs.x);
             node.push_back(rhs.y);
@@ -40,7 +40,7 @@ namespace YAML {
             return node;
         }
 
-        static bool decode(const Node& node, glm::vec4& rhs) {
+        static bool decode(const Node &node, glm::vec4 &rhs) {
             if (!node.IsSequence() || node.size() != 4)
                 return false;
 
@@ -55,13 +55,13 @@ namespace YAML {
 }
 
 namespace Engine {
-    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& v) {
+    YAML::Emitter &operator<<(YAML::Emitter &out, const glm::vec3 &v) {
         out << YAML::Flow;
         out << YAML::BeginSeq << v.x << v.y << v.z << YAML::EndSeq;
         return out;
     }
 
-    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec4& v) {
+    YAML::Emitter &operator<<(YAML::Emitter &out, const glm::vec4 &v) {
         out << YAML::Flow;
         out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
         return out;
@@ -71,7 +71,7 @@ namespace Engine {
 
     }
 
-    static void SerializeEntity(YAML::Emitter& out, Entity entity) {
+    static void SerializeEntity(YAML::Emitter &out, Entity entity) {
         out << YAML::BeginMap; // Entity
         out << YAML::Key << "Entity" << YAML::Value << entity.GetUUID(); // TODO: Entity ID goes here
 
@@ -79,7 +79,7 @@ namespace Engine {
             out << YAML::Key << "TagComponent";
             out << YAML::BeginMap; // TagComponent
 
-            auto& tag = entity.GetComponent<TagComponent>().Tag;
+            auto &tag = entity.GetComponent<TagComponent>().Tag;
             out << YAML::Key << "Tag" << YAML::Value << tag;
 
             out << YAML::EndMap; // TagComponent
@@ -89,7 +89,7 @@ namespace Engine {
             out << YAML::Key << "TransformComponent";
             out << YAML::BeginMap; // TransformComponent
 
-            auto& tc = entity.GetComponent<TransformComponent>();
+            auto &tc = entity.GetComponent<TransformComponent>();
             out << YAML::Key << "Translation" << YAML::Value << tc.Translation;
             out << YAML::Key << "Rotation" << YAML::Value << tc.Rotation;
             out << YAML::Key << "Scale" << YAML::Value << tc.Scale;
@@ -101,7 +101,7 @@ namespace Engine {
             out << YAML::Key << "RigidBodyComponent";
             out << YAML::BeginMap; // RigidBodyComponent
 
-            auto& rb = entity.GetComponent<RigidBodyComponent>();
+            auto &rb = entity.GetComponent<RigidBodyComponent>();
             out << YAML::Key << "Velocity" << YAML::Value << rb.velocity;
             out << YAML::Key << "Acceleration" << YAML::Value << rb.velocity;
             out << YAML::Key << "Mass" << YAML::Value << rb.mass;
@@ -115,7 +115,7 @@ namespace Engine {
             out << YAML::Key << "ModelComponent";
             out << YAML::BeginMap; // ModelComponent
 
-            auto& m = entity.GetComponent<ModelComponent>();
+            auto &m = entity.GetComponent<ModelComponent>();
             out << YAML::Key << "Path" << YAML::Value << m.path;
 
             out << YAML::EndMap; // ModelComponent
@@ -125,7 +125,7 @@ namespace Engine {
             out << YAML::Key << "PointLightComponent";
             out << YAML::BeginMap; // PointLightComponent
 
-            auto& light = entity.GetComponent<PointLightComponent>();
+            auto &light = entity.GetComponent<PointLightComponent>();
             out << YAML::Key << "Color" << YAML::Value << light.color;
             out << YAML::Key << "Intensity" << YAML::Value << light.intensity;
 
@@ -135,13 +135,13 @@ namespace Engine {
         out << YAML::EndMap; // Entity
     }
 
-    void SceneSerializer::Serialize(const std::string& filepath) {
+    void SceneSerializer::Serialize(const std::string &filepath) {
         YAML::Emitter out;
         out << YAML::BeginMap;
         out << YAML::Key << "Scene" << YAML::Value << "Untitled";
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
         m_Scene->m_Registry.each([&](auto entityID) {
-            Entity entity = { entityID, m_Scene.get() };
+            Entity entity = {entityID, m_Scene.get()};
             if (!entity)
                 return;
 
@@ -155,7 +155,7 @@ namespace Engine {
         fout << out.c_str();
     }
 
-    bool SceneSerializer::Deserialize(const std::string &filepath) {
+    bool SceneSerializer::Deserialize(std::shared_ptr<Device> device, const std::string &filepath) {
         YAML::Node data;
         try {
             data = YAML::LoadFile(filepath);
@@ -171,7 +171,7 @@ namespace Engine {
 
         auto entities = data["Entities"];
         if (entities) {
-            for (auto entity : entities) {
+            for (auto entity: entities) {
                 uint64_t uuid = entity["Entity"].as<uint64_t>(); // TODO
 
                 std::string name;
@@ -185,10 +185,11 @@ namespace Engine {
                 auto transformComponent = entity["TransformComponent"];
                 if (transformComponent) {
                     // Entities always have transforms
-                    auto& tc = deserializedEntity.GetComponent<TransformComponent>();
+                    auto &tc = deserializedEntity.GetComponent<TransformComponent>();
                     tc.Translation = transformComponent["Translation"].as<glm::vec3>();
                     tc.Rotation = transformComponent["Rotation"].as<glm::vec3>();
                     tc.Scale = transformComponent["Scale"].as<glm::vec3>();
+                    tc.isDirty = true;
                 }
 
                 auto rigidBodyComponent = entity["RigidBodyComponent"];
@@ -204,7 +205,7 @@ namespace Engine {
 
                 auto modelComponent = entity["ModelComponent"];
                 if (modelComponent) {
-                    auto model = std::make_shared<Model>(modelComponent["Path"].as<std::string>());
+                    auto model = std::make_shared<Model>(device, modelComponent["Path"].as<std::string>());
                     deserializedEntity.AddComponent<ModelComponent>(model);
                 }
 

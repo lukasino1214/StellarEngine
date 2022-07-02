@@ -1,4 +1,6 @@
 #version 450
+#extension GL_GOOGLE_include_directive : enable
+#include "assets/shaders/core.glsl"
 
 const vec2 OFFSETS[6] = vec2[](
 vec2(-1.0, -1.0),
@@ -11,17 +13,6 @@ vec2(1.0, 1.0)
 
 layout (location = 0) out vec2 fragOffset;
 
-struct PointLight {
-    vec4 position;
-    vec3 color;
-    float intensity;
-};
-
-struct DirectionalLight {
-    mat4 mvp;
-    vec4 position;
-};
-
 layout(set = 0, binding = 0) uniform GlobalUbo {
     mat4 projectionMatrix;
     mat4 viewMatrix;
@@ -30,6 +21,8 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
     DirectionalLight directionalLights[10];
     int numPointLights;
     int numDirectionalLights;
+    float width;
+    float height;
 } ubo;
 
 const float LIGHT_RADIUS = 0.75;

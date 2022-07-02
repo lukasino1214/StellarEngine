@@ -7,18 +7,19 @@
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
 namespace Engine {
 
-    GridSystem::GridSystem(VkRenderPass renderPass) {
+    GridSystem::GridSystem(std::shared_ptr<Device> device, VkRenderPass renderPass) : m_Device{device} {
         createPipelineLayout();
         createPipeline(renderPass);
     }
 
     GridSystem::~GridSystem() {
-        vkDestroyPipelineLayout(Core::m_Device->device(), pipelineLayout, nullptr);
+        vkDestroyPipelineLayout(m_Device->device(), pipelineLayout, nullptr);
     }
 
     void GridSystem::createPipelineLayout() {
@@ -30,7 +31,7 @@ namespace Engine {
         pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
         pipelineLayoutInfo.pushConstantRangeCount = 0;
         pipelineLayoutInfo.pPushConstantRanges = nullptr;
-        if (vkCreatePipelineLayout(Core::m_Device->device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
+        if (vkCreatePipelineLayout(m_Device->device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
             VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");
         }
@@ -51,26 +52,16 @@ namespace Engine {
         configInfo.colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
         configInfo.colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 
-        m_Pipeline = std::make_unique<Pipeline>(
-                "assets/shaders/grid.vert",
-                "assets/shaders/grid.frag",
-                configInfo);
+        m_Pipeline = std::make_unique<Pipeline>(m_Device, configInfo, ShaderPaths {
+            .vertPath = "assets/shaders/grid.vert",
+            .fragPath = "assets/shaders/grid.frag"
+        });
     }
 
-    void GridSystem::render(FrameInfo& frameInfo) {
+    void GridSystem::render(FrameInfo &frameInfo) {
         m_Pipeline->bind(frameInfo.commandBuffer);
 
-        vkCmdBindDescriptorSets(
-                frameInfo.commandBuffer,
-                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                pipelineLayout,
-                0,
-                1,
-                &frameInfo.globalDescriptorSet,
-                0,
-                nullptr);
-
-
-            vkCmdDraw(frameInfo.commandBuffer, 6, 1, 0, 0);
+        vkCmdBindDescriptorSets(frameInfo.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &frameInfo.globalDescriptorSet, 0, nullptr);
+        vkCmdDraw(frameInfo.commandBuffer, 6, 1, 0, 0);
     }
 }

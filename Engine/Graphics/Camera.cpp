@@ -7,12 +7,11 @@
 namespace Engine {
     Camera::Camera(glm::vec3 position, glm::vec3 target) : m_Position(position) {
         m_View = glm::lookAt(m_Position, target, m_Up);
-        m_Projection = glm::perspective(glm::radians(m_FOV), (float)m_Width/m_Height, nearPlane, farPlane);
+        m_Projection = glm::perspective(glm::radians(m_FOV), (float) m_Width / m_Height, nearPlane, farPlane);
     }
 
-    void Camera::Move(GLFWwindow* window, float dt) {
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-        {
+    void Camera::Move(GLFWwindow *window, float dt) {
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
             // Hides mouse cursor
             //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
@@ -21,43 +20,33 @@ namespace Engine {
             glfwGetWindowSize(window, &width, &height);
 
             // Prevents camera from jumping on the first click
-            if (firstClick)
-            {
+            if (firstClick) {
                 glfwSetCursorPos(window, (width / 2), (height / 2));
                 firstClick = false;
             }
 
             // Handles key inputs
-            if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            {
+            if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
                 m_Position += speed * m_Orientation;
             }
-            if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            {
+            if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
                 m_Position += speed * -glm::normalize(glm::cross(m_Orientation, m_Up));
             }
-            if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            {
+            if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
                 m_Position += speed * -m_Orientation;
             }
-            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            {
+            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
                 m_Position += speed * glm::normalize(glm::cross(m_Orientation, m_Up));
             }
-            if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-            {
+            if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
                 m_Position += speed * m_Up;
             }
-            if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-            {
+            if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
                 m_Position += speed * -m_Up;
             }
-            if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-            {
+            if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
                 speed = 0.4f;
-            }
-            else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
-            {
+            } else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE) {
                 speed = 0.1f;
             }
 
@@ -69,15 +58,15 @@ namespace Engine {
 
             // Normalizes and shifts the coordinates of the cursor such that they begin in the middle of the screen
             // and then "transforms" them into degrees
-            float rotX = sensitivity * (float)(mouseY - (height / 2)) / height;
-            float rotY = sensitivity * (float)(mouseX - (width / 2)) / width;
+            float rotX = sensitivity * (float) (mouseY - (height / 2)) / height;
+            float rotY = sensitivity * (float) (mouseX - (width / 2)) / width;
 
             // Calculates upcoming vertical change in the Orientation
-            glm::vec3 newOrientation = glm::rotate(m_Orientation, glm::radians(-rotX), glm::normalize(glm::cross(m_Orientation, m_Up)));
+            glm::vec3 newOrientation = glm::rotate(m_Orientation, glm::radians(-rotX),
+                                                   glm::normalize(glm::cross(m_Orientation, m_Up)));
 
             // Decides whether or not the next vertical Orientation is legal or not
-            if (abs(glm::angle(newOrientation, m_Up) - glm::radians(90.0f)) <= glm::radians(85.0f))
-            {
+            if (abs(glm::angle(newOrientation, m_Up) - glm::radians(90.0f)) <= glm::radians(85.0f)) {
                 m_Orientation = newOrientation;
             }
 

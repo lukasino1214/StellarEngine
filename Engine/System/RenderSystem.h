@@ -17,9 +17,12 @@
 namespace Engine {
     class RenderSystem {
     public:
-        RenderSystem(VkRenderPass renderPass);
+        RenderSystem(std::shared_ptr<Device> device, VkRenderPass renderPass);
+
         ~RenderSystem();
+
         RenderSystem(const RenderSystem &) = delete;
+
         RenderSystem &operator=(const RenderSystem &) = delete;
 
         void renderGameObjects(FrameInfo &frameInfo, const Ref<Scene> &Scene);
@@ -31,6 +34,8 @@ namespace Engine {
 
         std::unique_ptr<Pipeline> m_Pipeline;
         VkPipelineLayout pipelineLayout;
+
+        std::shared_ptr<Device> m_Device;
     };
 }
 

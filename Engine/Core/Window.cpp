@@ -9,9 +9,10 @@
 #include <memory>
 
 namespace Engine {
-    Window::Window(const int& width, const int& height, const std::string& name) : m_Width{width}, m_Height{height}, m_Name{name} {
+    Window::Window(const int &width, const int &height, const std::string &name) : m_Width{width}, m_Height{height},
+                                                                                   m_Name{name} {
         initWindow();
-        Core::m_Device = std::make_shared<Device>(this);
+        //Core::m_Device = std::make_shared<Device>(this);
     }
 
     Window::~Window() {
@@ -41,5 +42,5 @@ namespace Engine {
         lveWindow->m_Width = width;
         lveWindow->m_Height = height;
     }
-    
+
 }

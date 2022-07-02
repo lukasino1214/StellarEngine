@@ -17,29 +17,40 @@ namespace Engine {
     public:
         static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
-        SwapChain(VkExtent2D windowExtent);
-        SwapChain(VkExtent2D windowExtent, std::shared_ptr<SwapChain> previous);
+        SwapChain(std::shared_ptr<Device> device, VkExtent2D windowExtent);
+
+        SwapChain(std::shared_ptr<Device> device, VkExtent2D extent, std::shared_ptr<SwapChain> previous);
 
         ~SwapChain();
 
         SwapChain(const SwapChain &) = delete;
+
         SwapChain &operator=(const SwapChain &) = delete;
 
         VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers[index]; }
+
         VkRenderPass getRenderPass() { return renderPass; }
+
         VkImageView getImageView(int index) { return swapChainImageViews[index]; }
+
         size_t imageCount() { return swapChainImages.size(); }
+
         VkFormat getSwapChainImageFormat() { return swapChainImageFormat; }
+
         VkExtent2D getSwapChainExtent() { return swapChainExtent; }
+
         uint32_t width() { return swapChainExtent.width; }
+
         uint32_t height() { return swapChainExtent.height; }
 
         float extentAspectRatio() {
             return static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);
         }
+
         VkFormat findDepthFormat();
 
         VkResult acquireNextImage(uint32_t *imageIndex);
+
         VkResult submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex);
 
         bool compareSwapFormats(const SwapChain &swapChain) const {
@@ -49,18 +60,26 @@ namespace Engine {
 
     private:
         void init();
+
         void createSwapChain();
+
         void createImageViews();
+
         void createDepthResources();
+
         void createRenderPass();
+
         void createFramebuffers();
+
         void createSyncObjects();
 
         // Helper functions
         VkSurfaceFormatKHR chooseSwapSurfaceFormat(
                 const std::vector<VkSurfaceFormatKHR> &availableFormats);
+
         VkPresentModeKHR chooseSwapPresentMode(
                 const std::vector<VkPresentModeKHR> &availablePresentModes);
+
         VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
         VkFormat swapChainImageFormat;
@@ -86,6 +105,7 @@ namespace Engine {
         std::vector<VkFence> inFlightFences;
         std::vector<VkFence> imagesInFlight;
         size_t currentFrame = 0;
+        std::shared_ptr<Device> m_Device;
     };
 
 }

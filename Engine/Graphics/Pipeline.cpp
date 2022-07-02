@@ -6,50 +6,71 @@
 
 #include "Model.h"
 #include "Core.h"
+#include <cstdint>
 #include <shaderc/shaderc.hpp>
 
 namespace Engine {
 
-    Pipeline::Pipeline(const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo) {
-        createGraphicsPipeline(vertFilepath, fragFilepath, configInfo);
+    Pipeline::Pipeline(std::shared_ptr<Device> device, const PipelineConfigInfo &configInfo, const ShaderPaths &paths) : m_Device{device}, m_Paths{paths} {
+        createGraphicsPipeline(configInfo);
     }
 
     Pipeline::~Pipeline() {
-        auto device = Core::m_Device->device();
-        vkDestroyShaderModule(device, vertShaderModule, nullptr);
-        vkDestroyShaderModule(device, fragShaderModule, nullptr);
+        auto device = m_Device->device();
+        if(m_Paths.vertPath != "") {
+            vkDestroyShaderModule(device, vertShaderModule, nullptr);
+        }
+
+        if(m_Paths.fragPath != "") {
+            vkDestroyShaderModule(device, fragShaderModule, nullptr);
+        }
+
+        if(m_Paths.geomPath != "") {
+
+        }
+    
         vkDestroyPipeline(device, graphicsPipeline, nullptr);
     }
 
-    std::string Pipeline::readFile(const std::string& filepath) {
+    std::string Pipeline::readFile(const std::string &filepath) {
         std::string code;
         std::ifstream in(filepath, std::ios::in | std::ios::binary);
-        if (in)
-        {
+        if (in) {
             in.seekg(0, std::ios::end);
             size_t size = in.tellg();
-            if (size != -1)
-            {
+            if (size != -1) {
                 code.resize(size);
                 in.seekg(0, std::ios::beg);
                 in.read(&code[0], size);
-            }
-            else
-            {
+            } else {
                 std::cout << "bruh" << std::endl;
             }
-        }
-        else
-        {
+        } else {
             std::cout << "bruh" << std::endl;
         }
         return code;
     }
 
-    void Pipeline::createGraphicsPipeline(
-            const std::string& vertFilepath,
-            const std::string& fragFilepath,
-            const PipelineConfigInfo& configInfo) {
+    std::vector<uint32_t> Pipeline::compileShader(const std::string &shaderFilepath, shaderc_shader_kind shaderType) {
+        std::string shaderCode = readFile(shaderFilepath);
+        shaderc::PreprocessedSourceCompilationResult pre_result =
+        compiler.PreprocessGlsl(shaderCode, shaderc_fragment_shader, shaderFilepath.c_str(), options);
+
+        shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(pre_result.begin(), shaderType, shaderFilepath.c_str(),
+                                                                              options);
+
+        if(pre_result.GetNumErrors() > 0) {
+            std::cout << pre_result.GetErrorMessage() << std::endl;
+        }
+
+        if(result.GetNumErrors() > 0) {
+            std::cout << result.GetErrorMessage() << std::endl;
+        }
+
+        return std::vector<uint32_t>(result.cbegin(), result.cend());
+    }
+
+    void Pipeline::createGraphicsPipeline(const PipelineConfigInfo &configInfo) {
         assert(
                 configInfo.pipelineLayout != VK_NULL_HANDLE &&
                 "Cannot create graphics pipeline: no pipelineLayout provided in configInfo");
@@ -57,50 +78,58 @@ namespace Engine {
                 configInfo.renderPass != VK_NULL_HANDLE &&
                 "Cannot create graphics pipeline: no renderPass provided in configInfo");
 
-        auto device = Core::m_Device->device();
+        auto device = m_Device->device();
 
-        auto vertCode = readFile(vertFilepath);
-        auto fragCode = readFile(fragFilepath);
-
-        //std::cout << vertCode << std::endl;
-        //std::cout << fragCode << std::endl;
-
-        shaderc::Compiler compiler;
-        shaderc::CompileOptions options;
-
-        //options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
+        options.SetIncluder(std::make_unique<ShaderIncluder>());
         options.SetOptimizationLevel(shaderc_optimization_level_performance);
+        //options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
+  
 
-        shaderc_shader_kind vert_t = shaderc_vertex_shader;
-        shaderc_shader_kind frag_t = shaderc_fragment_shader;
+        uint32_t numShaders = 0;
+        if(m_Paths.vertPath != "") {
+            numShaders += 1;
+            auto vert = compileShader(m_Paths.vertPath, shaderc_vertex_shader);
+            createShaderModule(vert, &vertShaderModule);
+        }
 
-        shaderc::SpvCompilationResult vert_result = compiler.CompileGlslToSpv(vertCode, vert_t, vertFilepath.c_str(), options);
-        shaderc::SpvCompilationResult frag_result = compiler.CompileGlslToSpv(fragCode, frag_t, fragFilepath.c_str(), options);
+        if(m_Paths.fragPath != "") {
+            numShaders += 1;
+            auto frag = compileShader(m_Paths.fragPath, shaderc_fragment_shader);
+            createShaderModule(frag, &fragShaderModule);
+        }
 
-        auto vert = std::vector<uint32_t>(vert_result.cbegin(), vert_result.cend());
-        auto frag = std::vector<uint32_t>(frag_result.cbegin(), frag_result.cend());
+        if(m_Paths.geomPath != "") {
+            numShaders += 1;
+        }
 
-        createShaderModule(vert, &vertShaderModule);
-        createShaderModule(frag, &fragShaderModule);
+        VkPipelineShaderStageCreateInfo shaderStages[numShaders];
+        
+        if(m_Paths.vertPath != "") {
+            shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+            shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+            shaderStages[0].module = vertShaderModule;
+            shaderStages[0].pName = "main";
+            shaderStages[0].flags = 0;
+            shaderStages[0].pNext = nullptr;
+            shaderStages[0].pSpecializationInfo = nullptr;
+        }
 
-        VkPipelineShaderStageCreateInfo shaderStages[2];
-        shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
-        shaderStages[0].module = vertShaderModule;
-        shaderStages[0].pName = "main";
-        shaderStages[0].flags = 0;
-        shaderStages[0].pNext = nullptr;
-        shaderStages[0].pSpecializationInfo = nullptr;
-        shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        shaderStages[1].module = fragShaderModule;
-        shaderStages[1].pName = "main";
-        shaderStages[1].flags = 0;
-        shaderStages[1].pNext = nullptr;
-        shaderStages[1].pSpecializationInfo = nullptr;
+        if(m_Paths.fragPath != "") {
+            shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+            shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+            shaderStages[1].module = fragShaderModule;
+            shaderStages[1].pName = "main";
+            shaderStages[1].flags = 0;
+            shaderStages[1].pNext = nullptr;
+            shaderStages[1].pSpecializationInfo = nullptr;
+        }
 
-        auto& bindingDescriptions = configInfo.bindingDescriptions;
-        auto& attributeDescriptions = configInfo.attributeDescriptions;
+        if(m_Paths.geomPath != "") {
+            numShaders += 1;
+        }
+
+        auto &bindingDescriptions = configInfo.bindingDescriptions;
+        auto &attributeDescriptions = configInfo.attributeDescriptions;
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         vertexInputInfo.vertexAttributeDescriptionCount =
@@ -112,7 +141,7 @@ namespace Engine {
 
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-        pipelineInfo.stageCount = 2;
+        pipelineInfo.stageCount = numShaders;
         pipelineInfo.pStages = shaderStages;
         pipelineInfo.pVertexInputState = &vertexInputInfo;
         pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo;
@@ -142,13 +171,13 @@ namespace Engine {
 
     }
 
-    void Pipeline::createShaderModule(const std::vector<uint32_t>& code, VkShaderModule* shaderModule) {
+    void Pipeline::createShaderModule(const std::vector<uint32_t> &code, VkShaderModule *shaderModule) {
         VkShaderModuleCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        createInfo.codeSize = 4*code.size();
+        createInfo.codeSize = sizeof(uint32_t) * code.size();
         createInfo.pCode = code.data();
 
-        if (vkCreateShaderModule(Core::m_Device->device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS) {
+        if (vkCreateShaderModule(m_Device->device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS) {
             throw std::runtime_error("failed to create shader module");
         }
     }
@@ -157,7 +186,7 @@ namespace Engine {
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
     }
 
-    void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo) {
+    void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo &configInfo) {
         configInfo.inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
         configInfo.inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         configInfo.inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;

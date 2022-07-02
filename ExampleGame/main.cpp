@@ -1,7 +1,22 @@
+#include "../Engine/Engine.h"
+
+using namespace Engine;
+
+#include "App.h"
+
+#include <cstdlib>
 #include <iostream>
-#include <glm/glm.hpp>
+#include <stdexcept>
 
 int main() {
-    glm::vec3 test = {0, 1, 5};
-    std::cout << test.z << std::endl;
+    FirstApp app{};
+
+    try {
+        app.run();
+    } catch (const std::exception &e) {
+        std::cerr << e.what() << '\n';
+        return -1;
+    }
+
+    return 0;
 }

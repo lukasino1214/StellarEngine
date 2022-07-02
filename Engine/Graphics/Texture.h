@@ -10,28 +10,26 @@
 
 #include "../pgepch.h"
 #include "Device.h"
+#include "Image.h"
 
 namespace Engine {
     class Texture {
     public:
-        Texture(const std::string &path);
+        Texture(std::shared_ptr<Device> device, const std::string &path);
         ~Texture();
 
-        VkSampler GetSampler() { return m_Sampler; }
-        VkImageView GetImageView() { return m_ImageView; }
+        VkSampler GetSampler() { return m_Sampler->GetSampler(); }
+        VkImageView GetImageView() { return m_ImageView->GetImageView(); }
         VkImageLayout GetImageLayout() { return m_ImageLayout; }
 
     private:
-        void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-
         std::shared_ptr<Device> m_Device;
-        VkImage m_Image;
-        VkDeviceMemory m_ImageMemory;
-        VkImageView m_ImageView;
-        VkSampler m_Sampler;
+        Image* m_Image;
+        ImageView* m_ImageView;
+        Sampler* m_Sampler;
         VkFormat m_Format;
         VkImageLayout m_ImageLayout;
-
+        uint32_t m_MipLevels;
     };
 }
 

@@ -9,7 +9,9 @@ namespace Engine {
 
 // *************** Descriptor Set Layout Builder *********************
 
-    DescriptorSetLayout::Builder &DescriptorSetLayout::Builder::addBinding(uint32_t binding, VkDescriptorType descriptorType, VkShaderStageFlags stageFlags, uint32_t count) {
+    DescriptorSetLayout::Builder &
+    DescriptorSetLayout::Builder::addBinding(uint32_t binding, VkDescriptorType descriptorType,
+                                             VkShaderStageFlags stageFlags, uint32_t count) {
         assert(bindings.count(binding) == 0 && "Binding already in use");
         VkDescriptorSetLayoutBinding layoutBinding{};
         layoutBinding.binding = binding;
@@ -20,19 +22,23 @@ namespace Engine {
         return *this;
     }
 
-    std::unique_ptr<DescriptorSetLayout> DescriptorSetLayout::Builder::UniqueBuild() const {
-        return std::make_unique<DescriptorSetLayout>(bindings);
+    std::unique_ptr<DescriptorSetLayout>
+    DescriptorSetLayout::Builder::UniqueBuild(std::shared_ptr<Device> device) const {
+        return std::make_unique<DescriptorSetLayout>(device, bindings);
     }
 
-    std::shared_ptr<DescriptorSetLayout> DescriptorSetLayout::Builder::SharedBuild() const {
-        return std::make_shared<DescriptorSetLayout>(bindings);
+    std::shared_ptr<DescriptorSetLayout>
+    DescriptorSetLayout::Builder::SharedBuild(std::shared_ptr<Device> device) const {
+        return std::make_shared<DescriptorSetLayout>(device, bindings);
     }
 
 // *************** Descriptor Set Layout *********************
 
-    DescriptorSetLayout::DescriptorSetLayout(std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings) : bindings{bindings}, m_Device{Core::m_Device} {
+    DescriptorSetLayout::DescriptorSetLayout(std::shared_ptr<Device> device,
+                                             std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings)
+            : bindings{bindings}, m_Device{device} {
         std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings{};
-        for (auto kv : bindings) {
+        for (auto kv: bindings) {
             setLayoutBindings.push_back(kv.second);
         }
 
@@ -67,22 +73,25 @@ namespace Engine {
         poolFlags = flags;
         return *this;
     }
+
     DescriptorPool::Builder &DescriptorPool::Builder::setMaxSets(uint32_t count) {
         maxSets = count;
         return *this;
     }
 
-    std::unique_ptr<DescriptorPool> DescriptorPool::Builder::UniqueBuild() const {
-        return std::make_unique<DescriptorPool>(maxSets, poolFlags, poolSizes);
+    std::unique_ptr<DescriptorPool> DescriptorPool::Builder::UniqueBuild(std::shared_ptr<Device> device) const {
+        return std::make_unique<DescriptorPool>(device, maxSets, poolFlags, poolSizes);
     }
 
-    std::shared_ptr<DescriptorPool> DescriptorPool::Builder::SharedBuild() const {
-        return std::make_shared<DescriptorPool>(maxSets, poolFlags, poolSizes);
+    std::shared_ptr<DescriptorPool> DescriptorPool::Builder::SharedBuild(std::shared_ptr<Device> device) const {
+        return std::make_shared<DescriptorPool>(device, maxSets, poolFlags, poolSizes);
     }
 
 // *************** Descriptor Pool *********************
 
-    DescriptorPool::DescriptorPool(uint32_t maxSets, VkDescriptorPoolCreateFlags poolFlags, const std::vector<VkDescriptorPoolSize> &poolSizes) : m_Device{Core::m_Device} {
+    DescriptorPool::DescriptorPool(std::shared_ptr<Device> device, uint32_t maxSets,
+                                   VkDescriptorPoolCreateFlags poolFlags,
+                                   const std::vector<VkDescriptorPoolSize> &poolSizes) : m_Device{device} {
         VkDescriptorPoolCreateInfo descriptorPoolInfo{};
         descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         descriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
@@ -130,7 +139,8 @@ namespace Engine {
 
 // *************** Descriptor Writer *********************
 
-    DescriptorWriter::DescriptorWriter(DescriptorSetLayout &setLayout, DescriptorPool &pool) : setLayout{setLayout}, pool{pool} {}
+    DescriptorWriter::DescriptorWriter(DescriptorSetLayout &setLayout, DescriptorPool &pool) : setLayout{setLayout},
+                                                                                               pool{pool} {}
 
     DescriptorWriter &DescriptorWriter::writeBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo) {
         assert(setLayout.bindings.count(binding) == 1 && "Layout does not contain specified binding");
@@ -172,20 +182,20 @@ namespace Engine {
         return *this;
     }
 
-    bool DescriptorWriter::build(VkDescriptorSet &set) {
+    bool DescriptorWriter::build(std::shared_ptr<Device> device, VkDescriptorSet &set) {
         bool success = pool.allocateDescriptor(setLayout.getDescriptorSetLayout(), set);
         if (!success) {
             return false;
         }
-        overwrite(set);
+        overwrite(device, set);
         return true;
     }
 
-    void DescriptorWriter::overwrite(VkDescriptorSet &set) {
-        for (auto &write : writes) {
+    void DescriptorWriter::overwrite(std::shared_ptr<Device> device, VkDescriptorSet &set) {
+        for (auto &write: writes) {
             write.dstSet = set;
         }
-        vkUpdateDescriptorSets(Core::m_Device->device(), writes.size(), writes.data(), 0, nullptr);
+        vkUpdateDescriptorSets(device->device(), writes.size(), writes.data(), 0, nullptr);
     }
 
 }

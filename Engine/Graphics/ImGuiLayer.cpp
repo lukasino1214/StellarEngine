@@ -14,27 +14,27 @@ namespace Engine {
 // ok this just initializes imgui using the provided integration files. So in our case we need to
 // initialize the vulkan and glfw imgui implementations, since that's what our engine is built
 // using.
-    ImGuiLayer::ImGuiLayer(
-            Window &window, VkRenderPass renderPass, uint32_t imageCount) {
-        auto device = Core::m_Device->device();
+    ImGuiLayer::ImGuiLayer(std::shared_ptr<Device> p_device,
+                           Window &window, VkRenderPass renderPass, uint32_t imageCount) : m_Device{p_device} {
+        auto device = m_Device->device();
         // set up a descriptor pool stored on this instance, see header for more comments on this.
         VkDescriptorPoolSize pool_sizes[] = {
-                {VK_DESCRIPTOR_TYPE_SAMPLER, 2000},
+                {VK_DESCRIPTOR_TYPE_SAMPLER,                2000},
                 {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 2000},
-                {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 2000},
-                {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 2000},
-                {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 2000},
-                {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 2000},
-                {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2000},
-                {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2000},
+                {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,          2000},
+                {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,          2000},
+                {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,   2000},
+                {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,   2000},
+                {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         2000},
+                {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,         2000},
                 {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 2000},
                 {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 2000},
-                {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 2000}};
+                {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,       2000}};
         VkDescriptorPoolCreateInfo pool_info = {};
         pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
         pool_info.maxSets = 2000 * IM_ARRAYSIZE(pool_sizes);
-        pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
+        pool_info.poolSizeCount = (uint32_t) IM_ARRAYSIZE(pool_sizes);
         pool_info.pPoolSizes = pool_sizes;
         if (vkCreateDescriptorPool(device, &pool_info, nullptr, &m_DescriptorPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to set up descriptor pool for imgui");
@@ -44,7 +44,7 @@ namespace Engine {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO &io = ImGui::GetIO();
-        (void)io;
+        (void) io;
         // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
         // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -56,35 +56,35 @@ namespace Engine {
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
 
-        auto& colors = ImGui::GetStyle().Colors;
-        colors[ImGuiCol_WindowBg] = ImVec4{ 0.1f, 0.105f, 0.11f, 1.0f };
+        auto &colors = ImGui::GetStyle().Colors;
+        colors[ImGuiCol_WindowBg] = ImVec4{0.1f, 0.105f, 0.11f, 1.0f};
 
         // Headers
-        colors[ImGuiCol_Header] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-        colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
-        colors[ImGuiCol_HeaderActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+        colors[ImGuiCol_Header] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
+        colors[ImGuiCol_HeaderHovered] = ImVec4{0.3f, 0.305f, 0.31f, 1.0f};
+        colors[ImGuiCol_HeaderActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
 
         // Buttons
-        colors[ImGuiCol_Button] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-        colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
-        colors[ImGuiCol_ButtonActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+        colors[ImGuiCol_Button] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
+        colors[ImGuiCol_ButtonHovered] = ImVec4{0.3f, 0.305f, 0.31f, 1.0f};
+        colors[ImGuiCol_ButtonActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
 
         // Frame BG
-        colors[ImGuiCol_FrameBg] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-        colors[ImGuiCol_FrameBgHovered] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
-        colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+        colors[ImGuiCol_FrameBg] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
+        colors[ImGuiCol_FrameBgHovered] = ImVec4{0.3f, 0.305f, 0.31f, 1.0f};
+        colors[ImGuiCol_FrameBgActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
 
         // Tabs
-        colors[ImGuiCol_Tab] = ImVec4{ 0.20f, 0.2005f, 0.201f, 1.0f };
-        colors[ImGuiCol_TabHovered] = ImVec4{ 0.38f, 0.3805f, 0.381f, 1.0f };
-        colors[ImGuiCol_TabActive] = ImVec4{ 0.28f, 0.2805f, 0.281f, 1.0f };
-        colors[ImGuiCol_TabUnfocused] = ImVec4{ 0.20f, 0.2005f, 0.201f, 1.0f };
-        colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+        colors[ImGuiCol_Tab] = ImVec4{0.20f, 0.2005f, 0.201f, 1.0f};
+        colors[ImGuiCol_TabHovered] = ImVec4{0.38f, 0.3805f, 0.381f, 1.0f};
+        colors[ImGuiCol_TabActive] = ImVec4{0.28f, 0.2805f, 0.281f, 1.0f};
+        colors[ImGuiCol_TabUnfocused] = ImVec4{0.20f, 0.2005f, 0.201f, 1.0f};
+        colors[ImGuiCol_TabUnfocusedActive] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
 
         // Title
-        colors[ImGuiCol_TitleBg] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-        colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
-        colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+        colors[ImGuiCol_TitleBg] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
+        colors[ImGuiCol_TitleBgActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
+        colors[ImGuiCol_TitleBgCollapsed] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
 
         //ImGui::StyleColorsClassic();
 
@@ -92,11 +92,11 @@ namespace Engine {
         // Initialize imgui for vulkan
         ImGui_ImplGlfw_InitForVulkan(window.getGLFWwindow(), true);
         ImGui_ImplVulkan_InitInfo init_info = {};
-        init_info.Instance = Core::m_Device->getInstance();
-        init_info.PhysicalDevice = Core::m_Device->getPhysicalDevice();
-        init_info.Device = Core::m_Device->device();
-        init_info.QueueFamily = Core::m_Device->getGraphicsQueueFamily();
-        init_info.Queue = Core::m_Device->graphicsQueue();
+        init_info.Instance = m_Device->getInstance();
+        init_info.PhysicalDevice = m_Device->getPhysicalDevice();
+        init_info.Device = m_Device->device();
+        init_info.QueueFamily = m_Device->getGraphicsQueueFamily();
+        init_info.Queue = m_Device->graphicsQueue();
 
         // pipeline cache is a potential future optimization, ignoring for now
         init_info.PipelineCache = VK_NULL_HANDLE;
@@ -112,14 +112,14 @@ namespace Engine {
 
         // upload fonts, this is done by recording and submitting a one time use command buffer
         // which can be done easily bye using some existing helper functions on the lve device object
-        auto commandBuffer = Core::m_Device->beginSingleTimeCommands();
+        auto commandBuffer = m_Device->beginSingleTimeCommands();
         ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
-        Core::m_Device->endSingleTimeCommands(commandBuffer);
+        m_Device->endSingleTimeCommands(commandBuffer);
         ImGui_ImplVulkan_DestroyFontUploadObjects();
     }
 
     ImGuiLayer::~ImGuiLayer() {
-        vkDestroyDescriptorPool(Core::m_Device->device(), m_DescriptorPool, nullptr);
+        vkDestroyDescriptorPool(m_Device->device(), m_DescriptorPool, nullptr);
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();

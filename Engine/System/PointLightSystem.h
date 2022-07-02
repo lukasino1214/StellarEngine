@@ -16,9 +16,12 @@
 namespace Engine {
     class PointLightSystem {
     public:
-        PointLightSystem(VkRenderPass renderPass);
+        PointLightSystem(std::shared_ptr<Device> device, VkRenderPass renderPass);
+
         ~PointLightSystem();
+
         PointLightSystem(const PointLightSystem &) = delete;
+
         PointLightSystem &operator=(const PointLightSystem &) = delete;
 
         void renderGameObjects(FrameInfo &frameInfo, const Ref<Scene> &Scene);
@@ -30,6 +33,8 @@ namespace Engine {
 
         std::unique_ptr<Pipeline> m_Pipeline;
         VkPipelineLayout pipelineLayout;
+
+        std::shared_ptr<Device> m_Device;
     };
 }
 

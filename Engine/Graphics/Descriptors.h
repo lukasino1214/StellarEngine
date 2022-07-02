@@ -15,23 +15,30 @@ namespace Engine {
     public:
         class Builder {
         public:
-            Builder() {}
+            Builder(std::shared_ptr<Device> device) : m_Device{device} {}
 
             Builder &addBinding(
                     uint32_t binding,
                     VkDescriptorType descriptorType,
                     VkShaderStageFlags stageFlags,
                     uint32_t count = 1);
-            std::unique_ptr<DescriptorSetLayout> UniqueBuild() const;
-            std::shared_ptr<DescriptorSetLayout> SharedBuild() const;
+
+            std::unique_ptr<DescriptorSetLayout> UniqueBuild(std::shared_ptr<Device> device) const;
+
+            std::shared_ptr<DescriptorSetLayout> SharedBuild(std::shared_ptr<Device> device) const;
 
         private:
             std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings{};
+            std::shared_ptr<Device> m_Device;
         };
 
-        DescriptorSetLayout(std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings);
+        DescriptorSetLayout(std::shared_ptr<Device> device,
+                            std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings);
+
         ~DescriptorSetLayout();
+
         DescriptorSetLayout(const DescriptorSetLayout &) = delete;
+
         DescriptorSetLayout &operator=(const DescriptorSetLayout &) = delete;
 
         VkDescriptorSetLayout getDescriptorSetLayout() const { return descriptorSetLayout; }
@@ -48,26 +55,34 @@ namespace Engine {
     public:
         class Builder {
         public:
-            Builder() {}
+            Builder(std::shared_ptr<Device> device) : m_Device{device} {}
 
             Builder &addPoolSize(VkDescriptorType descriptorType, uint32_t count);
+
             Builder &setPoolFlags(VkDescriptorPoolCreateFlags flags);
+
             Builder &setMaxSets(uint32_t count);
-            std::unique_ptr<DescriptorPool> UniqueBuild() const;
-            std::shared_ptr<DescriptorPool> SharedBuild() const;
+
+            std::unique_ptr<DescriptorPool> UniqueBuild(std::shared_ptr<Device> device) const;
+
+            std::shared_ptr<DescriptorPool> SharedBuild(std::shared_ptr<Device> device) const;
 
         private:
             std::vector<VkDescriptorPoolSize> poolSizes{};
             uint32_t maxSets = 1000;
             VkDescriptorPoolCreateFlags poolFlags = 0;
+            std::shared_ptr<Device> m_Device;
         };
 
-        DescriptorPool(
-                uint32_t maxSets,
-                VkDescriptorPoolCreateFlags poolFlags,
-                const std::vector<VkDescriptorPoolSize> &poolSizes);
+        DescriptorPool(std::shared_ptr<Device> device,
+                       uint32_t maxSets,
+                       VkDescriptorPoolCreateFlags poolFlags,
+                       const std::vector<VkDescriptorPoolSize> &poolSizes);
+
         ~DescriptorPool();
+
         DescriptorPool(const DescriptorPool &) = delete;
+
         DescriptorPool &operator=(const DescriptorPool &) = delete;
 
         bool allocateDescriptor(
@@ -89,10 +104,12 @@ namespace Engine {
         DescriptorWriter(DescriptorSetLayout &setLayout, DescriptorPool &pool);
 
         DescriptorWriter &writeBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo);
+
         DescriptorWriter &writeImage(uint32_t binding, VkDescriptorImageInfo *imageInfo);
 
-        bool build(VkDescriptorSet &set);
-        void overwrite(VkDescriptorSet &set);
+        bool build(std::shared_ptr<Device> device, VkDescriptorSet &set);
+
+        void overwrite(std::shared_ptr<Device> device, VkDescriptorSet &set);
 
     private:
         DescriptorSetLayout &setLayout;

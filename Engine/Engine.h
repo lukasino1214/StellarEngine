@@ -26,6 +26,7 @@
 #include "Graphics/Descriptors.h"
 #include "Graphics/Texture.h"
 #include "Graphics/Core.h"
+#include "Graphics/Image.h"
 
 #include "System/RenderSystem.h"
 #include "System/GridSystem.h"
@@ -34,6 +35,9 @@
 #include "System/OffScreen.h"
 #include "System/PostProcessingSystem.h"
 #include "System/ShadowSystem.h"
+#include "System/DefferedRenderingSystem.h"
+
+#include "Scripting/NativeScript.h"
 
 #include "Math/Math.h"
 

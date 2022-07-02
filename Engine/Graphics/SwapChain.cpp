@@ -15,13 +15,13 @@
 
 namespace Engine {
 
-    SwapChain::SwapChain(VkExtent2D extent)
-            : windowExtent{extent} {
+    SwapChain::SwapChain(std::shared_ptr<Device> device, VkExtent2D extent)
+            : windowExtent{extent}, m_Device{device} {
         init();
     }
 
-    SwapChain::SwapChain(VkExtent2D extent, std::shared_ptr<SwapChain> previous)
-            : windowExtent{extent}, oldSwapChain{previous} {
+    SwapChain::SwapChain(std::shared_ptr<Device> device, VkExtent2D extent, std::shared_ptr<SwapChain> previous)
+            : windowExtent{extent}, oldSwapChain{previous}, m_Device{device} {
         init();
         oldSwapChain = nullptr;
     }
@@ -36,8 +36,8 @@ namespace Engine {
     }
 
     SwapChain::~SwapChain() {
-        auto device = Core::m_Device->device();
-        for (auto imageView : swapChainImageViews) {
+        auto device = m_Device->device();
+        for (auto imageView: swapChainImageViews) {
             vkDestroyImageView(device, imageView, nullptr);
         }
         swapChainImageViews.clear();
@@ -53,7 +53,7 @@ namespace Engine {
             vkFreeMemory(device, depthImageMemorys[i], nullptr);
         }
 
-        for (auto framebuffer : swapChainFramebuffers) {
+        for (auto framebuffer: swapChainFramebuffers) {
             vkDestroyFramebuffer(device, framebuffer, nullptr);
         }
 
@@ -68,7 +68,7 @@ namespace Engine {
     }
 
     VkResult SwapChain::acquireNextImage(uint32_t *imageIndex) {
-        auto device = Core::m_Device->device();
+        auto device = m_Device->device();
         vkWaitForFences(
                 device,
                 1,
@@ -88,7 +88,7 @@ namespace Engine {
     }
 
     VkResult SwapChain::submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex) {
-        auto device = Core::m_Device->device();
+        auto device = m_Device->device();
         if (imagesInFlight[*imageIndex] != VK_NULL_HANDLE) {
             vkWaitForFences(device, 1, &imagesInFlight[*imageIndex], VK_TRUE, UINT64_MAX);
         }
@@ -111,7 +111,7 @@ namespace Engine {
         submitInfo.pSignalSemaphores = signalSemaphores;
 
         vkResetFences(device, 1, &inFlightFences[currentFrame]);
-        if (vkQueueSubmit(Core::m_Device->graphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) !=
+        if (vkQueueSubmit(m_Device->graphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) !=
             VK_SUCCESS) {
             throw std::runtime_error("failed to submit draw command buffer!");
         }
@@ -128,7 +128,7 @@ namespace Engine {
 
         presentInfo.pImageIndices = imageIndex;
 
-        auto result = vkQueuePresentKHR(Core::m_Device->presentQueue(), &presentInfo);
+        auto result = vkQueuePresentKHR(m_Device->presentQueue(), &presentInfo);
 
         currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
@@ -136,8 +136,8 @@ namespace Engine {
     }
 
     void SwapChain::createSwapChain() {
-        auto device = Core::m_Device->device();
-        SwapChainSupportDetails swapChainSupport = Core::m_Device->getSwapChainSupport();
+        auto device = m_Device->device();
+        SwapChainSupportDetails swapChainSupport = m_Device->getSwapChainSupport();
 
         VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
         VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
@@ -151,7 +151,7 @@ namespace Engine {
 
         VkSwapchainCreateInfoKHR createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        createInfo.surface = Core::m_Device->surface();
+        createInfo.surface = m_Device->surface();
 
         createInfo.minImageCount = imageCount;
         createInfo.imageFormat = surfaceFormat.format;
@@ -160,7 +160,7 @@ namespace Engine {
         createInfo.imageArrayLayers = 1;
         createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-        QueueFamilyIndices indices = Core::m_Device->findPhysicalQueueFamilies();
+        QueueFamilyIndices indices = m_Device->findPhysicalQueueFamilies();
         uint32_t queueFamilyIndices[] = {indices.graphicsFamily, indices.presentFamily};
 
         if (indices.graphicsFamily != indices.presentFamily) {
@@ -211,7 +211,7 @@ namespace Engine {
             viewInfo.subresourceRange.baseArrayLayer = 0;
             viewInfo.subresourceRange.layerCount = 1;
 
-            if (vkCreateImageView(Core::m_Device->device(), &viewInfo, nullptr, &swapChainImageViews[i]) !=
+            if (vkCreateImageView(m_Device->device(), &viewInfo, nullptr, &swapChainImageViews[i]) !=
                 VK_SUCCESS) {
                 throw std::runtime_error("failed to create texture image view!");
             }
@@ -274,7 +274,7 @@ namespace Engine {
         renderPassInfo.dependencyCount = 1;
         renderPassInfo.pDependencies = &dependency;
 
-        if (vkCreateRenderPass(Core::m_Device->device(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
+        if (vkCreateRenderPass(m_Device->device(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
             throw std::runtime_error("failed to create render pass!");
         }
     }
@@ -295,7 +295,7 @@ namespace Engine {
             framebufferInfo.layers = 1;
 
             if (vkCreateFramebuffer(
-                    Core::m_Device->device(),
+                    m_Device->device(),
                     &framebufferInfo,
                     nullptr,
                     &swapChainFramebuffers[i]) != VK_SUCCESS) {
@@ -305,7 +305,7 @@ namespace Engine {
     }
 
     void SwapChain::createDepthResources() {
-        auto device =Core::m_Device->device();
+        auto device = m_Device->device();
 
         VkFormat depthFormat = findDepthFormat();
         swapChainDepthFormat = depthFormat;
@@ -332,7 +332,7 @@ namespace Engine {
             imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
             imageInfo.flags = 0;
 
-            Core::m_Device->createImageWithInfo(
+            m_Device->createImageWithInfo(
                     imageInfo,
                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                     depthImages[i],
@@ -356,7 +356,7 @@ namespace Engine {
     }
 
     void SwapChain::createSyncObjects() {
-        auto device = Core::m_Device->device();
+        auto device = m_Device->device();
         imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
         renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
         inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
@@ -382,7 +382,7 @@ namespace Engine {
 
     VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(
             const std::vector<VkSurfaceFormatKHR> &availableFormats) {
-        for (const auto &availableFormat : availableFormats) {
+        for (const auto &availableFormat: availableFormats) {
             //TODO: COLOR FORMAT
             if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
                 availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
@@ -400,7 +400,7 @@ namespace Engine {
 
     VkPresentModeKHR SwapChain::chooseSwapPresentMode(
             const std::vector<VkPresentModeKHR> &availablePresentModes) {
-        for (const auto &availablePresentMode : availablePresentModes) {
+        for (const auto &availablePresentMode: availablePresentModes) {
             if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
                 std::cout << "Present mode: Mailbox" << std::endl;
                 return availablePresentMode;
@@ -435,7 +435,7 @@ namespace Engine {
     }
 
     VkFormat SwapChain::findDepthFormat() {
-        return Core::m_Device->findSupportedFormat(
+        return m_Device->findSupportedFormat(
                 {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
                 VK_IMAGE_TILING_OPTIMAL,
                 VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);

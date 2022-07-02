@@ -1,21 +1,12 @@
 #version 450
+#extension GL_GOOGLE_include_directive : enable
+#include "assets/shaders/core.glsl"
 
 layout(location = 0) in vec3 fragColor;
 layout(location = 1) in vec2 uv;
 layout(location = 2) in vec3 position;
 layout(location = 3) in vec4 inShadowCoord;
 layout(location = 4) in mat3 TBN;
-
-struct PointLight {
-    vec4 position;
-    vec3 color;
-    float intensity;
-};
-
-struct DirectionalLight {
-    mat4 mvp;
-    vec4 position;
-};
 
 layout(set = 0, binding = 0) uniform GlobalUbo {
     mat4 projectionMatrix;
@@ -25,6 +16,8 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
     DirectionalLight directionalLights[10];
     int numPointLights;
     int numDirectionalLights;
+    float width;
+    float height;
 } ubo;
 
 layout(set = 1, binding = 0) uniform sampler2D albedo;
@@ -128,13 +121,18 @@ void main() {
     float metallic = texture(metallicRoughness, uv).r;
     float roughness = texture(metallicRoughness, uv).g;
 
-    vec3 N = TBN * normalize(texture(normal, uv).xyz * 2.0 - vec3(1.0));
+    vec3 N;
 
+    if(texture(normal, uv).xyz == vec3(1.0)) {
+        N = TBN[2];
+        albedo = vec4(1.0, 0.0, 0.0, 1.0);
+    } else {
+        N = TBN * normalize(texture(normal, uv).xyz * 2.0 - vec3(1.0));
+    }
 
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, fragColor, metallic);
 
-    float bias = 1000.0f;
 
      vec3 V = normalize(ubo.cameraPos.xyz - position);
 
@@ -184,7 +182,7 @@ void main() {
     // HDR tonemapping
     color = color / (color + vec3(1.0));
     // gamma correct
-    color = pow(color, vec3(1.0/2.2));
+    //color = pow(color, vec3(1.0/2.2));
 
     //float shadow = textureProj(inShadowCoord / inShadowCoord.w, vec2(0.0));
     float shadow = filterPCF(inShadowCoord / inShadowCoord.w);

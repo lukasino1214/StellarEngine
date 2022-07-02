@@ -1,18 +1,9 @@
 #version 450
+#extension GL_GOOGLE_include_directive : enable
+#include "assets/shaders/core.glsl"
 
 layout (location = 0) in vec2 fragOffset;
 layout (location = 0) out vec4 outColor;
-
-struct PointLight {
-    vec4 position;
-    vec3 color;
-    float intensity;
-};
-
-struct DirectionalLight {
-    mat4 mvp;
-    vec4 position;
-};
 
 layout(set = 0, binding = 0) uniform GlobalUbo {
     mat4 projectionMatrix;
@@ -22,6 +13,8 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
     DirectionalLight directionalLights[10];
     int numPointLights;
     int numDirectionalLights;
+    float width;
+    float height;
 } ubo;
 
 layout(push_constant) uniform Push {
