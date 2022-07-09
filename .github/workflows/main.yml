@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: [ master ]
 
+  workflow_dispatch:
+
 jobs:
   build:
 
@@ -30,3 +32,4 @@ jobs:
 
     - name: compile
       run: mkdir build && cd build && cmake .. && export MAKEFLAGS=-j8 && make
+
