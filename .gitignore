@@ -5,7 +5,7 @@
 *.slo
 *.lo
 *.o
-*.obj
+
 
 # Precompiled Headers
 *.gch
@@ -71,3 +71,4 @@ SPIRV-Tools-reduceConfig.cmake
 SPIRV-ToolsConfig.cmake
 
 todo.md
+imgui.ini

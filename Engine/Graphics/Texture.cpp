@@ -39,8 +39,8 @@ namespace Engine {
         m_Image->GenerateMipmaps();
 
         m_Sampler = new Sampler(m_Device, {
-                .minFilter = Filter::NEAREST,
-                .magFilter = Filter::NEAREST,
+                .minFilter = Filter::LINEAR,
+                .magFilter = Filter::LINEAR,
                 .maxAnistropy = 4.0,
                 .mipLevels = m_MipLevels,
         });
