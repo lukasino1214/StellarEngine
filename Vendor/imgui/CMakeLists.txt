@@ -14,6 +14,7 @@ target_sources(IMGUI
         )
 
 target_include_directories( IMGUI
+        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../glfw/include/
         PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/
         PUBLIC backends
         )
