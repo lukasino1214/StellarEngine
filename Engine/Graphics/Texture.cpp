@@ -27,7 +27,7 @@ namespace Engine {
         m_Format = VK_FORMAT_R8G8B8A8_UNORM;
 
         m_Image = new Image(m_Device, {
-                .format = Format::RGBA8_UNORM,
+                .format = Format::R8G8B8A8_UNORM,
                 .dimensions = { width, height, 1 },
                 .usage = UsageFlags::TRANSFER_SRC | UsageFlags::TRANSFER_DST | UsageFlags::SAMPLED,
                 .mipLevels = m_MipLevels

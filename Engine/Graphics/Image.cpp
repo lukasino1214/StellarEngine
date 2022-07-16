@@ -1,4 +1,5 @@
 #include "Image.h"
+#include <vulkan/vulkan_core.h>
 
 namespace Engine {
     Image::Image(std::shared_ptr<Engine::Device> device, const ImageDecs& decs) : m_Device{device}, m_Decs{decs}  {
@@ -183,7 +184,9 @@ namespace Engine {
         sampler.anisotropyEnable = VK_TRUE;
         sampler.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 
-        vkCreateSampler(m_Device->device(), &sampler, nullptr, &VK_Sampler);
+        if(vkCreateSampler(m_Device->device(), &sampler, nullptr, &VK_Sampler) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create sampler");
+        }
     }
 
     Sampler::~Sampler() {
@@ -203,7 +206,9 @@ namespace Engine {
         view.subresourceRange.levelCount = decs.mipLevels;
         view.image = decs.image->GetImage();
 
-        vkCreateImageView(m_Device->device(), &view, nullptr, &VK_ImageView);
+        if(vkCreateImageView(m_Device->device(), &view, nullptr, &VK_ImageView) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create image view");
+        }
     }
 
     ImageView::~ImageView() {

@@ -18,6 +18,11 @@ namespace Engine {
         Texture(std::shared_ptr<Device> device, const std::string &path);
         ~Texture();
 
+        Texture(const Texture &) = delete;
+        Texture &operator=(const Texture &) = delete;
+        Texture(Texture &&) = delete;
+        Texture &operator=(Texture &&) = delete;
+
         VkSampler GetSampler() { return m_Sampler->GetSampler(); }
         VkImageView GetImageView() { return m_ImageView->GetImageView(); }
         VkImageLayout GetImageLayout() { return m_ImageLayout; }

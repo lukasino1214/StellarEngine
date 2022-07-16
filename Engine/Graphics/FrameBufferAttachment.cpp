@@ -2,7 +2,7 @@
 #include "Image.h"
 
 namespace Engine {
-    FrameBufferAttachment::FrameBufferAttachment(std::shared_ptr<Engine::Device> device, const FrameBufferAttachmentDecs& decs) {
+    FrameBufferAttachment::FrameBufferAttachment(std::shared_ptr<Engine::Device> device, const FrameBufferAttachmentDecs& decs) : dimensions{decs.dimensions}, finalLayout{decs.finalLayout} {
         image = new Image(device, {
                 .format = decs.format,
                 .dimensions = { decs.dimensions.x, decs.dimensions.y, decs.dimensions.z },
@@ -14,6 +14,7 @@ namespace Engine {
                 .aspectMask = (Aspect)GetAspectMask(decs.format),
                 .image = image
         });
+        isDepth = decs.isDepth;
     }
 
     FrameBufferAttachment::~FrameBufferAttachment() {
@@ -23,12 +24,12 @@ namespace Engine {
 
     int FrameBufferAttachment::GetAspectMask(Format format) {
         switch (format) {
-            case D16:
-            case D32:
+            case D16_UNORM:
+            case D32_SFLOAT:
                 return Aspect::DEPTH;
-            case D16S8:
-            case D24S8:
-            case D32S8:
+            case D16_UNORM_S8_UINT:
+            case D24_UNORM_S8_UINT:
+            case D32_SFLOAT_S8_UINT:
                 return Aspect::DEPTH | Aspect::STENCIL;
             default:
                 return Aspect::COLOR;

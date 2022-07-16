@@ -10,20 +10,19 @@
 #include "../Data/Scene.h"
 #include "../Data/Entity.h"
 #include "../Graphics/Pipeline.h"
+#include "../Graphics/RenderPass.h"
 
 namespace Engine {
     class ShadowSystem {
     public:
         ShadowSystem(std::shared_ptr<Device> device);
-
         ~ShadowSystem();
 
         void Render(FrameInfo &frameInfo, std::shared_ptr<Scene> Scene);
 
         VkSampler GetSampler() { return m_Sampler->GetSampler(); }
         VkImageView GetImageView() { return depth->view->GetImageView(); }
-
-        VkRenderPass GetRenderPass() { return m_RenderPass; }
+        VkRenderPass GetRenderPass() { return renderpass->GetRenderPass(); }
 
     private:
         VkRenderPass m_RenderPass;
@@ -32,6 +31,7 @@ namespace Engine {
         FrameBufferAttachment* depth;
         Sampler* m_Sampler;
         VkFramebuffer m_FrameBuffer;
+        RenderPass* renderpass;
 
         std::unique_ptr<Pipeline> m_Pipeline;
         VkPipelineLayout pipelineLayout;

@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <glm/glm.hpp>
+#include <vulkan/vulkan_core.h>
 
 namespace Engine {
 
@@ -34,10 +35,13 @@ namespace Engine {
             delete depth;
 
             delete sampler;
+
+            vkDestroyRenderPass(m_Device->device(), renderPass, nullptr);
+            vkDestroyFramebuffer(m_Device->device(), frameBuffer, nullptr);
         }
 
         color = new FrameBufferAttachment(m_Device, {
-                .format = Format::BGRA8_SRGB,
+                .format = Format::B8G8R8A8_SRGB,
                 .dimensions = { m_Width, m_Height, 1 },
                 .usage = UsageFlags::COLOR_ATTACHMENT | UsageFlags::SAMPLED,
         });
@@ -244,5 +248,7 @@ namespace Engine {
 
         vkDestroyRenderPass(device, renderPass, nullptr);
         vkDestroyFramebuffer(device, frameBuffer, nullptr);
+
+        vkDestroyPipelineLayout(m_Device->device(), pipelineLayout, nullptr);
     }
 }

@@ -11,6 +11,7 @@
 #include "../Graphics/FrameInfo.h"
 #include "../Graphics/Core.h"
 #include "../Graphics/FrameBufferAttachment.h"
+#include "../Graphics/RenderPass.h"
 
 namespace Engine {
     struct NewFrameBufferAttachment {
@@ -25,7 +26,7 @@ namespace Engine {
 
         VkSampler GetSampler() { return sampler->GetSampler(); }
         VkImageView GetImageView() { return color->view->GetImageView(); }
-        VkRenderPass GetRenderPass() { return renderPass; }
+        VkRenderPass GetRenderPass() { return renderpass->GetRenderPass(); }
 
         void SetViewportSize(const glm::vec2 &size) {
             m_Width = size.x;
@@ -43,12 +44,11 @@ namespace Engine {
 
         bool first = true;
         uint32_t m_Width, m_Height;
-        VkFramebuffer frameBuffer;
         FrameBufferAttachment* color;
         FrameBufferAttachment* depth;
         Sampler* sampler;
-        VkRenderPass renderPass;
         VkDescriptorImageInfo descriptor;
+        RenderPass* renderpass;
 
         std::shared_ptr<Device> m_Device;
     };

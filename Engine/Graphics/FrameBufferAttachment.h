@@ -10,6 +10,8 @@ namespace Engine {
         Format format;
         glm::ivec3 dimensions;
         Usage usage;
+        VkImageLayout finalLayout;
+        bool isDepth = false;
     };
 
 
@@ -20,6 +22,11 @@ namespace Engine {
 
         Image* image;
         ImageView* view;
+
+        glm::ivec3 dimensions;
+
+        bool isDepth = false;
+        VkImageLayout finalLayout;
     private:
         int GetAspectMask(Format format);
     };
