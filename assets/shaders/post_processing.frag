@@ -23,7 +23,6 @@ layout(set = 1, binding = 0) uniform GlobalUbo {
 void main() {
     vec2 uv = vec2(inUV.x, 1.0 - inUV.y);
 
-    
     if(FXXA == 1) {
         vec2 v_rgbNW;
         vec2 v_rgbNE;

@@ -1,9 +1,4 @@
-//
-// Created by lukas on 06.11.21.
-//
-
-#ifndef ENGINE_PGEPCH_H
-#define ENGINE_PGEPCH_H
+#pragma once
 
 #include <iostream>
 #include <memory>
@@ -24,8 +19,5 @@
 #include <cassert>
 #include <stdexcept>
 
-#include "Core/Base.h"
-#include "Core/Log.h"
-#include "Core/Types.h"
-
-#endif //ENGINE_PGEPCH_H
+#include "core/logger.h"
+#include "core/types.h"

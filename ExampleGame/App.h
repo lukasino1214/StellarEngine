@@ -1,9 +1,4 @@
-//
-// Created by lukas on 08.11.21.
-//
-
-#ifndef ENGINEEDITOR_APP_H
-#define ENGINEEDITOR_APP_H
+#pragma once
 
 #include "../Engine/Engine.h"
 
@@ -52,12 +47,6 @@ namespace Engine {
 
         bool startPhysics = false;
         VkDescriptorSet PostProcessingSet;
-
-        BodyID sphere_id;
-        BodyID floor_id;
         bool m_StartPhysics = false;
     };
 }
-
-
-#endif //ENGINEEDITOR_APP_H

@@ -1,17 +1,16 @@
-#include "../Engine/Engine.h"
+#include "../Engine/engine.h"
 
-#include "Panels/SceneHierarchyPanel.h"
 
 using namespace Engine;
 
-#include "App.h"
+#include "app.h"
 
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 
 int main() {
-    FirstApp app{};
+    App app{};
 
     try {
         app.run();
