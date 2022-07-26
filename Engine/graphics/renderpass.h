@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framebuffer_attachment.h"
+#include "framebuffer.h"
 
 namespace Engine {
     struct Attachment {
@@ -23,21 +24,20 @@ namespace Engine {
 
     class RenderPass {
     public:
-        RenderPass(std::shared_ptr<Engine::Device> device, std::vector<Attachment> attachments, std::vector<SubpassInfo> subpassInfos);
+        RenderPass(std::shared_ptr<Device> device, std::vector<Attachment> attachments, std::vector<SubpassInfo> subpassInfos);
         ~RenderPass();
 
-        void NextSubpass(VkCommandBuffer commandBuffer);
+        void next_subpass(VkCommandBuffer command_buffer);
 
-        void start(VkCommandBuffer commandBuffer);
-        void end(VkCommandBuffer commandBuffer);
+        void start(Framebuffer* framebuffer, VkCommandBuffer command_buffer);
+        void end(VkCommandBuffer command_buffer);
 
         VkRenderPass vk_renderpass;
     private:
-        VkFramebuffer VK_FrameBuffer;
-
         std::shared_ptr<Device> m_Device;
 
-        std::vector<Attachment> m_Attachments;
+        u32 width, height;
+
         std::vector<VkClearValue> clearValues{};
     };
 }

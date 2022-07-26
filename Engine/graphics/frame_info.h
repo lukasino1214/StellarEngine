@@ -9,7 +9,7 @@ namespace Engine {
         float frame_time;
         VkCommandBuffer command_buffer;
         VkDescriptorSet vk_global_descriptor_set;
-        VkDescriptorSet vk_shadow_descriptor_set;
+        //VkDescriptorSet vk_shadow_descriptor_set;
     };
 
     struct DirectionalLight {

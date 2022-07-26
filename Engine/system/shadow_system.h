@@ -6,6 +6,7 @@
 #include "../data/entity.h"
 #include "../graphics/pipeline.h"
 #include "../graphics/renderpass.h"
+#include "../graphics/framebuffer.h"
 
 namespace Engine {
     class ShadowSystem {
@@ -26,6 +27,7 @@ namespace Engine {
         u32 width = 1024;
         u32 height = 1024;
 
+        Framebuffer* framebuffer;
         FrameBufferAttachment* depth;
         Sampler* sampler;
         RenderPass* renderpass;

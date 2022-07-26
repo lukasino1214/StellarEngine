@@ -155,6 +155,9 @@ namespace Engine {
                 if (primitive.material != -1) {
                     fx::gltf::Material &primitiveMaterial = doc.materials[primitive.material];
 
+                    primitiveMaterial.alphaCutoff
+                    primitiveMaterial.alphaMode
+
                     if (!primitiveMaterial.pbrMetallicRoughness.baseColorTexture.empty()) {
                         uint32_t textureIndex = primitiveMaterial.pbrMetallicRoughness.baseColorTexture.index;
                         uint32_t imageIndex = doc.textures[textureIndex].source;
@@ -184,6 +187,7 @@ namespace Engine {
                     material.metallicRoughnessTexture = defaultTexture;
                 }
 
+
                 VkDescriptorImageInfo albedo_image_info = material.albedoTexture->get_descriptor_image_info();
                 VkDescriptorImageInfo normal_image_info = material.normalTexture->get_descriptor_image_info();
                 VkDescriptorImageInfo metallicRoughness_image_info = material.metallicRoughnessTexture->get_descriptor_image_info();
@@ -197,7 +201,6 @@ namespace Engine {
                 for (size_t v = 0; v < vertexCount; v++) {
                     Vertex vertex{};
                     vertex.position = glm::make_vec3(&positionBuffer[v * 3]);
-                    vertex.color = glm::vec3(1.0);
                     vertex.normal = glm::normalize(
                             glm::vec3(normalsBuffer ? glm::make_vec3(&normalsBuffer[v * 3]) : glm::vec3(0.0f)));
                     vertex.tangent = glm::vec4(
@@ -273,10 +276,9 @@ namespace Engine {
     std::vector<VkVertexInputAttributeDescription> Model::Vertex::getAttributeDescriptions() {
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
         attributeDescriptions.push_back({0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)});
-        attributeDescriptions.push_back({1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color)});
-        attributeDescriptions.push_back({2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal)});
-        attributeDescriptions.push_back({3, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, tangent)});
-        attributeDescriptions.push_back({4, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, uv)});
+        attributeDescriptions.push_back({1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal)});
+        attributeDescriptions.push_back({2, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, tangent)});
+        attributeDescriptions.push_back({3, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, uv)});
 
         return attributeDescriptions;
     }

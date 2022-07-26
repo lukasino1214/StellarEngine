@@ -34,6 +34,7 @@ namespace Engine {
         friend class RenderSystem;
         friend class NativeScript;
         friend class PointLightSystem;
+        friend class DeferredRenderingSystem;
         friend class ShadowSystem;
         friend class FirstApp;
         friend class App;

@@ -6,13 +6,13 @@
 #include <vulkan/vulkan_core.h>
 
 namespace Engine {
-    RenderPass::RenderPass(std::shared_ptr<Engine::Device> device, std::vector<Attachment> attachments, std::vector<SubpassInfo> subpassInfos) : m_Device{device}, m_Attachments{attachments} {
+    RenderPass::RenderPass(std::shared_ptr<Device> device, std::vector<Attachment> attachments, std::vector<SubpassInfo> subpassInfos) : m_Device{device} {
         auto VK_Device = m_Device->vk_device;
 
         std::vector<VkAttachmentDescription> attachmentDescriptions;
-        attachmentDescriptions.resize(m_Attachments.size());
+        attachmentDescriptions.resize(attachments.size());
 
-        for(u32 i = 0; i < m_Attachments.size(); i++) {
+        for(u32 i = 0; i < attachments.size(); i++) {
             attachmentDescriptions[i].format = (VkFormat)attachments[i].frameBufferAttachment->image->get_format();
             attachmentDescriptions[i].samples = VK_SAMPLE_COUNT_1_BIT;
             attachmentDescriptions[i].loadOp = (VkAttachmentLoadOp)attachments[0].loadOp;
@@ -20,7 +20,7 @@ namespace Engine {
             attachmentDescriptions[i].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // I don't care maybe change this in future
             attachmentDescriptions[i].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // this too
             attachmentDescriptions[i].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            if(m_Attachments[i].frameBufferAttachment->is_depth) {
+            if(attachments[i].frameBufferAttachment->is_depth) {
                 attachmentDescriptions[i].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
             } else {
                 attachmentDescriptions[i].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // TODO
@@ -72,7 +72,7 @@ namespace Engine {
                 } else {
                     VkAttachmentReference inputReference{};
                     inputReference.attachment = renderTarget;
-                    inputReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                    inputReference.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
                     subpassDescriptionMy.inputReferences.push_back(inputReference);
 
                     hasInput = true;
@@ -148,10 +148,9 @@ namespace Engine {
         }
 
         std::vector<VkSubpassDescription> subpassDescriptionsVK{};
-        for(auto& subpass : subpassDescriptions) {
-            subpassDescriptionsVK.push_back(subpass.subpassDescription);
+        for(u32 i  = 0; i < subpassDescriptions.size(); i++) {
+            subpassDescriptionsVK.push_back(subpassDescriptions[i].subpassDescription);
         }
-
 
         VkRenderPassCreateInfo renderPassInfo = {};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -166,29 +165,9 @@ namespace Engine {
             throw std::runtime_error("Failed to create renderpass");
         }
 
-        std::vector<VkImageView> imageViews;
-        imageViews.resize(m_Attachments.size());
-
-        for(u32 i = 0; i < m_Attachments.size(); i++) {
-            imageViews[i] = m_Attachments[i].frameBufferAttachment->image_view->vk_image_view;
-        }
-
-        VkFramebufferCreateInfo fbufCreateInfo = {};
-        fbufCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        fbufCreateInfo.renderPass = vk_renderpass;
-        fbufCreateInfo.attachmentCount = imageViews.size();
-        fbufCreateInfo.pAttachments = imageViews.data();
-        fbufCreateInfo.width = m_Attachments[0].frameBufferAttachment->dimensions.x;
-        fbufCreateInfo.height = m_Attachments[0].frameBufferAttachment->dimensions.y;
-        fbufCreateInfo.layers = m_Attachments[0].frameBufferAttachment->dimensions.z;
-
-        if (vkCreateFramebuffer(m_Device->vk_device, &fbufCreateInfo, nullptr, &VK_FrameBuffer) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create framebuffer");
-        }
-
-        clearValues.resize(m_Attachments.size());
-        for(uint32_t i = 0; i < m_Attachments.size(); i++) {
-            if(m_Attachments[i].frameBufferAttachment->is_depth) {
+        clearValues.resize(attachments.size());
+        for(uint32_t i = 0; i < attachments.size(); i++) {
+            if(attachments[i].frameBufferAttachment->is_depth) {
                 clearValues[i].depthStencil = {1.0f, 0};
             } else {
                 clearValues[i].color = {0.01f, 0.01f, 0.01f, 1.0f};
@@ -200,41 +179,40 @@ namespace Engine {
         auto VK_Device = m_Device->vk_device;
 
         vkDestroyRenderPass(VK_Device, vk_renderpass, nullptr);
-        vkDestroyFramebuffer(VK_Device, VK_FrameBuffer, nullptr);
     }
 
-    void RenderPass::NextSubpass(VkCommandBuffer commandBuffer) {
-        vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
+    void RenderPass::next_subpass(VkCommandBuffer command_buffer) {
+        vkCmdNextSubpass(command_buffer, VK_SUBPASS_CONTENTS_INLINE);
     }
 
-    void RenderPass::start(VkCommandBuffer commandBuffer) {
+    void RenderPass::start(Framebuffer* framebuffer, VkCommandBuffer command_buffer) {
         VkRenderPassBeginInfo renderPassBeginInfo{};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassBeginInfo.renderPass = vk_renderpass;
-        renderPassBeginInfo.framebuffer = VK_FrameBuffer;
-        renderPassBeginInfo.renderArea.extent.width = m_Attachments[0].frameBufferAttachment->dimensions.x;
-        renderPassBeginInfo.renderArea.extent.height = m_Attachments[0].frameBufferAttachment->dimensions.y;
+        renderPassBeginInfo.framebuffer = framebuffer->vk_framebuffer;
+        renderPassBeginInfo.renderArea.extent.width = framebuffer->width;
+        renderPassBeginInfo.renderArea.extent.height = framebuffer->height;
         renderPassBeginInfo.clearValueCount = clearValues.size();
         renderPassBeginInfo.pClearValues = clearValues.data();
 
-        vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(command_buffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         VkViewport viewport = {};
-        viewport.width = (float) m_Attachments[0].frameBufferAttachment->dimensions.x;
-        viewport.height = (float) m_Attachments[0].frameBufferAttachment->dimensions.y;
+        viewport.width = static_cast<float>(framebuffer->width);
+        viewport.height = static_cast<float>(framebuffer->height);
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+        vkCmdSetViewport(command_buffer, 0, 1, &viewport);
 
         VkRect2D scissor = {};
-        scissor.extent.width = m_Attachments[0].frameBufferAttachment->dimensions.x;
-        scissor.extent.height = m_Attachments[0].frameBufferAttachment->dimensions.y;
+        scissor.extent.width = framebuffer->width;
+        scissor.extent.height = framebuffer->height;
         scissor.offset.x = 0;
         scissor.offset.y = 0;
-        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+        vkCmdSetScissor(command_buffer, 0, 1, &scissor);
     }
 
-    void RenderPass::end(VkCommandBuffer commandBuffer) {
-        vkCmdEndRenderPass(commandBuffer);
+    void RenderPass::end(VkCommandBuffer command_buffer) {
+        vkCmdEndRenderPass(command_buffer);
     }
 }

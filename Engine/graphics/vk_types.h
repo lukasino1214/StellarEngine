@@ -318,6 +318,7 @@ namespace Engine {
         static inline constexpr ImageUsageFlags COLOR_ATTACHMENT = 0x00000010;
         static inline constexpr ImageUsageFlags DEPTH_STENCIL_ATTACHMENT = 0x00000020;
         static inline constexpr ImageUsageFlags TRANSIENT_ATTACHMENT = 0x00000040;
+        static inline constexpr ImageUsageFlags INPUT_ATTACHMENT = 0x00000080;
         static inline constexpr ImageUsageFlags FRAGMENT_DENSITY_MAP = 0x00000200;
         static inline constexpr ImageUsageFlags FRAGMENT_SHADING_RATE_ATTACHMENT = 0x00000100;
         static inline constexpr ImageUsageFlags SHADING_RATE_IMAGE = FRAGMENT_SHADING_RATE_ATTACHMENT;

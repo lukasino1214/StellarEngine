@@ -12,7 +12,6 @@ namespace Engine {
         glm::ivec3 dimensions;
         ImageUsageFlags usage;
         VkImageLayout final_layout;
-        bool is_depth = false;
     };
 
 

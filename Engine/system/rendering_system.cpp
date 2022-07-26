@@ -21,7 +21,7 @@ namespace Engine {
                 .size = sizeof(PushConstantData)
         };
 
-        std::vector<VkDescriptorSetLayout> descriptor_set_layouts = {Core::global_descriptor_set_layout->get_descriptor_set_layout(), Core::pbr_material_descriptor_set_layout->get_descriptor_set_layout(), Core::shadow_descriptor_set_layout->get_descriptor_set_layout()};
+        std::vector<VkDescriptorSetLayout> descriptor_set_layouts = {Core::global_descriptor_set_layout->get_descriptor_set_layout(), Core::pbr_material_descriptor_set_layout->get_descriptor_set_layout(), /*Core::shadow_descriptor_set_layout->get_descriptor_set_layout()*/};
 
         VkPipelineLayoutCreateInfo vk_pipeline_layout_create_info = {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
@@ -55,7 +55,7 @@ namespace Engine {
     void RenderSystem::render(FrameInfo &frame_info, const std::shared_ptr<Scene> &scene) {
         pipeline->bind(frame_info.command_buffer);
 
-        vkCmdBindDescriptorSets(frame_info.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline_layout, 2, 1, &frame_info.vk_shadow_descriptor_set, 0, nullptr);
+        //vkCmdBindDescriptorSets(frame_info.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline_layout, 2, 1, &frame_info.vk_shadow_descriptor_set, 0, nullptr);
 
         scene->registry.each([&](auto entityID) {
             Entity entity = {entityID, scene.get()};

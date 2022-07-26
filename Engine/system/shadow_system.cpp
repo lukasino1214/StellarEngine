@@ -1,7 +1,6 @@
 #include "shadow_system.h"
 #include "../pgepch.h"
 #include "../graphics/core.h"
-#include "../graphics/pipeline.h"
 
 namespace Engine {
     struct PushConstantData {
@@ -10,12 +9,12 @@ namespace Engine {
     };
 
     ShadowSystem::ShadowSystem(std::shared_ptr<Device> _device) : device{_device} {
+
         depth = new FrameBufferAttachment(device, {
                 .format = ImageFormat::D16_UNORM,
                 .dimensions = { width, height, 1 },
                 .usage = ImageUsageFlagBits::DEPTH_STENCIL_ATTACHMENT | ImageUsageFlagBits::SAMPLED,
                 .final_layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
-                .is_depth = true
         });
 
         sampler = new Sampler(device, {
@@ -28,6 +27,8 @@ namespace Engine {
         renderpass = new RenderPass(device, {
             { .frameBufferAttachment = depth, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::STORE }
         }, { { .renderTargets = { 0 } } });
+
+        framebuffer = new Framebuffer(device, renderpass->vk_renderpass, { depth });
 
         VkPushConstantRange vk_push_constant_range = {
             .stageFlags =VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -61,7 +62,7 @@ namespace Engine {
     }
 
     void ShadowSystem::render(FrameInfo &frame_info, std::shared_ptr<Scene> scene) {
-        renderpass->start(frame_info.command_buffer);
+        renderpass->start(framebuffer, frame_info.command_buffer);
 
         vkCmdSetDepthBias(frame_info.command_buffer, 1.25f, 0.0f, 1.75f);
 
@@ -95,7 +96,7 @@ namespace Engine {
         delete sampler;
 
         delete renderpass;
-        
+
         vkDestroyPipelineLayout(device->vk_device, vk_pipeline_layout, nullptr);
     }
 }

@@ -26,20 +26,25 @@ namespace Engine {
         VkImageView get_image_view() { return color->image_view->vk_image_view; }
         VkRenderPass get_renderpass() { return renderpass->vk_renderpass; }
 
-        void resize(u32 _width, u32 _height) { width = _width; height = _height; create_images(); }
+        void resize(u32 _width, u32 _height) { width = _width; height = _height; create_images(); create_framebuffer(); }
         void start(FrameInfo frame_info);
         void end(FrameInfo frame_info);
 
+        VkDescriptorSet& get_present_descriptor_set() { return vk_present_descriptor_set; }
+
     private:
-        void create_images();
+        inline void create_images();
+        inline void create_framebuffer();
 
         bool first = true;
         uint32_t width, height;
+        Framebuffer* framebuffer;
         FrameBufferAttachment* color;
         FrameBufferAttachment* depth;
         Sampler* sampler;
-        VkDescriptorImageInfo vk_descriptor_image_info;
         RenderPass* renderpass;
+
+        VkDescriptorSet vk_present_descriptor_set;
 
         std::shared_ptr<Device> device;
     };

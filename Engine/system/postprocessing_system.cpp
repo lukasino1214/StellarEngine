@@ -7,6 +7,13 @@ namespace Engine {
     PostProcessingSystem::PostProcessingSystem(std::shared_ptr<Device> _device, uint32_t _width, uint32_t _height) : width{_width}, height{_height}, device{_device} {
         create_images();
 
+        renderpass = new RenderPass(device, {
+                { .frameBufferAttachment = color, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::STORE },
+                { .frameBufferAttachment = depth, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::STORE }
+        }, { { .renderTargets = { 0, 1 }, .subpassInputs = {} } });
+
+        create_framebuffer();
+
         std::vector<VkDescriptorSetLayout> descriptor_set_layouts = {Core::postprocessing_descriptor_set_layout->get_descriptor_set_layout(), Core::global_descriptor_set_layout->get_descriptor_set_layout()};
 
         VkPipelineLayoutCreateInfo vk_pipeline_layout_create_info = {
@@ -36,31 +43,37 @@ namespace Engine {
         });
     }
 
-    void PostProcessingSystem::create_images() {
-        VkFormat fb_depth_format = device->find_supported_format({VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT}, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    void PostProcessingSystem::create_framebuffer() {
+        if(!first) {
+            delete framebuffer;
+        }
 
+        framebuffer = new Framebuffer(device, renderpass->vk_renderpass, { color, depth });
+
+        first = false;
+    }
+
+    void PostProcessingSystem::create_images() {
         if(!first) {
             vkDeviceWaitIdle(device->vk_device);
             delete color;
             delete depth;
 
             delete sampler;
-
-            delete renderpass;
         }
+
+        VkFormat fb_depth_format = device->find_supported_format({VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT}, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 
         color = new FrameBufferAttachment(device, {
                 .format = ImageFormat::B8G8R8A8_SRGB,
                 .dimensions = { width, height, 1 },
                 .usage = ImageUsageFlagBits::COLOR_ATTACHMENT | ImageUsageFlagBits::SAMPLED,
-                .is_depth = false
         });
 
         depth = new FrameBufferAttachment(device, {
                 .format = (ImageFormat)fb_depth_format,
                 .dimensions = { width, height, 1 },
                 .usage = ImageUsageFlagBits::DEPTH_STENCIL_ATTACHMENT,
-                .is_depth = true
         });
 
         sampler = new Sampler(device, {
@@ -69,12 +82,10 @@ namespace Engine {
                 .max_anistropy = 1.0,
         });
 
-        renderpass = new RenderPass(device, {
+        /*renderpass = new RenderPass(device, {
             { .frameBufferAttachment = color, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::STORE },
             { .frameBufferAttachment = depth, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::STORE }
-        }, { { .renderTargets = { 0, 1 }, .subpassInputs = {} } });
-
-        first = false;
+        }, { { .renderTargets = { 0, 1 }, .subpassInputs = {} } });*/
 
         vk_descriptor_image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         vk_descriptor_image_info.imageView = color->image_view->vk_image_view;
@@ -82,7 +93,7 @@ namespace Engine {
     };
 
     void PostProcessingSystem::render(FrameInfo &frame_info, VkDescriptorSet &vk_descriptor_set) {
-        renderpass->start(frame_info.command_buffer);
+        renderpass->start(framebuffer, frame_info.command_buffer);
 
         pipeline->bind(frame_info.command_buffer);
         std::vector<VkDescriptorSet> vk_descriptor_sets = {vk_descriptor_set, frame_info.vk_global_descriptor_set};
@@ -97,6 +108,7 @@ namespace Engine {
         delete depth;
 
         delete sampler;
+        delete framebuffer;
 
         delete renderpass;
 

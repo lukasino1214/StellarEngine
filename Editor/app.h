@@ -32,12 +32,13 @@ namespace Engine {
         std::shared_ptr<Device> device;
         std::unique_ptr<Renderer> renderer;
 
-        std::unique_ptr<ShadowSystem> shadow_system;
+        //std::unique_ptr<ShadowSystem> shadow_system;
         std::unique_ptr<OffScreenSystem> offscreen_system;
         std::unique_ptr<RenderSystem> rendering_system;
         std::unique_ptr<PointLightSystem> point_light_system;
         std::unique_ptr<PostProcessingSystem> postprocessing_system;
         std::unique_ptr<GridSystem> grid_system;
+        std::unique_ptr<DeferredRenderingSystem> deferred_rendering_system;
 
         std::shared_ptr<Camera> camera;
 
@@ -48,6 +49,6 @@ namespace Engine {
         std::shared_ptr<SceneHierarchyPanel> scene_hierarchy_panel;
         std::shared_ptr<ViewportPanel> viewport_panel;
 
-        VkDescriptorSet vk_post_processing_descriptor_set;
+        //VkDescriptorSet vk_post_processing_descriptor_set;
     };
 }

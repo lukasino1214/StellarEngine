@@ -13,11 +13,11 @@ namespace Engine {
     };
 
     struct QueueFamilyIndices {
-        uint32_t graphics_family;
-        uint32_t present_family;
+        uint32_t graphics_family{};
+        uint32_t present_family{};
         bool graphics_family_has_value = false;
         bool present_family_has_value = false;
-        bool is_complete() { return graphics_family_has_value && present_family_has_value; }
+        [[nodiscard]] bool is_complete() const { return graphics_family_has_value && present_family_has_value; }
     };
 
     class Device {
@@ -25,10 +25,10 @@ namespace Engine {
 #ifdef NDEBUG
         const bool enable_validation_layers = true;
 #else
-        const bool enable_validation_layers = false;
+        const bool enable_validation_layers = true;
 #endif
 
-        Device(Window* _window);
+        explicit Device(Window* _window);
         ~Device();
 
         Device(const Device &) = delete;
@@ -39,14 +39,14 @@ namespace Engine {
         uint32_t get_graphics_queue_family() { return find_physical_queue_families().graphics_family; }
 
         SwapChainSupportDetails get_swapchain_support() { return query_swapchain_support(vk_physical_device); }
-        uint32_t find_memory_type(uint32_t type_filter, VkMemoryPropertyFlags properties);
+        uint32_t find_memory_type(uint32_t type_filter, VkMemoryPropertyFlags properties) const;
         QueueFamilyIndices find_physical_queue_families() { return find_queue_families(vk_physical_device); }
-        VkFormat find_supported_format(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+        VkFormat find_supported_format(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
 
         // Buffer Helper Functions
         void create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &buffer_memory);
         VkCommandBuffer begin_single_time_command_buffer();
-        void end_single_time_command_buffer(VkCommandBuffer command_buffer);
+        void end_single_time_command_buffer(VkCommandBuffer command_buffer) const;
         void copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size);
         void copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layer_count);
 
@@ -71,13 +71,13 @@ namespace Engine {
 
         // helper functions
         bool is_device_suitable(VkPhysicalDevice device);
-        std::vector<const char *> get_required_extensions();
+        std::vector<const char *> get_required_extensions() const;
         bool check_validation_layer_support();
-        QueueFamilyIndices find_queue_families(VkPhysicalDevice device);
+        QueueFamilyIndices find_queue_families(VkPhysicalDevice device) const;
         void populate_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT &create_info);
         void has_gflw_required_instance_extensions();
         bool check_device_extension_support(VkPhysicalDevice device);
-        SwapChainSupportDetails query_swapchain_support(VkPhysicalDevice device);
+        SwapChainSupportDetails query_swapchain_support(VkPhysicalDevice device) const;
 
         VkDebugUtilsMessengerEXT vk_debug_messenger;
         Window* window;

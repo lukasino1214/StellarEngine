@@ -29,10 +29,12 @@ namespace Engine {
         point_light_system = std::make_unique<PointLightSystem>(device, offscreen_system->get_renderpass());
         postprocessing_system = std::make_unique<PostProcessingSystem>(device, WIDTH, HEIGHT);
         grid_system = std::make_unique<GridSystem>(device, offscreen_system->get_renderpass());
-        shadow_system = std::make_unique<ShadowSystem>(device);
+        //shadow_system = std::make_unique<ShadowSystem>(device);
         camera = std::make_shared<Camera>(glm::vec3(5, 10, 5), glm::vec3(10, 10, 0));
         imgui_layer = std::make_unique<ImGuiLayer>(device, *window, renderer->get_swapchain_renderpass(), renderer->get_image_count());
         viewport_panel = std::make_shared<ViewportPanel>(scene_hierarchy_panel, camera, window, offscreen_system->get_sampler(), offscreen_system->get_image_view());
+
+        deferred_rendering_system = std::make_unique<DeferredRenderingSystem>(device, WIDTH, HEIGHT);
 
 
         auto helmet = std::make_shared<Model>(device, "assets/models/SciFiHelmet/glTF/SciFiHelmet.gltf");
@@ -88,18 +90,7 @@ namespace Engine {
                     .build(device, vk_global_descriptor_sets[i]);
         }
 
-        {
-            VkDescriptorImageInfo image_info = {};
-            image_info.sampler = offscreen_system->get_sampler();
-            image_info.imageView = offscreen_system->get_image_view();
-            image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-            DescriptorWriter(*Core::postprocessing_descriptor_set_layout, *Core::global_descriptor_pool)
-                    .write_image(0, &image_info)
-                    .build(device, vk_post_processing_descriptor_set);
-        }
-
-        VkDescriptorSet vk_shadow_descriptor_set;
+        /*VkDescriptorSet vk_shadow_descriptor_set;
 
         {
             VkDescriptorImageInfo image_info = {};
@@ -110,7 +101,7 @@ namespace Engine {
             DescriptorWriter(*Core::shadow_descriptor_set_layout, *Core::global_descriptor_pool)
                     .write_image(0, &image_info)
                     .build(device, vk_shadow_descriptor_set);
-        }
+        }*/
 
 
         bool is_grid_enabled = true;
@@ -128,15 +119,6 @@ namespace Engine {
                 offscreen_system->resize(viewport_panel->get_viewport_size().x, viewport_panel->get_viewport_size().y);
                 postprocessing_system->resize(viewport_panel->get_viewport_size().x, viewport_panel->get_viewport_size().y);
                 viewport_panel->update_image(postprocessing_system->get_sampler(), postprocessing_system->get_image_view());
-
-                VkDescriptorImageInfo image_info = {};
-                image_info.sampler = offscreen_system->get_sampler();
-                image_info.imageView = offscreen_system->get_image_view();
-                image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-                DescriptorWriter(*Core::postprocessing_descriptor_set_layout, *Core::global_descriptor_pool)
-                        .write_image(0, &image_info)
-                        .build(device, vk_post_processing_descriptor_set);
             }
 
             auto new_time = std::chrono::high_resolution_clock::now();
@@ -146,7 +128,7 @@ namespace Engine {
 
             if (auto command_buffer = renderer->begin_frame()) {
                 int frame_index = renderer->get_frame_index();
-                FrameInfo frameInfo{frame_index, frame_time, command_buffer, vk_global_descriptor_sets[frame_index], vk_shadow_descriptor_set};
+                FrameInfo frameInfo{frame_index, frame_time, command_buffer, vk_global_descriptor_sets[frame_index]};
 
                 GlobalUbo ubo = {};
                 ubo.projection_matrix = camera->getProjection();
@@ -167,7 +149,10 @@ namespace Engine {
                 ubo_buffers[frame_index]->write_to_buffer(&ubo);
                 ubo_buffers[frame_index]->flush();
 
-                shadow_system->render(frameInfo, editor_scene);
+                //shadow_system->render(frameInfo, editor_scene);
+                deferred_rendering_system->start(frameInfo, editor_scene);
+                deferred_rendering_system->end(frameInfo);
+
                 offscreen_system->start(frameInfo);
                 rendering_system->render(frameInfo, editor_scene);
                 point_light_system->render(frameInfo, editor_scene);
@@ -175,7 +160,8 @@ namespace Engine {
                     grid_system->render(frameInfo);
                 }
                 offscreen_system->end(frameInfo);
-                postprocessing_system->render(frameInfo, vk_post_processing_descriptor_set);
+                postprocessing_system->render(frameInfo, offscreen_system->get_present_descriptor_set());
+                //postprocessing_system->render(frameInfo, deferred_rendering_system->get_present_descriptor_set());
 
                 imgui_layer->new_frame();
                 renderer->begin_swapchain_renderpass(command_buffer);

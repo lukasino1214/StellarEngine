@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_library(Engine STATIC)
+add_library(Engine STATIC system/deferred_rendering_system.cpp system/deferred_rendering_system.h)
 
+set_project_warnings(Engine)
 
 file(GLOB_RECURSE SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file(GLOB_RECURSE HEADER_FILES ${CMAKE_CURRENT_SOURCE_DIR}/)

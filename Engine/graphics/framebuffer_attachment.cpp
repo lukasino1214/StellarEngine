@@ -15,7 +15,19 @@ namespace Engine {
                 .aspect_mask = (ImageAspectFlags)get_aspect_mask(description.format),
                 .image = image
         });
-        is_depth = description.is_depth;
+
+        switch (description.format) {
+            case ImageFormat::D16_UNORM:
+            case ImageFormat::D32_SFLOAT:
+            case ImageFormat::D16_UNORM_S8_UINT:
+            case ImageFormat::D24_UNORM_S8_UINT:
+            case ImageFormat::D32_SFLOAT_S8_UINT:
+                is_depth = true;
+                break;
+            default:
+                is_depth = false;
+                break;
+        }
     }
 
     FrameBufferAttachment::~FrameBufferAttachment() {

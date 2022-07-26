@@ -256,7 +256,7 @@ namespace Engine {
         return true;
     }
 
-    std::vector<const char *> Device::get_required_extensions() {
+    std::vector<const char *> Device::get_required_extensions() const {
         uint32_t glfw_extension_count = 0;
         const char **glfw_extensions;
         glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_extension_count);
@@ -309,7 +309,7 @@ namespace Engine {
         return required_extensions.empty();
     }
 
-    QueueFamilyIndices Device::find_queue_families(VkPhysicalDevice device) {
+    QueueFamilyIndices Device::find_queue_families(VkPhysicalDevice device) const {
         QueueFamilyIndices indices;
 
         uint32_t queue_family_count = 0;
@@ -340,7 +340,7 @@ namespace Engine {
         return indices;
     }
 
-    SwapChainSupportDetails Device::query_swapchain_support(VkPhysicalDevice device) {
+    SwapChainSupportDetails Device::query_swapchain_support(VkPhysicalDevice device) const {
         SwapChainSupportDetails details;
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, vk_surface_khr, &details.capabilities);
 
@@ -362,7 +362,7 @@ namespace Engine {
         return details;
     }
 
-    VkFormat Device::find_supported_format(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
+    VkFormat Device::find_supported_format(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const {
         for (VkFormat format : candidates) {
             VkFormatProperties props;
             vkGetPhysicalDeviceFormatProperties(vk_physical_device, format, &props);
@@ -376,7 +376,7 @@ namespace Engine {
         throw std::runtime_error("failed to find supported format!");
     }
 
-    uint32_t Device::find_memory_type(uint32_t type_filter, VkMemoryPropertyFlags properties) {
+    uint32_t Device::find_memory_type(uint32_t type_filter, VkMemoryPropertyFlags properties) const {
         VkPhysicalDeviceMemoryProperties memory_properties;
         vkGetPhysicalDeviceMemoryProperties(vk_physical_device, &memory_properties);
         for (uint32_t i = 0; i < memory_properties.memoryTypeCount; i++) {
@@ -445,7 +445,7 @@ namespace Engine {
         return command_buffer;
     }
 
-    void Device::end_single_time_command_buffer(VkCommandBuffer command_buffer) {
+    void Device::end_single_time_command_buffer(VkCommandBuffer command_buffer) const {
         vkEndCommandBuffer(command_buffer);
 
         VkSubmitInfo vk_submit_info = {

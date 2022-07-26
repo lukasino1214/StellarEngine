@@ -59,9 +59,9 @@ namespace Engine {
             glm::mat4 camera_view = glm::inverse(camera->getView());
             glm::mat4 camera_proj = camera->getProjection();
 
-            glm::mat4 mod_mat = tc.model_matrix;
+            glm::mat4 mod_mat = tc.calculate_matrix();
             glm::mat4 delta = glm::mat4{1.0};
-            ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_proj), (ImGuizmo::OPERATION) gizmo_type, ImGuizmo::LOCAL, glm::value_ptr(mod_mat), glm::value_ptr(delta), nullptr, nullptr, nullptr);
+            ImGuizmo::Manipulate(glm::value_ptr(camera->getView()), glm::value_ptr(camera_proj), (ImGuizmo::OPERATION) gizmo_type, ImGuizmo::LOCAL, glm::value_ptr(mod_mat), glm::value_ptr(delta), nullptr, nullptr, nullptr);
 
             if (ImGuizmo::IsUsing()) {
                 glm::vec3 translation, rotation, scale;

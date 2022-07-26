@@ -12,7 +12,7 @@ namespace Engine {
         static std::shared_ptr<DescriptorSetLayout> global_descriptor_set_layout;
         static std::shared_ptr<DescriptorSetLayout> pbr_material_descriptor_set_layout;
         static std::shared_ptr<DescriptorSetLayout> postprocessing_descriptor_set_layout;
-        static std::shared_ptr<DescriptorSetLayout> shadow_descriptor_set_layout;
+        //static std::shared_ptr<DescriptorSetLayout> shadow_descriptor_set_layout;
 
         static void init(std::shared_ptr<Device> device);
 
