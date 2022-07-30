@@ -15,15 +15,15 @@ namespace Engine {
         for(u32 i = 0; i < attachments.size(); i++) {
             attachmentDescriptions[i].format = (VkFormat)attachments[i].frameBufferAttachment->image->get_format();
             attachmentDescriptions[i].samples = VK_SAMPLE_COUNT_1_BIT;
-            attachmentDescriptions[i].loadOp = (VkAttachmentLoadOp)attachments[0].loadOp;
-            attachmentDescriptions[i].storeOp = (VkAttachmentStoreOp)attachments[0].storeOp; 
+            attachmentDescriptions[i].loadOp = (VkAttachmentLoadOp)attachments[i].loadOp;
+            attachmentDescriptions[i].storeOp = (VkAttachmentStoreOp)attachments[i].storeOp;
             attachmentDescriptions[i].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // I don't care maybe change this in future
             attachmentDescriptions[i].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // this too
             attachmentDescriptions[i].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             if(attachments[i].frameBufferAttachment->is_depth) {
                 attachmentDescriptions[i].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
             } else {
-                attachmentDescriptions[i].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // TODO
+                attachmentDescriptions[i].finalLayout = attachments[i].frameBufferAttachment->final_layout; // TODO
             }
         }
 
@@ -185,7 +185,7 @@ namespace Engine {
         vkCmdNextSubpass(command_buffer, VK_SUBPASS_CONTENTS_INLINE);
     }
 
-    void RenderPass::start(Framebuffer* framebuffer, VkCommandBuffer command_buffer) {
+    void RenderPass::start(Framebuffer* framebuffer, VkCommandBuffer command_buffer, glm::vec2 viewport_size) {
         VkRenderPassBeginInfo renderPassBeginInfo{};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassBeginInfo.renderPass = vk_renderpass;
@@ -198,8 +198,13 @@ namespace Engine {
         vkCmdBeginRenderPass(command_buffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         VkViewport viewport = {};
-        viewport.width = static_cast<float>(framebuffer->width);
-        viewport.height = static_cast<float>(framebuffer->height);
+        if(viewport_size.x == 0.0) {
+            viewport.width = static_cast<float>(framebuffer->width);
+            viewport.height = static_cast<float>(framebuffer->height);
+        } else {
+            viewport.width = viewport_size.x;
+            viewport.height = viewport_size.y;
+        }
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
         vkCmdSetViewport(command_buffer, 0, 1, &viewport);

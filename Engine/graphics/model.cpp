@@ -75,11 +75,21 @@ namespace Engine {
     void Model::draw(FrameInfo frameInfo, VkPipelineLayout pipelineLayout) {
         for (auto &primitive: primitives) {
             if (hasIndexBuffer) {
-                std::vector<VkDescriptorSet> sets{frameInfo.vk_global_descriptor_set, primitive.material.descriptorSet};
+                std::vector<VkDescriptorSet> sets { frameInfo.vk_global_descriptor_set, primitive.material.descriptor_set };
                 vkCmdBindDescriptorSets(frameInfo.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, sets.size(), sets.data(), 0, nullptr);
                 vkCmdDrawIndexed(frameInfo.command_buffer, primitive.indexCount, 1, primitive.firstIndex, primitive.firstVertex, 0);
             } else {
                 vkCmdDraw(frameInfo.command_buffer, primitive.vertexCount, 1, 0, 0);
+            }
+        }
+    }
+
+    void Model::draw(VkCommandBuffer command_buffer) {
+        for (auto &primitive: primitives) {
+            if (hasIndexBuffer) {
+                vkCmdDrawIndexed(command_buffer, primitive.indexCount, 1, primitive.firstIndex, primitive.firstVertex, 0);
+            } else {
+                vkCmdDraw(command_buffer, primitive.vertexCount, 1, 0, 0);
             }
         }
     }
@@ -151,12 +161,10 @@ namespace Engine {
                 }
 
                 std::shared_ptr<Texture> defaultTexture = std::make_shared<Texture>(m_Device, "assets/white.png");
-                Material material{};
+                /*Material material{};
                 if (primitive.material != -1) {
                     fx::gltf::Material &primitiveMaterial = doc.materials[primitive.material];
 
-                    primitiveMaterial.alphaCutoff
-                    primitiveMaterial.alphaMode
 
                     if (!primitiveMaterial.pbrMetallicRoughness.baseColorTexture.empty()) {
                         uint32_t textureIndex = primitiveMaterial.pbrMetallicRoughness.baseColorTexture.index;
@@ -187,7 +195,6 @@ namespace Engine {
                     material.metallicRoughnessTexture = defaultTexture;
                 }
 
-
                 VkDescriptorImageInfo albedo_image_info = material.albedoTexture->get_descriptor_image_info();
                 VkDescriptorImageInfo normal_image_info = material.normalTexture->get_descriptor_image_info();
                 VkDescriptorImageInfo metallicRoughness_image_info = material.metallicRoughnessTexture->get_descriptor_image_info();
@@ -196,7 +203,113 @@ namespace Engine {
                         .write_image(0, &albedo_image_info)
                         .write_image(1, &normal_image_info)
                         .write_image(2, &metallicRoughness_image_info)
-                        .build(m_Device, material.descriptorSet);
+                        .build(m_Device, material.descriptorSet);*/
+
+                PBRMaterial material = {};
+                if (primitive.material != -1) {
+                    fx::gltf::Material &primitiveMaterial = doc.materials[primitive.material];
+                    if (!primitiveMaterial.pbrMetallicRoughness.baseColorTexture.empty()) {
+                        uint32_t textureIndex = primitiveMaterial.pbrMetallicRoughness.baseColorTexture.index;
+                        uint32_t imageIndex = doc.textures[textureIndex].source;
+                        material.base_color_texture = images[imageIndex];
+                        material.pbr_parameters.has_base_color_texture = 1;
+                    } else {
+                        material.base_color_texture = defaultTexture;
+                        material.pbr_parameters.has_base_color_texture = 0;
+                        auto color = primitiveMaterial.pbrMetallicRoughness.baseColorFactor;
+                        material.pbr_parameters.base_color_factor = { color[0], color[1], color[2], color[3] };
+                    }
+
+                    if (!primitiveMaterial.pbrMetallicRoughness.metallicRoughnessTexture.empty()) {
+                        uint32_t textureIndex = primitiveMaterial.pbrMetallicRoughness.metallicRoughnessTexture.index;
+                        uint32_t imageIndex = doc.textures[textureIndex].source;
+                        material.metallic_roughness_texture = images[imageIndex];
+                        material.pbr_parameters.has_metallic_roughness_texture = 1;
+                    } else {
+                        material.metallic_roughness_texture = defaultTexture;
+                        material.pbr_parameters.has_metallic_roughness_texture = 0;
+                        material.pbr_parameters.metallic_factor = primitiveMaterial.pbrMetallicRoughness.metallicFactor;
+                        material.pbr_parameters.roughness_factor = primitiveMaterial.pbrMetallicRoughness.roughnessFactor;
+                    }
+
+                    if (!primitiveMaterial.normalTexture.empty()) {
+                        uint32_t textureIndex = primitiveMaterial.normalTexture.index;
+                        uint32_t imageIndex = doc.textures[textureIndex].source;
+                        material.normal_texture = images[imageIndex];
+                        material.pbr_parameters.has_normal_texture = 1;
+                        material.pbr_parameters.scale = primitiveMaterial.normalTexture.scale;
+                    } else {
+                        material.normal_texture = defaultTexture;
+                        material.pbr_parameters.has_normal_texture = 0;
+                    }
+
+                    if (!primitiveMaterial.occlusionTexture.empty()) {
+                        uint32_t textureIndex = primitiveMaterial.occlusionTexture.index;
+                        uint32_t imageIndex = doc.textures[textureIndex].source;
+                        material.occlusion_texture = images[imageIndex];
+                        material.pbr_parameters.has_occlusion_texture = 1;
+                    } else {
+                        material.occlusion_texture = defaultTexture;
+                        material.pbr_parameters.has_occlusion_texture = 0;
+                        material.pbr_parameters.strength = primitiveMaterial.occlusionTexture.strength;
+                    }
+
+                    if (!primitiveMaterial.emissiveTexture.empty()) {
+                        uint32_t textureIndex = primitiveMaterial.normalTexture.index;
+                        uint32_t imageIndex = doc.textures[textureIndex].source;
+                        material.emissive_texture = images[imageIndex];
+                        material.pbr_parameters.has_emissive_texture = 1;
+                    } else {
+                        material.emissive_texture = defaultTexture;
+                        material.pbr_parameters.has_emissive_texture = 0;
+                        auto color = primitiveMaterial.emissiveFactor;
+                        material.pbr_parameters.emissive_factor = { color[0], color[1], color[2] };
+                    }
+
+                    material.pbr_parameters.alpha_cut_off = primitiveMaterial.alphaCutoff;
+                    material.pbr_parameters.alpha_mode = static_cast<f32>(primitiveMaterial.alphaMode);
+                } else {
+                    material.base_color_texture = defaultTexture;
+                    material.metallic_roughness_texture = defaultTexture;
+                    material.normal_texture = defaultTexture;
+                    material.occlusion_texture = defaultTexture;
+                    material.emissive_texture = defaultTexture;
+                }
+
+                Buffer stagingBuffer{m_Device,
+                                     sizeof(PBRParameters),
+                                     1,
+                                     VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+                };
+
+                stagingBuffer.map();
+                stagingBuffer.write_to_buffer(&material.pbr_parameters);
+
+                material.pbr_parameters_buffer = std::make_unique<Buffer>(m_Device,
+                                                       sizeof(PBRParameters),
+                                                       1,
+                                                       VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+                );
+
+                m_Device->copy_buffer(stagingBuffer.get_buffer(), material.pbr_parameters_buffer->get_buffer(), sizeof(PBRParameters));
+
+                VkDescriptorImageInfo base_color_image_info = material.base_color_texture->get_descriptor_image_info();
+                VkDescriptorImageInfo metallic_roughness_image_info = material.metallic_roughness_texture->get_descriptor_image_info();
+                VkDescriptorImageInfo normal_image_info = material.normal_texture->get_descriptor_image_info();
+                VkDescriptorImageInfo occlusion_image_info = material.occlusion_texture->get_descriptor_image_info();
+                VkDescriptorImageInfo emissive_image_info = material.emissive_texture->get_descriptor_image_info();
+                VkDescriptorBufferInfo pbr_parameters_buffer_info = material.pbr_parameters_buffer->get_descriptor_info();
+
+                DescriptorWriter(*Core::pbr_material_descriptor_set_layout, *Core::global_descriptor_pool)
+                        .write_image(0, &base_color_image_info)
+                        .write_image(1, &metallic_roughness_image_info)
+                        .write_image(2, &normal_image_info)
+                        .write_image(3, &occlusion_image_info)
+                        .write_image(4, &emissive_image_info)
+                        .write_buffer(5, &pbr_parameters_buffer_info)
+                        .build(m_Device, material.descriptor_set);
 
                 for (size_t v = 0; v < vertexCount; v++) {
                     Vertex vertex{};
@@ -251,7 +364,7 @@ namespace Engine {
                 mesh_primitive.vertexCount = vertexCount;
                 mesh_primitive.indexCount = indexCount;
                 mesh_primitive.firstIndex = indexOffset;
-                mesh_primitive.material = material;
+                mesh_primitive.material = std::move(material);
                 primitives.push_back(mesh_primitive);
 
                 vertexOffset += vertexCount;

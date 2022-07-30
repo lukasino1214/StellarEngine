@@ -369,6 +369,35 @@ namespace Engine {
         static inline constexpr ImageAspectFlags FLAG_BITS_MAX_ENUM = 0x7FFFFFFF;
     };
 
+    using ImageCreateFlags = u32;
+    struct ImageCreateFlagBits {
+        static inline constexpr ImageCreateFlags NONE = {};
+        static inline constexpr ImageCreateFlags SPARSE_BINDING = 0x00000001;
+        static inline constexpr ImageCreateFlags SPARSE_RESIDENCY = 0x00000002;
+        static inline constexpr ImageCreateFlags SPARSE_ALIASED = 0x00000004;
+        static inline constexpr ImageCreateFlags MUTABLE_FORMAT = 0x00000008;
+        static inline constexpr ImageCreateFlags CUBE_COMPATIBLE = 0x00000010;
+        static inline constexpr ImageCreateFlags ALIAS = 0x00000400;
+        static inline constexpr ImageCreateFlags SPLIT_INSTANCE_BIND_REGIONS = 0x00000040;
+        static inline constexpr ImageCreateFlags ARRAY_2D_COMPATIBLE = 0x00000020;
+        static inline constexpr ImageCreateFlags BLOCK_TEXEL_VIEW_COMPATIBLE = 0x00000080;
+        static inline constexpr ImageCreateFlags EXTENDED_USAGE = 0x00000100;
+        static inline constexpr ImageCreateFlags PROTECTED = 0x00000800;
+        static inline constexpr ImageCreateFlags DISJOINT = 0x00000200;
+        static inline constexpr ImageCreateFlags CORNER_SAMPLED_NV = 0x00002000;
+        static inline constexpr ImageCreateFlags SAMPLE_LOCATIONS_COMPATIBLE_DEPTH_BIT_EXT = 0x00001000;
+        static inline constexpr ImageCreateFlags SUBSAMPLED_BIT_EXT = 0x00004000;
+        static inline constexpr ImageCreateFlags MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_BIT_EXT = 0x00040000;
+        static inline constexpr ImageCreateFlags VIEW_2D_COMPATIBLE_BIT_EXT = 0x00020000;
+        static inline constexpr ImageCreateFlags FRAGMENT_DENSITY_MAP_OFFSET_BIT_QCOM = 0x00008000;
+        static inline constexpr ImageCreateFlags SPLIT_INSTANCE_BIND_REGIONS_BIT_KHR = VK_IMAGE_CREATE_SPLIT_INSTANCE_BIND_REGIONS_BIT;
+        static inline constexpr ImageCreateFlags ARRAY_2D_COMPATIBLE_BIT_KHR = VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
+        static inline constexpr ImageCreateFlags BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR = VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT;
+        static inline constexpr ImageCreateFlags EXTENDED_USAGE_BIT_KHR = VK_IMAGE_CREATE_EXTENDED_USAGE_BIT;
+        static inline constexpr ImageCreateFlags DISJOINT_BIT_KHR = VK_IMAGE_CREATE_DISJOINT_BIT;
+        static inline constexpr ImageCreateFlags ALIAS_BIT_KHR = VK_IMAGE_CREATE_ALIAS_BIT;
+    };
+
     enum class ImageType {
         TYPE_1D = 0,
         TYPE_2D = 1,

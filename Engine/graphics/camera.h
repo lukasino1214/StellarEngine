@@ -63,7 +63,7 @@ namespace Engine {
         int m_Height = 720;
         float m_FOV = {90.0f};
         float nearPlane = {0.01f};
-        float farPlane = {1000.0f};
+        float farPlane = {512.0f};
 
         glm::mat4 m_View = glm::mat4(1.0f);
         glm::mat4 m_Projection = glm::mat4(1.0f);

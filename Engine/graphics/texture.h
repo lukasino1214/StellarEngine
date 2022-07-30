@@ -9,7 +9,7 @@
 namespace Engine {
     class Texture {
     public:
-        Texture(std::shared_ptr<Device> _device, const std::string &filepath);
+        Texture(std::shared_ptr<Device> _device, const std::string &filepath, ImageFormat format = ImageFormat::R8G8B8A8_UNORM, int components = 4);
         ~Texture();
 
         Texture(const Texture &) = delete;

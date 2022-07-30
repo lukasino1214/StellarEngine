@@ -39,6 +39,7 @@ namespace Engine {
         std::unique_ptr<PostProcessingSystem> postprocessing_system;
         std::unique_ptr<GridSystem> grid_system;
         std::unique_ptr<DeferredRenderingSystem> deferred_rendering_system;
+        std::unique_ptr<PBRSystem> pbr_system;
 
         std::shared_ptr<Camera> camera;
 

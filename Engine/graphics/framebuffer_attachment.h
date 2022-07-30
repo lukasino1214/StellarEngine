@@ -11,7 +11,7 @@ namespace Engine {
         ImageFormat format;
         glm::ivec3 dimensions;
         ImageUsageFlags usage;
-        VkImageLayout final_layout;
+        VkImageLayout final_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     };
 
 

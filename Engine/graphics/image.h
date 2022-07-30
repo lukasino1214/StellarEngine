@@ -13,7 +13,9 @@ namespace Engine {
         ImageType type;
         glm::ivec3 dimensions;
         ImageUsageFlags usage;
-        uint32_t mip_levels = 1;
+        u32 mip_levels = 1;
+        u32 array_layers = 1;
+        ImageCreateFlags flags = ImageCreateFlagBits::NONE;
     };
 
     class Image {
@@ -21,7 +23,8 @@ namespace Engine {
         Image(std::shared_ptr<Engine::Device> _device, const ImageDescription& _description);
         ~Image();
 
-        void transition_image_layout(VkImageLayout oldLayout, VkImageLayout newLayout);
+        void transition_image_layout(VkCommandBuffer command_buffer, VkImageLayout old_layout, VkImageLayout new_layout);
+        void transition_image_layout(VkImageLayout old_layout, VkImageLayout new_layout);
         void generate_mipmaps();
 
         ImageFormat get_format() { return description.format; }
@@ -60,7 +63,8 @@ namespace Engine {
         ImageFormat format = ImageFormat::R8G8B8A8_UNORM;
         ComponentMapping swizzel_mapping = { ComponentSwizzle::R, ComponentSwizzle::G, ComponentSwizzle::B, ComponentSwizzle::A };
         ImageAspectFlags aspect_mask = ImageAspectFlagBits::COLOR;
-        uint32_t mipLevels = 1;
+        u32 mip_levels = 1;
+        u32 array_layers = 1;
         Image* image;
     };
 

@@ -19,20 +19,20 @@ namespace Engine {
     class Model {
     public:
         struct PBRParameters {
-            glm::vec4 base_color_factor;
-            glm::vec3 emissive_factor;
-            f32 metallic_factor;
-            f32 roughness_factor;
-            f32 scale;
-            f32 strength;
-            f32 alphaCutoff;
-            f32 alphaMode;
+            glm::vec4 base_color_factor = { 1.0, 1.0, 1.0, 1.0 };
+            glm::vec3 emissive_factor = { 1.0, 1.0, 1.0 };
+            f32 metallic_factor = 1.0;
+            f32 roughness_factor = 1.0;
+            f32 scale = 1.0;
+            f32 strength = 1.0;
+            f32 alpha_cut_off = 1.0;
+            f32 alpha_mode = 1.0;
 
-            int has_base_color_texture;
-            int has_metallic_roughness_texture;
-            int has_normal_texture;
-            int has_occlusion_texture;
-            int has_emissive_texture;
+            int has_base_color_texture = 0;
+            int has_metallic_roughness_texture = 0;
+            int has_normal_texture = 0;
+            int has_occlusion_texture = 0;
+            int has_emissive_texture = 0;
         };
 
         struct PBRMaterial {
@@ -59,7 +59,7 @@ namespace Engine {
             uint32_t firstVertex;
             uint32_t indexCount;
             uint32_t vertexCount;
-            Material material;
+            PBRMaterial material;
         };
 
         struct Vertex {
@@ -81,6 +81,7 @@ namespace Engine {
 
         void bind(VkCommandBuffer commandBuffer);
         void draw(FrameInfo frameInfo, VkPipelineLayout pipelineLayout);
+        void draw(VkCommandBuffer command_buffer);
 
         std::string getPath() { return m_Path; }
 

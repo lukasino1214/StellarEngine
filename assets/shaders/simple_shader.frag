@@ -2,11 +2,9 @@
 #extension GL_GOOGLE_include_directive : enable
 #include "assets/shaders/core.glsl"
 
-layout(location = 0) in vec3 fragColor;
-layout(location = 1) in vec2 uv;
-layout(location = 2) in vec3 position;
-layout(location = 3) in vec4 inShadowCoord;
-layout(location = 4) in mat3 TBN;
+layout(location = 0) in vec2 uv;
+layout(location = 1) in vec3 position;
+layout(location = 2) in mat3 TBN;
 
 layout(set = 0, binding = 0) uniform GlobalUbo {
     mat4 projectionMatrix;
@@ -21,9 +19,27 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 } ubo;
 
 layout(set = 1, binding = 0) uniform sampler2D albedo;
-layout(set = 1, binding = 1) uniform sampler2D normal;
-layout(set = 1, binding = 2) uniform sampler2D metallicRoughness;
-layout(set = 2, binding = 0) uniform sampler2D shadowMap;
+layout(set = 1, binding = 1) uniform sampler2D metallicRoughness;
+layout(set = 1, binding = 2) uniform sampler2D normal;
+layout(set = 1, binding = 3) uniform sampler2D Occlusion;
+layout(set = 1, binding = 4) uniform sampler2D Emissive;
+layout(set = 1, binding = 5) uniform PBRParameters {
+    vec4 base_color_factor;
+    vec3 emissive_factor;
+    float metallic_factor;
+    float roughness_factor;
+    float scale;
+    float strength;
+    float alpha_cut_off;
+    float alpha_mode;
+
+    int has_base_color_texture;
+    int has_metallic_roughness_texture;
+    int has_normal_texture;
+    int has_occlusion_texture;
+    int has_emissive_texture;
+} pbr_parameters;
+//layout(set = 2, binding = 0) uniform sampler2D shadowMap;
 
 layout(push_constant) uniform Push {
   mat4 modelMatrix;
@@ -78,7 +94,7 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 // ----------------------------------------------------------------------------
 
 
-float textureProj(vec4 shadowCoord, vec2 off) {
+/*float textureProj(vec4 shadowCoord, vec2 off) {
     float shadow = 1.0;
     if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 ) {
         float dist = texture( shadowMap, shadowCoord.st + off ).r;
@@ -107,7 +123,7 @@ float filterPCF(vec4 sc) {
 
     }
     return shadowFactor / count;
-}
+}*/
 
 
 void main() {
@@ -185,8 +201,8 @@ void main() {
     //color = pow(color, vec3(1.0/2.2));
 
     //float shadow = textureProj(inShadowCoord / inShadowCoord.w, vec2(0.0));
-    float shadow = filterPCF(inShadowCoord / inShadowCoord.w);
+    //float shadow = filterPCF(inShadowCoord / inShadowCoord.w);
 
-    outColor = albedo * vec4(color * shadow, 1.0);
+    outColor = albedo * vec4(color, 1.0);
     //outColor = vec4(vec3(texture( shadowMap, shadowCoord.st).r), 1.0);
 }

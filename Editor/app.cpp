@@ -36,6 +36,7 @@ namespace Engine {
 
         deferred_rendering_system = std::make_unique<DeferredRenderingSystem>(device, WIDTH, HEIGHT);
 
+        pbr_system = std::make_unique<PBRSystem>(device, offscreen_system->get_renderpass());
 
         auto helmet = std::make_shared<Model>(device, "assets/models/SciFiHelmet/glTF/SciFiHelmet.gltf");
 
@@ -44,11 +45,6 @@ namespace Engine {
         entity.get_component<TransformComponent>().translation = {10, 8, 0};
         entity.add_component<ModelComponent>(helmet);
         entity.add_component<ScriptComponent>(script);
-
-        auto camera = editor_scene->create_entity("Camera");
-
-        camera.add_component<CameraComponent>();
-        camera.get_component<TransformComponent>().translation = glm::vec3{10.0f, 16.0f, 0.0f};
 
         auto test = editor_scene->create_entity("Test");
         test.get_component<TransformComponent>().set_translation(glm::vec3{10.0f, 5.0f, 0.0f});
@@ -85,8 +81,27 @@ namespace Engine {
         std::vector<VkDescriptorSet> vk_global_descriptor_sets(SwapChain::MAX_FRAMES_IN_FLIGHT);
         for (int i = 0; i < vk_global_descriptor_sets.size(); i++) {
             auto buffer_info = ubo_buffers[i]->get_descriptor_info();
+
+            VkDescriptorImageInfo irradiance_image_info = {};
+            irradiance_image_info.sampler = pbr_system->get_sampler();
+            irradiance_image_info.imageView = pbr_system->get_irradiance_image_view();
+            irradiance_image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+            VkDescriptorImageInfo BRDFLUT_image_info = {};
+            BRDFLUT_image_info.sampler = pbr_system->get_sampler();
+            BRDFLUT_image_info.imageView = pbr_system->get_BRDFLUT_image_view();
+            BRDFLUT_image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+            VkDescriptorImageInfo prefilteredMap_image_info = {};
+            prefilteredMap_image_info.sampler = pbr_system->get_sampler();
+            prefilteredMap_image_info.imageView = pbr_system->get_prefiltered_map_image_view();
+            prefilteredMap_image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
             DescriptorWriter(*Core::global_descriptor_set_layout, *Core::global_descriptor_pool)
                     .write_buffer(0, &buffer_info)
+                    .write_image(1, &irradiance_image_info)
+                    .write_image(2, &BRDFLUT_image_info)
+                    .write_image(3, &prefilteredMap_image_info)
                     .build(device, vk_global_descriptor_sets[i]);
         }
 
@@ -149,11 +164,14 @@ namespace Engine {
                 ubo_buffers[frame_index]->write_to_buffer(&ubo);
                 ubo_buffers[frame_index]->flush();
 
+                frameInfo.ubo = ubo;
+
                 //shadow_system->render(frameInfo, editor_scene);
                 deferred_rendering_system->start(frameInfo, editor_scene);
                 deferred_rendering_system->end(frameInfo);
 
                 offscreen_system->start(frameInfo);
+                pbr_system->render_skybox(frameInfo);
                 rendering_system->render(frameInfo, editor_scene);
                 point_light_system->render(frameInfo, editor_scene);
                 if (is_grid_enabled) {
@@ -162,6 +180,8 @@ namespace Engine {
                 offscreen_system->end(frameInfo);
                 postprocessing_system->render(frameInfo, offscreen_system->get_present_descriptor_set());
                 //postprocessing_system->render(frameInfo, deferred_rendering_system->get_present_descriptor_set());
+                //postprocessing_system->render(frameInfo, pbr_system->vk_BRDFLUT_descriptor_set);
+                //postprocessing_system->render(frameInfo, pbr_system->hdr_set);
 
                 imgui_layer->new_frame();
                 renderer->begin_swapchain_renderpass(command_buffer);

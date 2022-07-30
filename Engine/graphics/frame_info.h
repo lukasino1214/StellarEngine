@@ -4,14 +4,6 @@
 #include <glm/glm.hpp>
 
 namespace Engine {
-    struct FrameInfo {
-        int frame_index;
-        float frame_time;
-        VkCommandBuffer command_buffer;
-        VkDescriptorSet vk_global_descriptor_set;
-        //VkDescriptorSet vk_shadow_descriptor_set;
-    };
-
     struct DirectionalLight {
         glm::mat4 mvp{1.0};
         glm::vec4 position{0.0f, 0.0f, 0.0f, 0.0f};
@@ -32,5 +24,12 @@ namespace Engine {
         int num_directional_lights;
         float screen_width;
         float screen_height;
+    };
+    struct FrameInfo {
+        int frame_index;
+        float frame_time;
+        VkCommandBuffer command_buffer;
+        VkDescriptorSet vk_global_descriptor_set;
+        GlobalUbo ubo;
     };
 }

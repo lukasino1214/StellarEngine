@@ -29,6 +29,7 @@
 #include "system/postprocessing_system.h"
 #include "system/shadow_system.h"
 #include "system/deferred_rendering_system.h"
+#include "system/pbr_system.h"
 
 #include "scripting/native_script.h"
 

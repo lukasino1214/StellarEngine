@@ -29,7 +29,7 @@ namespace Engine {
 
         void next_subpass(VkCommandBuffer command_buffer);
 
-        void start(Framebuffer* framebuffer, VkCommandBuffer command_buffer);
+        void start(Framebuffer* framebuffer, VkCommandBuffer command_buffer, glm::vec2 viewport_size = { 0.0, 0.0});
         void end(VkCommandBuffer command_buffer);
 
         VkRenderPass vk_renderpass;

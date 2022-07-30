@@ -7,8 +7,8 @@ layout(location = 1) in vec3 normal;
 layout(location = 2) in vec4 tangent;
 layout(location = 3) in vec2 uv;
 
-layout(location = 0) out vec2 uv_out;
-layout(location = 1) out vec3 out_position;
+layout(location = 0) out vec3 fragPosWorld;
+layout(location = 1) out vec2 fragUV;
 layout(location = 2) out mat3 TBN;
 
 layout(set = 0, binding = 0) uniform GlobalUbo {
@@ -26,8 +26,8 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 layout(set = 0, binding = 1) uniform sampler2D albedo;
 
 layout(push_constant) uniform Push {
-  mat4 modelMatrix;
-  mat4 normalMatrix;
+    mat4 modelMatrix;
+    mat4 normalMatrix;
 } push;
 
 void main() {
@@ -35,8 +35,8 @@ void main() {
     mat4 projectionViewMatrix = ubo.projectionMatrix * ubo.viewMatrix;
     gl_Position = projectionViewMatrix * positionWorld;
 
-    uv_out = uv;
-    out_position = positionWorld.xyz;
+    fragUV = uv;
+    fragPosWorld = positionWorld.xyz;
     vec4 tangents = normalize(push.modelMatrix * tangent.xyzw);
     vec3 N = normalize(mat3(push.modelMatrix) * normal);
     vec3 T = normalize(tangents.xyz);

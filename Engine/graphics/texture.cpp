@@ -9,10 +9,11 @@
 #include <iostream>
 
 namespace Engine {
-    Texture::Texture(std::shared_ptr<Device> _device, const std::string &path) : device{_device} {
+    Texture::Texture(std::shared_ptr<Device> _device, const std::string &path, ImageFormat format, int components) : device{_device} {
         int width, height, channels, m_BytesPerPixel;
 
-        stbi_uc* data = stbi_load(path.c_str(), &width, &height, &m_BytesPerPixel, 4);
+        stbi_set_flip_vertically_on_load(0);
+        stbi_uc* data = stbi_load(path.c_str(), &width, &height, &m_BytesPerPixel, components);
 
         u32 mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 
@@ -21,10 +22,10 @@ namespace Engine {
         stagingBuffer.map();
         stagingBuffer.write_to_buffer(data);
 
-        vk_format = VK_FORMAT_R8G8B8A8_UNORM;
+        vk_format = (VkFormat)format;
 
         image = new Image(device, {
-                .format = ImageFormat::R8G8B8A8_UNORM,
+                .format = format,
                 .dimensions = { width, height, 1 },
                 .usage = ImageUsageFlagBits::TRANSFER_SRC | ImageUsageFlagBits::TRANSFER_DST | ImageUsageFlagBits::SAMPLED,
                 .mip_levels = mip_levels
@@ -43,7 +44,7 @@ namespace Engine {
         });
 
         image_view = new ImageView(device, {
-            .mipLevels = mip_levels,
+            .mip_levels = mip_levels,
             .image = image
         });
 
