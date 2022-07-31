@@ -341,7 +341,7 @@ namespace Engine {
         VkFormat fb_depth_format = device->find_supported_format({VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT}, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 
         image = new FrameBufferAttachment(device, {
-                .format = ImageFormat::B8G8R8A8_SRGB,
+                .format = ImageFormat::B8G8R8A8_UNORM,
                 .dimensions = { width, height, 1 },
                 .usage = ImageUsageFlagBits::COLOR_ATTACHMENT | ImageUsageFlagBits::SAMPLED,
         });
@@ -353,7 +353,7 @@ namespace Engine {
         });
 
         albedo = new FrameBufferAttachment(device, {
-                .format = ImageFormat::R8G8B8A8_SRGB,
+                .format = ImageFormat::B8G8R8A8_UNORM,
                 .dimensions = { width, height, 1 },
                 .usage = ImageUsageFlagBits::COLOR_ATTACHMENT | ImageUsageFlagBits::SAMPLED | ImageUsageFlagBits::INPUT_ATTACHMENT,
         });

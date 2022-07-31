@@ -24,6 +24,7 @@ namespace Engine {
         VkImageView get_BRDFLUT_image_view() { return BRDFLUT->image_view->vk_image_view; };
         VkImageView get_irradiance_image_view() { return irradiance_cube_image_view->vk_image_view; };
         VkImageView get_prefiltered_map_image_view() { return prefiltered_cube_image_view->vk_image_view; };
+        VkImageView get_environment_map_image_view() { return environment_cube_image_view->vk_image_view; };
 
     private:
         void generate_BRDFLUT();

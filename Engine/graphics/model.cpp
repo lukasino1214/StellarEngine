@@ -255,7 +255,7 @@ namespace Engine {
                     }
 
                     if (!primitiveMaterial.emissiveTexture.empty()) {
-                        uint32_t textureIndex = primitiveMaterial.normalTexture.index;
+                        uint32_t textureIndex = primitiveMaterial.emissiveTexture.index;
                         uint32_t imageIndex = doc.textures[textureIndex].source;
                         material.emissive_texture = images[imageIndex];
                         material.pbr_parameters.has_emissive_texture = 1;

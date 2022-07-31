@@ -17,12 +17,16 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
     float width;
     float height;
 } ubo;
+layout(set = 0, binding = 1) uniform samplerCube irradianceMap;
+layout(set = 0, binding = 2) uniform sampler2D brdfLUT;
+layout(set = 0, binding = 3) uniform samplerCube prefilterMap;
+layout(set = 0, binding = 4) uniform samplerCube samplerEnv;
 
-layout(set = 1, binding = 0) uniform sampler2D albedo;
-layout(set = 1, binding = 1) uniform sampler2D metallicRoughness;
-layout(set = 1, binding = 2) uniform sampler2D normal;
-layout(set = 1, binding = 3) uniform sampler2D Occlusion;
-layout(set = 1, binding = 4) uniform sampler2D Emissive;
+layout(set = 1, binding = 0) uniform sampler2D albedo_map;
+layout(set = 1, binding = 1) uniform sampler2D metallic_roughness_map;
+layout(set = 1, binding = 2) uniform sampler2D normal_map;
+layout(set = 1, binding = 3) uniform sampler2D occlusion_map;
+layout(set = 1, binding = 4) uniform sampler2D emissive_map;
 layout(set = 1, binding = 5) uniform PBRParameters {
     vec4 base_color_factor;
     vec3 emissive_factor;
@@ -48,12 +52,29 @@ layout(push_constant) uniform Push {
 
 layout (location = 0) out vec4 outColor;
 
-
 const float PI = 3.14159265359;
-
 // ----------------------------------------------------------------------------
-float DistributionGGX(vec3 N, vec3 H, float roughness)
-{
+// Easy trick to get tangent-normals to world-space to keep PBR code simplified.
+// Don't worry if you don't get what's going on; you generally want to do normal 
+// mapping the usual way for performance anways; I do plan make a note of this 
+// technique somewhere later in the normal mapping tutorial.
+vec3 getNormalFromMap() {
+    vec3 tangentNormal = texture(normal_map, uv).xyz * 2.0 - 1.0;
+
+    vec3 Q1  = dFdx(position);
+    vec3 Q2  = dFdy(position);
+    vec2 st1 = dFdx(uv);
+    vec2 st2 = dFdy(uv);
+
+    vec3 N   = normalize(TBN[2]);
+    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
+    vec3 B  = -normalize(cross(N, T));
+    mat3 TBN = mat3(T, B, N);
+
+    return normalize(TBN * tangentNormal);
+}
+// ----------------------------------------------------------------------------
+float DistributionGGX(vec3 N, vec3 H, float roughness) {
     float a = roughness*roughness;
     float a2 = a*a;
     float NdotH = max(dot(N, H), 0.0);
@@ -66,8 +87,7 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
     return nom / denom;
 }
 // ----------------------------------------------------------------------------
-float GeometrySchlickGGX(float NdotV, float roughness)
-{
+float GeometrySchlickGGX(float NdotV, float roughness) {
     float r = (roughness + 1.0);
     float k = (r*r) / 8.0;
 
@@ -77,8 +97,7 @@ float GeometrySchlickGGX(float NdotV, float roughness)
     return nom / denom;
 }
 // ----------------------------------------------------------------------------
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
-{
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
     float NdotV = max(dot(N, V), 0.0);
     float NdotL = max(dot(N, L), 0.0);
     float ggx2 = GeometrySchlickGGX(NdotV, roughness);
@@ -87,122 +106,76 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     return ggx1 * ggx2;
 }
 // ----------------------------------------------------------------------------
-vec3 fresnelSchlick(float cosTheta, vec3 F0)
-{
+vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 // ----------------------------------------------------------------------------
-
-
-/*float textureProj(vec4 shadowCoord, vec2 off) {
-    float shadow = 1.0;
-    if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 ) {
-        float dist = texture( shadowMap, shadowCoord.st + off ).r;
-        if ( shadowCoord.w > 0.0 && dist < shadowCoord.z - 0.00005) {
-            shadow = 0.03;
-        }
-    }
-    return shadow;
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
-
-float filterPCF(vec4 sc) {
-    ivec2 texDim = textureSize(shadowMap, 0);
-    float scale = 1.5;
-    float dx = scale * 1.0 / float(texDim.x);
-    float dy = scale * 1.0 / float(texDim.y);
-
-    float shadowFactor = 0.0;
-    int count = 0;
-    int range = 1;
-
-    for (int x = -range; x <= range; x++) {
-        for (int y = -range; y <= range; y++) {
-            shadowFactor += textureProj(sc, vec2(dx*x, dy*y));
-            count++;
-        }
-
-    }
-    return shadowFactor / count;
-}*/
-
-
+// ----------------------------------------------------------------------------
 void main() {
-    vec3 fragColor = vec3(1.0);
+    vec3 albedo = pow(texture(albedo_map, uv).rgb, vec3(2.2));
+    vec3 emissive = pow(texture(emissive_map, uv).rgb, vec3(2.2));
+    float metallic = texture(metallic_roughness_map, uv).r;
+    float roughness = texture(metallic_roughness_map, uv).g;
+    float ao = texture(occlusion_map, uv).r;
 
-    vec4 albedo = texture(albedo, uv);
-    if(albedo.w < 0.0001) {
-        discard;
-      }
-
-    float metallic = texture(metallicRoughness, uv).r;
-    float roughness = texture(metallicRoughness, uv).g;
-
-    vec3 N;
-
-    if(texture(normal, uv).xyz == vec3(1.0)) {
-        N = TBN[2];
-        albedo = vec4(1.0, 0.0, 0.0, 1.0);
-    } else {
-        N = TBN * normalize(texture(normal, uv).xyz * 2.0 - vec3(1.0));
-    }
+    vec3 N = getNormalFromMap();
+    vec3 V = normalize(ubo.cameraPos.xyz - position);
+    vec3 R = reflect(-V, N);
 
     vec3 F0 = vec3(0.04);
-    F0 = mix(F0, fragColor, metallic);
+    F0 = mix(F0, albedo, metallic);
 
-
-     vec3 V = normalize(ubo.cameraPos.xyz - position);
-
-    // reflectance equation
     vec3 Lo = vec3(0.0);
-    for (int i = 0; i < ubo.numPointLights; i++) {
-        PointLight light = ubo.pointLights[i];
-        vec3 L = normalize(light.position.xyz - position);
+    for (int i = 0; i < 4; ++i) {
+        vec3 L = normalize(ubo.pointLights[i].position.xyz - position);
         vec3 H = normalize(V + L);
-        float distance = length(light.position.xyz - position);
+        float distance = length(ubo.pointLights[i].position.xyz - position);
         float attenuation = 1.0 / (distance * distance);
-        vec3 radiance = light.color.xyz * light.intensity * attenuation;
-        //radiance = vec3(10.0);
+        vec3 radiance = ubo.pointLights[i].color * attenuation * ubo.pointLights[i].intensity;
 
-        // Cook-Torrance BRDF
         float NDF = DistributionGGX(N, H, roughness);
         float G   = GeometrySmith(N, V, L, roughness);
-        vec3 F    = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
+        vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
         vec3 numerator    = NDF * G * F;
-        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; // + 0.0001 to prevent divide by zero
+        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
         vec3 specular = numerator / denominator;
 
-        // kS is equal to Fresnel
         vec3 kS = F;
-        // for energy conservation, the diffuse and specular light can't
-        // be above 1.0 (unless the surface emits light); to preserve this
-        // relationship the diffuse component (kD) should equal 1.0 - kS.
         vec3 kD = vec3(1.0) - kS;
-        // multiply kD by the inverse metalness such that only non-metals
-        // have diffuse lighting, or a linear blend if partly metal (pure metals
-        // have no diffuse light).
         kD *= 1.0 - metallic;
 
-        // scale light by NdotL
         float NdotL = max(dot(N, L), 0.0);
 
-        // add to outgoing radiance Lo
-        Lo += (kD * fragColor / PI + specular) * radiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
+        Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     }
-    // ambient lighting (note that the next IBL tutorial will replace
-    // this ambient lighting with environment lighting).
-    vec3 ambient = vec3(0.03) * fragColor;
+
+    vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+
+    vec3 kS = F;
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - metallic;
+
+    vec3 irradiance = texture(irradianceMap, N).rgb;
+    vec3 diffuse      = irradiance * albedo;
+
+    const float MAX_REFLECTION_LOD = 4.0;
+    vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+    vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+
+    vec3 ambient = (kD * diffuse + specular) * ao;
 
     vec3 color = ambient + Lo;
+    color += emissive;
 
     // HDR tonemapping
     color = color / (color + vec3(1.0));
     // gamma correct
-    //color = pow(color, vec3(1.0/2.2));
+    color = pow(color, vec3(1.0/2.2));
 
-    //float shadow = textureProj(inShadowCoord / inShadowCoord.w, vec2(0.0));
-    //float shadow = filterPCF(inShadowCoord / inShadowCoord.w);
-
-    outColor = albedo * vec4(color, 1.0);
-    //outColor = vec4(vec3(texture( shadowMap, shadowCoord.st).r), 1.0);
+    outColor = vec4(color, 1.0);
 }

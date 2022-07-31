@@ -77,6 +77,8 @@ namespace Engine {
 
         delete prefiltered_cube_image;
         delete prefiltered_cube_image_view;
+
+        vkDestroyPipelineLayout(device->vk_device, vk_skybox_pipeline_layout, nullptr);
     }
 
     void PBRSystem::render_skybox(FrameInfo frame_info) {
@@ -200,7 +202,7 @@ namespace Engine {
 
         stbi_image_free(data);
 
-        const ImageFormat format = ImageFormat::R16G16B16A16_UNORM;
+        const ImageFormat format = ImageFormat::R32G32B32A32_SFLOAT;
         const glm::vec3 dim = { 512, 512, 1 };
         const u32 mip_levels = static_cast<uint32_t>(floor(log2(dim.x))) + 1;
 
@@ -360,7 +362,7 @@ namespace Engine {
     }
 
     void PBRSystem::generate_irradiance_cube() {
-        const ImageFormat format = ImageFormat::R16G16B16A16_UNORM;
+        const ImageFormat format = ImageFormat::R32G32B32A32_SFLOAT;
         const glm::vec3 dim = { 32, 32, 1 };
         const u32 mip_levels = static_cast<uint32_t>(floor(log2(dim.x))) + 1;
 
@@ -523,7 +525,7 @@ namespace Engine {
     }
 
     void PBRSystem::generate_prefiltered_cube() {
-        const ImageFormat format = ImageFormat::R16G16B16A16_UNORM;
+        const ImageFormat format = ImageFormat::R32G32B32A32_SFLOAT;
         const glm::vec3 dim = { 512, 512, 1 };
         const u32 mip_levels = static_cast<uint32_t>(floor(log2(dim.x))) + 1;
 

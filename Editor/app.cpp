@@ -39,18 +39,19 @@ namespace Engine {
         pbr_system = std::make_unique<PBRSystem>(device, offscreen_system->get_renderpass());
 
         auto helmet = std::make_shared<Model>(device, "assets/models/SciFiHelmet/glTF/SciFiHelmet.gltf");
+        auto damaged_helmet = std::make_shared<Model>(device, "assets/models/DamagedHelmet/glTF/DamagedHelmet.gltf");
 
-        auto entity = editor_scene->create_entity("HELP");
+        /*auto entity = editor_scene->create_entity("HELP");
         auto script = std::make_shared<HelmetScript>(entity.get_handle(), editor_scene);
         entity.get_component<TransformComponent>().translation = {10, 8, 0};
         entity.add_component<ModelComponent>(helmet);
-        entity.add_component<ScriptComponent>(script);
+        entity.add_component<ScriptComponent>(script);*/
 
         auto test = editor_scene->create_entity("Test");
         test.get_component<TransformComponent>().set_translation(glm::vec3{10.0f, 5.0f, 0.0f});
-        test.add_component<ModelComponent>(helmet);
+        test.add_component<ModelComponent>(damaged_helmet);
 
-        auto test1 = editor_scene->create_entity("Test 1");
+        /*auto test1 = editor_scene->create_entity("Test 1");
         test1.get_component<RelationshipComponent>().parent = test;
         test1.get_component<TransformComponent>().set_translation(glm::vec3{5.0f, 3.0f, 0.0f});
         test1.add_component<ModelComponent>(helmet);
@@ -61,10 +62,10 @@ namespace Engine {
         test2.add_component<ModelComponent>(helmet);
 
         test.get_component<RelationshipComponent>().children.push_back(test1);
-        test.get_component<RelationshipComponent>().children.push_back(test2);
+        test.get_component<RelationshipComponent>().children.push_back(test2);*/
 
         SceneSerializer serializer(editor_scene);
-        serializer.deserialize(device, "assets/Example.scene");
+        //serializer.deserialize(device, "assets/Example.scene");
 
         scene_hierarchy_panel->set_context(editor_scene);
     }
@@ -97,11 +98,17 @@ namespace Engine {
             prefilteredMap_image_info.imageView = pbr_system->get_prefiltered_map_image_view();
             prefilteredMap_image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
+            VkDescriptorImageInfo env_map_image_info = {};
+            env_map_image_info.sampler = pbr_system->get_sampler();
+            env_map_image_info.imageView = pbr_system->get_environment_map_image_view();
+            env_map_image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
             DescriptorWriter(*Core::global_descriptor_set_layout, *Core::global_descriptor_pool)
                     .write_buffer(0, &buffer_info)
                     .write_image(1, &irradiance_image_info)
                     .write_image(2, &BRDFLUT_image_info)
                     .write_image(3, &prefilteredMap_image_info)
+                    .write_image(4, &env_map_image_info)
                     .build(device, vk_global_descriptor_sets[i]);
         }
 
