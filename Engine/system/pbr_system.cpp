@@ -159,7 +159,7 @@ namespace Engine {
     }
 
     void PBRSystem::generate_environment_map() {
-        int width, height, channels, m_BytesPerPixel;
+        int width, height, channels;
 
         stbi_set_flip_vertically_on_load(1);
         void* data = stbi_load_16("assets/newport_loft.hdr", &width, &height, &channels, STBI_rgb_alpha);
@@ -243,7 +243,7 @@ namespace Engine {
 
         struct PushConstantData {
             glm::mat4 mvp;
-        } push_constant_data;
+        } push_constant_data{};
 
         VkPushConstantRange vk_push_constant_range = {
                 .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -402,7 +402,7 @@ namespace Engine {
 
 
         struct PushConstantData {
-            glm::mat4 mvp;
+            glm::mat4 mvp{1.0};
             float deltaPhi = (2.0f * float(M_PI)) / 180.0f;
             float deltaTheta = (0.5f * float(M_PI)) / 64.0f;
         } push_constant_data;
@@ -565,8 +565,8 @@ namespace Engine {
 
 
         struct PushConstantData {
-            glm::mat4 mvp;
-            float roughness;
+            glm::mat4 mvp{1.0};
+            float roughness = 0;
             uint32_t numSamples = 32u;
         } push_constant_data;
 

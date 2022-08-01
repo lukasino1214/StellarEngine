@@ -19,15 +19,16 @@ namespace Engine {
 
         renderpass = new RenderPass(device, {
                 { .frameBufferAttachment = image, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::STORE },              // 0
-                { .frameBufferAttachment = depth, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::STORE },              // 1
+                { .frameBufferAttachment = depth, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::DONT_CARE },              // 1
                 { .frameBufferAttachment = albedo, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::STORE },             // 2
                 { .frameBufferAttachment = position, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::STORE },           // 3
                 { .frameBufferAttachment = normal, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::STORE },             // 4
                 { .frameBufferAttachment = metallic_roughness, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::STORE }, // 5
+                { .frameBufferAttachment = emissive, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::STORE },           // 6
             },{
-                { .renderTargets = { 1, 2, 3, 4, 5 }, .subpassInputs = {} }, // deferred
+                { .renderTargets = { 1, 2, 3, 4, 5, 6 }, .subpassInputs = {} }, // deferred
                 { .renderTargets = { 0 }, .subpassInputs = { 1, 2, 3, 4, 5 } }, // lighting
-                { .renderTargets = { 0, 1 }, .subpassInputs = { 1 } }, // forward pass
+                { .renderTargets = { 0,6 }, .subpassInputs = { 1 } }, // forward pass
         });
 
         create_framebuffer();
@@ -56,7 +57,7 @@ namespace Engine {
                 throw std::runtime_error("failed to create pipeline layout!");
             }
 
-            std::vector<VkPipelineColorBlendAttachmentState> vk_color_blend_attachments {4};
+            std::vector<VkPipelineColorBlendAttachmentState> vk_color_blend_attachments {5};
 
             vk_color_blend_attachments[0] = {
                     .blendEnable = VK_FALSE,
@@ -92,6 +93,17 @@ namespace Engine {
             };
 
             vk_color_blend_attachments[3] = {
+                    .blendEnable = VK_FALSE,
+                    .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
+                    .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
+                    .colorBlendOp = VK_BLEND_OP_ADD,
+                    .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+                    .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+                    .alphaBlendOp = VK_BLEND_OP_ADD,
+                    .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+            };
+
+            vk_color_blend_attachments[4] = {
                     .blendEnable = VK_FALSE,
                     .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
                     .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
@@ -189,16 +201,52 @@ namespace Engine {
                 throw std::runtime_error("failed to create pipeline layout!");
             }
 
+            std::vector<VkPipelineColorBlendAttachmentState> vk_color_blend_attachments {2};
+
+            vk_color_blend_attachments[0] = {
+                    .blendEnable = VK_FALSE,
+                    .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
+                    .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
+                    .colorBlendOp = VK_BLEND_OP_ADD,
+                    .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+                    .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+                    .alphaBlendOp = VK_BLEND_OP_ADD,
+                    .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+            };
+
+            vk_color_blend_attachments[1] = {
+                    .blendEnable = VK_FALSE,
+                    .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
+                    .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
+                    .colorBlendOp = VK_BLEND_OP_ADD,
+                    .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+                    .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+                    .alphaBlendOp = VK_BLEND_OP_ADD,
+                    .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+            };
+
+            VkPipelineColorBlendStateCreateInfo color_blend_info = {
+                    .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+                    .pNext = nullptr,
+                    .flags = 0,
+                    .logicOpEnable = VK_FALSE,
+                    .logicOp = VK_LOGIC_OP_COPY,
+                    .attachmentCount = static_cast<uint32_t>(vk_color_blend_attachments.size()),
+                    .pAttachments = vk_color_blend_attachments.data(),
+                    .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f }
+            };
+
             PipelineConfigInfo pipeline_config = {};
             Pipeline::default_pipeline_config_info(pipeline_config);
             Pipeline::eneble_alpha_blending(pipeline_config);
             pipeline_config.vk_renderpass = renderpass->vk_renderpass;
             pipeline_config.vk_pipeline_layout = vk_forward_pass_pipeline_layout;
+            pipeline_config.color_blend_info = color_blend_info;
             pipeline_config.subpass = 2;
 
             forward_pass_pipeline = std::make_unique<Pipeline>(device, pipeline_config, ShaderFilepaths {
-                    .vertex = "assets/shaders/simple_shader.vert", // TODO: change this
-                    .fragment = "assets/shaders/simple_shader.frag"
+                    .vertex = "assets/shaders/forward_shader.vert", // TODO: change this
+                    .fragment = "assets/shaders/forward_shader.frag"
             });
         }
 
@@ -275,6 +323,7 @@ namespace Engine {
         delete renderpass;
         delete framebuffer;
         delete sampler;
+        delete emissive;
 
         vkDestroyPipelineLayout(device->vk_device, vk_deferred_pipeline_layout, nullptr);
         vkDestroyPipelineLayout(device->vk_device, vk_composition_pipeline_layout, nullptr);
@@ -315,11 +364,29 @@ namespace Engine {
         vkCmdBindDescriptorSets(frame_info.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_composition_pipeline_layout, 0, vk_composition_descriptor_sets.size(), vk_composition_descriptor_sets.data(), 0, nullptr);
         vkCmdDraw(frame_info.command_buffer, 3, 1, 0, 0);
 
-
-
         // forward pass
         renderpass->next_subpass(frame_info.command_buffer);
         forward_pass_pipeline->bind(frame_info.command_buffer);
+        scene->registry.each([&](auto entityID) {
+            Entity entity = {entityID, scene.get()};
+            if (!entity)
+                return;
+
+            if (entity.has_component<ModelComponent>()) {
+                auto transform_component = entity.get_component<TransformComponent>();
+
+                PushConstantData push = {
+                        .model_matrix = transform_component.calculate_matrix(),
+                        .normal_matrix = transform_component.calculate_normal_matrix()
+                };
+
+                vkCmdPushConstants(frame_info.command_buffer, vk_forward_pass_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstantData), &push);
+
+                auto model = entity.get_component<ModelComponent>().model;
+                model->bind(frame_info.command_buffer);
+                model->draw(frame_info, vk_forward_pass_pipeline_layout);
+            }
+        });
     }
 
     void DeferredRenderingSystem::end(FrameInfo &frame_info) {
@@ -336,6 +403,7 @@ namespace Engine {
             delete position;
             delete normal;
             delete metallic_roughness;
+            delete emissive;
         }
 
         VkFormat fb_depth_format = device->find_supported_format({VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT}, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
@@ -375,6 +443,12 @@ namespace Engine {
                 .dimensions = { width, height, 1 },
                 .usage = ImageUsageFlagBits::COLOR_ATTACHMENT | ImageUsageFlagBits::SAMPLED | ImageUsageFlagBits::INPUT_ATTACHMENT,
         });
+
+        emissive = new FrameBufferAttachment(device, {
+                .format = ImageFormat::B8G8R8A8_UNORM,
+                .dimensions = { width, height, 1 },
+                .usage = ImageUsageFlagBits::COLOR_ATTACHMENT | ImageUsageFlagBits::SAMPLED,
+        });
     }
 
     void DeferredRenderingSystem::create_framebuffer() {
@@ -382,7 +456,7 @@ namespace Engine {
             delete framebuffer;
         }
 
-        framebuffer = new Framebuffer(device, renderpass->vk_renderpass, { image, depth, albedo, position, normal, metallic_roughness });
+        framebuffer = new Framebuffer(device, renderpass->vk_renderpass, { image, depth, albedo, position, normal, metallic_roughness, emissive });
 
         first = false;
     }

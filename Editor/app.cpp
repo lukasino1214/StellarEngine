@@ -65,7 +65,7 @@ namespace Engine {
         test.get_component<RelationshipComponent>().children.push_back(test2);*/
 
         SceneSerializer serializer(editor_scene);
-        //serializer.deserialize(device, "assets/Example.scene");
+        serializer.deserialize(device, "assets/Example.scene");
 
         scene_hierarchy_panel->set_context(editor_scene);
     }

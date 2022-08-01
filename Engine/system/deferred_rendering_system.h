@@ -19,6 +19,8 @@ namespace Engine {
         void resize(u32 _width, u32 _height);
 
         VkDescriptorSet& get_present_descriptor_set() { return vk_present_descriptor_set; }
+        VkRenderPass get_renderpass() { return renderpass->vk_renderpass; }
+
     private:
         inline void create_images();
         inline void create_framebuffer();
@@ -38,6 +40,7 @@ namespace Engine {
         FrameBufferAttachment *position; // remove this in future
         FrameBufferAttachment *normal;
         FrameBufferAttachment *metallic_roughness; // material ID in future
+        FrameBufferAttachment *emissive;
 
         std::unique_ptr<DescriptorSetLayout> composition_descriptor_set_layout;
         VkDescriptorSetLayout vk_forward_pass_descriptor_set_layout;
