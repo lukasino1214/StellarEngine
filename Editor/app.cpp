@@ -26,17 +26,17 @@ namespace Engine {
         dock_space_panel = std::make_unique<DockSpacePanel>();
         offscreen_system = std::make_unique<OffScreenSystem>(device, WIDTH, HEIGHT);
         rendering_system = std::make_unique<RenderSystem>(device, offscreen_system->get_renderpass());
-        point_light_system = std::make_unique<PointLightSystem>(device, offscreen_system->get_renderpass());
         postprocessing_system = std::make_unique<PostProcessingSystem>(device, WIDTH, HEIGHT);
-        grid_system = std::make_unique<GridSystem>(device, offscreen_system->get_renderpass());
         //shadow_system = std::make_unique<ShadowSystem>(device);
         camera = std::make_shared<Camera>(glm::vec3(5, 10, 5), glm::vec3(10, 10, 0));
         imgui_layer = std::make_unique<ImGuiLayer>(device, *window, renderer->get_swapchain_renderpass(), renderer->get_image_count());
         viewport_panel = std::make_shared<ViewportPanel>(scene_hierarchy_panel, camera, window, offscreen_system->get_sampler(), offscreen_system->get_image_view());
 
         deferred_rendering_system = std::make_unique<DeferredRenderingSystem>(device, WIDTH, HEIGHT);
+        point_light_system = std::make_unique<PointLightSystem>(device, offscreen_system->get_renderpass());
+        grid_system = std::make_unique<GridSystem>(device, offscreen_system->get_renderpass());
 
-        pbr_system = std::make_unique<PBRSystem>(device, offscreen_system->get_renderpass());
+        pbr_system = std::make_unique<PBRSystem>(device, deferred_rendering_system->get_renderpass());
 
         auto helmet = std::make_shared<Model>(device, "assets/models/SciFiHelmet/glTF/SciFiHelmet.gltf");
         auto damaged_helmet = std::make_shared<Model>(device, "assets/models/DamagedHelmet/glTF/DamagedHelmet.gltf");
@@ -50,6 +50,7 @@ namespace Engine {
         auto test = editor_scene->create_entity("Test");
         test.get_component<TransformComponent>().set_translation(glm::vec3{10.0f, 5.0f, 0.0f});
         test.add_component<ModelComponent>(damaged_helmet);
+        test.get_component<ModelComponent>().transparent = true;
 
         /*auto test1 = editor_scene->create_entity("Test 1");
         test1.get_component<RelationshipComponent>().parent = test;
@@ -175,18 +176,18 @@ namespace Engine {
 
                 //shadow_system->render(frameInfo, editor_scene);
                 deferred_rendering_system->start(frameInfo, editor_scene);
+                pbr_system->render_skybox(frameInfo);
                 deferred_rendering_system->end(frameInfo);
 
-                offscreen_system->start(frameInfo);
-                pbr_system->render_skybox(frameInfo);
+                /*offscreen_system->start(frameInfo);
                 rendering_system->render(frameInfo, editor_scene);
                 point_light_system->render(frameInfo, editor_scene);
                 if (is_grid_enabled) {
                     grid_system->render(frameInfo);
                 }
-                offscreen_system->end(frameInfo);
-                postprocessing_system->render(frameInfo, offscreen_system->get_present_descriptor_set());
-                //postprocessing_system->render(frameInfo, deferred_rendering_system->get_present_descriptor_set());
+                offscreen_system->end(frameInfo);*/
+                //postprocessing_system->render(frameInfo, offscreen_system->get_present_descriptor_set());
+                postprocessing_system->render(frameInfo, deferred_rendering_system->get_present_descriptor_set());
                 //postprocessing_system->render(frameInfo, pbr_system->vk_BRDFLUT_descriptor_set);
                 //postprocessing_system->render(frameInfo, pbr_system->hdr_set);
 

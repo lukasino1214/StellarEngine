@@ -25,9 +25,9 @@ namespace Engine {
                 { .frameBufferAttachment = normal, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::STORE },             // 4
                 { .frameBufferAttachment = metallic_roughness, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::STORE }, // 5
                 { .frameBufferAttachment = emissive, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::STORE },           // 6
-            },{
+        },{
                 { .renderTargets = { 1, 2, 3, 4, 5, 6 }, .subpassInputs = {} }, // deferred
-                { .renderTargets = { 0 }, .subpassInputs = { 1, 2, 3, 4, 5 } }, // lighting
+                { .renderTargets = { 0 }, .subpassInputs = { 1, 2, 3, 4, 5, 6 } }, // lighting
                 { .renderTargets = { 0,6 }, .subpassInputs = { 1 } }, // forward pass
         });
 
@@ -133,7 +133,7 @@ namespace Engine {
             pipeline_config.subpass = 0;
 
             deferred_pipeline = std::make_unique<Pipeline>(device, pipeline_config, ShaderFilepaths {
-                    .vertex = "assets/shaders/deferred_shader.vert", // TODO: change this
+                    .vertex = "assets/shaders/deferred_shader.vert",
                     .fragment = "assets/shaders/deferred_shader.frag"
             });
         }
@@ -146,6 +146,7 @@ namespace Engine {
                     .add_binding(1, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT)
                     .add_binding(2, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT)
                     .add_binding(3, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT)
+                    .add_binding(4, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT)
                     .build_unique();
 
             std::vector<VkDescriptorSetLayout> descriptor_set_layouts = { Core::global_descriptor_set_layout->get_descriptor_set_layout(), composition_descriptor_set_layout->get_descriptor_set_layout() };
@@ -169,6 +170,7 @@ namespace Engine {
             pipeline_config.vk_renderpass = renderpass->vk_renderpass;
             pipeline_config.vk_pipeline_layout = vk_composition_pipeline_layout;
             pipeline_config.subpass = 1;
+            pipeline_config.depth_stencil_info.depthWriteEnable = VK_FALSE;
             pipeline_config.attribute_descriptions.clear();
             pipeline_config.binding_descriptions.clear();
 
@@ -252,14 +254,28 @@ namespace Engine {
 
         write_composition_descriptor();
 
-        VkDescriptorImageInfo image_info = {};
-        image_info.sampler = sampler->vk_sampler;
-        image_info.imageView = image->image_view->vk_image_view;
-        image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        {
+            VkDescriptorImageInfo image_info = {};
+            image_info.sampler = sampler->vk_sampler;
+            image_info.imageView = image->image_view->vk_image_view;
+            image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-        DescriptorWriter(*Core::postprocessing_descriptor_set_layout, *Core::global_descriptor_pool)
-                .write_image(0, &image_info)
-                .build(device, vk_present_descriptor_set);
+            DescriptorWriter(*Core::postprocessing_descriptor_set_layout, *Core::global_descriptor_pool)
+                    .write_image(0, &image_info)
+                    .build(device, vk_present_descriptor_set);
+
+        }
+
+        {
+            VkDescriptorImageInfo image_info = {};
+            image_info.sampler = sampler->vk_sampler;
+            image_info.imageView = emissive->image_view->vk_image_view;
+            image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+            DescriptorWriter(*Core::postprocessing_descriptor_set_layout, *Core::global_descriptor_pool)
+                    .write_image(0, &image_info)
+                    .build(device, vk_emissive_descriptor_set);
+        }
     }
 
     void DeferredRenderingSystem::write_composition_descriptor() {
@@ -287,19 +303,26 @@ namespace Engine {
                 .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         };
 
+        VkDescriptorImageInfo vk_emissive_descriptor_image_info = {
+                .sampler = {},
+                .imageView = emissive->image_view->vk_image_view,
+                .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        };
+
         DescriptorWriter(*composition_descriptor_set_layout, *Core::global_descriptor_pool)
                 .write_image(0, &vk_albedo_descriptor_image_info)
                 .write_image(1, &vk_position_descriptor_image_info)
                 .write_image(2, &vk_normal_descriptor_image_info)
                 .write_image(3, &vk_metallic_roughness_descriptor_image_info)
+                .write_image(4, &vk_emissive_descriptor_image_info)
                 .build(device, vk_composition_descriptor_set);
     }
 
     void DeferredRenderingSystem::resize(u32 _width, u32 _height) {
-         width = _width;
-         height = _height;
-         create_images();
-         create_framebuffer();
+        width = _width;
+        height = _height;
+        create_images();
+        create_framebuffer();
 
         write_composition_descriptor();
 
@@ -341,6 +364,10 @@ namespace Engine {
                 return;
 
             if (entity.has_component<ModelComponent>()) {
+                if(entity.get_component<ModelComponent>().transparent) {
+                    return;
+                }
+
                 auto transform_component = entity.get_component<TransformComponent>();
 
                 PushConstantData push = {
@@ -373,6 +400,10 @@ namespace Engine {
                 return;
 
             if (entity.has_component<ModelComponent>()) {
+                if(!entity.get_component<ModelComponent>().transparent) {
+                    return;
+                }
+
                 auto transform_component = entity.get_component<TransformComponent>();
 
                 PushConstantData push = {
@@ -447,7 +478,7 @@ namespace Engine {
         emissive = new FrameBufferAttachment(device, {
                 .format = ImageFormat::B8G8R8A8_UNORM,
                 .dimensions = { width, height, 1 },
-                .usage = ImageUsageFlagBits::COLOR_ATTACHMENT | ImageUsageFlagBits::SAMPLED,
+                .usage = ImageUsageFlagBits::COLOR_ATTACHMENT | ImageUsageFlagBits::SAMPLED | ImageUsageFlagBits::INPUT_ATTACHMENT,
         });
     }
 

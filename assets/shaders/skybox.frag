@@ -4,6 +4,7 @@
 
 layout (location = 0) in vec3 inUVW;
 layout (location = 0) out vec4 outColor;
+layout (location = 1) out vec4 outEmissive;
 
 layout(set = 0, binding = 0) uniform GlobalUbo {
     mat4 projectionMatrix;
@@ -21,4 +22,5 @@ layout(set = 1, binding = 0) uniform samplerCube samplerEnv;
 void main() {
     vec3 color = texture(samplerEnv, inUVW).rgb;
     outColor = vec4(color, 1.0);
+    outEmissive = vec4(0.0);
 }

@@ -51,6 +51,7 @@ layout(push_constant) uniform Push {
 } push;
 
 layout (location = 0) out vec4 outColor;
+layout (location = 1) out vec4 outEmissive;
 
 const float PI = 3.14159265359;
 // ----------------------------------------------------------------------------
@@ -174,6 +175,8 @@ void main() {
     if(pbr_parameters.has_emissive_texture == 1) {
         color += emissive;
     }
+
+    outEmissive = vec4(emissive, 1.0);
 
     outColor = vec4(color, 1.0);
 }

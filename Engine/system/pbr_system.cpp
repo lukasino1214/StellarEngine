@@ -49,11 +49,48 @@ namespace Engine {
             throw std::runtime_error("failed to create pipeline layout!");
         }
 
+        std::vector<VkPipelineColorBlendAttachmentState> vk_color_blend_attachments {2};
+
+        vk_color_blend_attachments[0] = {
+                .blendEnable = VK_FALSE,
+                .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
+                .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
+                .colorBlendOp = VK_BLEND_OP_ADD,
+                .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+                .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+                .alphaBlendOp = VK_BLEND_OP_ADD,
+                .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+        };
+
+        vk_color_blend_attachments[1] = {
+                .blendEnable = VK_FALSE,
+                .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
+                .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
+                .colorBlendOp = VK_BLEND_OP_ADD,
+                .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+                .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+                .alphaBlendOp = VK_BLEND_OP_ADD,
+                .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+        };
+
+        VkPipelineColorBlendStateCreateInfo color_blend_info = {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .logicOpEnable = VK_FALSE,
+                .logicOp = VK_LOGIC_OP_COPY,
+                .attachmentCount = static_cast<uint32_t>(vk_color_blend_attachments.size()),
+                .pAttachments = vk_color_blend_attachments.data(),
+                .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f }
+        };
+
         PipelineConfigInfo pipeline_config = {};
         Pipeline::default_pipeline_config_info(pipeline_config);
         pipeline_config.depth_stencil_info.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
         pipeline_config.vk_renderpass = renderpass;
         pipeline_config.vk_pipeline_layout = vk_skybox_pipeline_layout;
+        pipeline_config.subpass = 2;
+        pipeline_config.color_blend_info = color_blend_info;
 
         skybox_pipeline = std::make_unique<Pipeline>(device, pipeline_config, ShaderFilepaths {
                 .vertex = "assets/shaders/skybox.vert",

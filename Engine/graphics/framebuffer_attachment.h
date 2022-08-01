@@ -20,6 +20,11 @@ namespace Engine {
         FrameBufferAttachment(std::shared_ptr<Device> device, const FrameBufferAttachmentDescription& _description);
         ~FrameBufferAttachment();
 
+        FrameBufferAttachment(const FrameBufferAttachment &) = delete;
+        FrameBufferAttachment &operator=(const FrameBufferAttachment &) = delete;
+        FrameBufferAttachment(FrameBufferAttachment &&) = delete;
+        FrameBufferAttachment &operator=(FrameBufferAttachment &&) = delete;
+
         Image* image;
         ImageView* image_view;
 

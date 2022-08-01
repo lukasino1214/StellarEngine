@@ -19,6 +19,7 @@ namespace Engine {
         void resize(u32 _width, u32 _height);
 
         VkDescriptorSet& get_present_descriptor_set() { return vk_present_descriptor_set; }
+        VkDescriptorSet& get_emissive_descriptor_set() { return vk_emissive_descriptor_set; }
         VkRenderPass get_renderpass() { return renderpass->vk_renderpass; }
 
     private:
@@ -48,6 +49,8 @@ namespace Engine {
         VkDescriptorSet vk_composition_descriptor_set;
         VkDescriptorSet vk_forward_pass_descriptor_set;
         VkDescriptorSet vk_present_descriptor_set;
+
+        VkDescriptorSet vk_emissive_descriptor_set;
 
         VkPipelineLayout vk_deferred_pipeline_layout;
         std::unique_ptr<Pipeline> deferred_pipeline;

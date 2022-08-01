@@ -30,6 +30,7 @@
 #include "system/shadow_system.h"
 #include "system/deferred_rendering_system.h"
 #include "system/pbr_system.h"
+#include "system/bloom_system.h"
 
 #include "scripting/native_script.h"
 

@@ -57,6 +57,7 @@ namespace Engine {
     struct ModelComponent {
         std::shared_ptr<Model> model{};
         std::string path;
+        bool transparent = false;
 
         ModelComponent() = default;
         ModelComponent(const std::shared_ptr<Model> &_model) { model = _model; path = _model->getPath(); }
