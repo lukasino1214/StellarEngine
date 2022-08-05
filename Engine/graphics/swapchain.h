@@ -18,15 +18,15 @@ namespace Engine {
         SwapChain(const SwapChain &) = delete;
         SwapChain &operator=(const SwapChain &) = delete;
 
-        VkFramebuffer get_framebuffer(int index) { return vk_swapchain_framebuffers[index]; }
-        VkImageView get_image_view(int index) { return vk_swapchain_image_views[index]; }
-        size_t get_image_count() { return vk_swapchain_images.size(); }
+        VkFramebuffer get_framebuffer(u32 index) { return vk_swapchain_framebuffers[index]; }
+        VkImageView get_image_view(u32 index) { return vk_swapchain_image_views[index]; }
+        u32 get_image_count() { return static_cast<u32>(vk_swapchain_images.size()); }
         VkFormat get_swapchain_image_format() { return vk_swapchain_image_format; }
         VkExtent2D get_swapchain_extent() { return vk_swapchain_extent; }
-        uint32_t width() { return vk_swapchain_extent.width; }
-        uint32_t height() { return vk_swapchain_extent.height; }
+        u32 width() const { return vk_swapchain_extent.width; }
+        u32 height() const { return vk_swapchain_extent.height; }
 
-        float get_extent_aspect_ratio() {
+        float get_extent_aspect_ratio() const {
             return static_cast<float>(vk_swapchain_extent.width) / static_cast<float>(vk_swapchain_extent.height);
         }
         VkFormat find_depth_format();

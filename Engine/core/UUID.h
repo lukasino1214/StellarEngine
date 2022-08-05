@@ -7,7 +7,6 @@ namespace Engine {
 	public:
 		UUID();
 		UUID(uint64_t _uuid);
-		UUID(const UUID&) = default;
 
 		operator uint64_t() const { return uuid; }
 	private:
@@ -22,7 +21,7 @@ namespace std {
 	template<>
 	struct hash<Engine::UUID> {
 		std::size_t operator()(const Engine::UUID& uuid) const {
-			return (uint64_t)uuid;
+			return static_cast<uint64_t>(uuid);
 		}
 	};
 

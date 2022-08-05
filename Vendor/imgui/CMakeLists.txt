@@ -1,5 +1,8 @@
 add_library(IMGUI STATIC)
 
+find_package(glfw3 CONFIG REQUIRED)
+target_link_libraries(IMGUI PRIVATE glfw)
+
 target_sources(IMGUI
         PRIVATE
         imgui_demo.cpp

@@ -1,0 +1,21 @@
+{
+  "name": "stellar-engine",
+  "version-string": "0.0.1",
+  "license": "MIT",
+  "dependencies": [
+    "glm",
+    "shaderc",
+    "entt",
+    "glfw3",
+    "spirv-tools",
+    "spirv-headers",
+    "spirv-cross",
+    "spirv-reflect",
+    "yaml-cpp",
+    "vulkan",
+    "spdlog",
+    "stb",
+    "meshoptimizer",
+    "physx"
+  ]
+}

@@ -11,6 +11,7 @@ namespace Engine {
 
         void render();
 
+        bool is_preferences_panel_enabled = false;
     private:
         bool p_open = true;
         bool opt_fullscreen = true;

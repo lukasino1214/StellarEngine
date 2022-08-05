@@ -396,4 +396,11 @@ namespace Engine {
         return attributeDescriptions;
     }
 
+    std::vector<VkVertexInputAttributeDescription> Model::Vertex::getAttributeDescriptionsOnlyPosition() {
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
+        attributeDescriptions.push_back({0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)});
+
+        return attributeDescriptions;
+    }
+
 }

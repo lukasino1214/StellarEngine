@@ -13,7 +13,7 @@
 namespace Engine {
     class PostProcessingSystem {
     public:
-        PostProcessingSystem(std::shared_ptr<Device> _device, uint32_t _width, uint32_t _height);
+        PostProcessingSystem(std::shared_ptr<Device> _device, i32 _width, i32 _height);
         ~PostProcessingSystem();
 
         PostProcessingSystem(const PostProcessingSystem &) = delete;
@@ -23,7 +23,7 @@ namespace Engine {
         VkImageView get_image_view() { return color->image_view->vk_image_view; }
         VkRenderPass get_renderpass() { return renderpass->vk_renderpass; }
 
-        void resize(u32 _width, u32 _height) { width = _width; height = _height; create_images(); create_framebuffer(); }
+        void resize(i32 _width, i32 _height);
         void render(FrameInfo &frame_info, VkDescriptorSet &vk_descriptor_set);
 
     private:
@@ -31,7 +31,7 @@ namespace Engine {
         inline void create_framebuffer();
 
         bool first = true;
-        u32 width, height;
+        i32 width, height;
 
         Framebuffer* framebuffer;
         FrameBufferAttachment* color;

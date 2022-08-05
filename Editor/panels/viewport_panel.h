@@ -13,8 +13,8 @@ namespace Engine {
 
         void update_image(VkSampler sampler, VkImageView image_view);
 
-        bool resized() { return should_resize; }
-        glm::vec2 get_viewport_size() { return viewport_size; }
+        bool resized() const { return should_resize; }
+        glm::ivec2 get_viewport_size() { return viewport_size; }
 
     private:
         // TODO: This garbage
@@ -24,7 +24,7 @@ namespace Engine {
 
         int gizmo_type = 0;
         bool should_resize = false;
-        glm::vec2 viewport_size = {1280.0, 720.0};
+        glm::ivec2 viewport_size = { 1280, 720 };
         VkDescriptorSet image;
     };
 }

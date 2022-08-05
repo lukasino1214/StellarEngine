@@ -6,6 +6,7 @@
 #include "panels/content_browser_panel.h"
 #include "panels/dock_space_panel.h"
 #include "panels/viewport_panel.h"
+#include "panels/preferences_panel.h"
 
 namespace Engine {
     struct AppConfig {
@@ -41,6 +42,7 @@ namespace Engine {
         std::unique_ptr<DeferredRenderingSystem> deferred_rendering_system;
         std::unique_ptr<PBRSystem> pbr_system;
         std::unique_ptr<BloomRenderingSystem> bloom_system;
+        std::unique_ptr<PreferencesPanel> preferences_panel;
 
         std::shared_ptr<Camera> camera;
 

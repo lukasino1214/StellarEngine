@@ -59,11 +59,10 @@ namespace Engine {
             float rotY = sensitivity * (float) (mouseX - (width / 2)) / width;
 
             // Calculates upcoming vertical change in the Orientation
-            glm::vec3 newOrientation = glm::rotate(m_Orientation, glm::radians(-rotX),
-                                                   glm::normalize(glm::cross(m_Orientation, m_Up)));
+            glm::vec3 newOrientation = glm::rotate(m_Orientation, glm::radians(-rotX),glm::normalize(glm::cross(m_Orientation, m_Up)));
 
-            // Decides whether or not the next vertical Orientation is legal or not
-            if (abs(glm::angle(newOrientation, m_Up) - glm::radians(90.0f)) <= glm::radians(85.0f)) {
+
+            if(std::abs(glm::angle(newOrientation, m_Up) - glm::radians(90.0f)) <= glm::radians(90.0f)) {
                 m_Orientation = newOrientation;
             }
 

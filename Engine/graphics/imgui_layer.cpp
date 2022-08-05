@@ -6,6 +6,11 @@
 #include "core.h"
 
 namespace Engine {
+    static void check_vk_result(VkResult err) {
+        if (err == 0) return;
+        fprintf(stderr, "[vulkan] Error: VkResult = %d\n", err);
+        if (err < 0) abort();
+    }
 
     ImGuiLayer::ImGuiLayer(std::shared_ptr<Device> _device, Window &window, VkRenderPass renderpass, uint32_t image_count) : device{_device} {
         VkDescriptorPoolSize pool_sizes[] = {
@@ -49,40 +54,9 @@ namespace Engine {
 
         ImGui::StyleColorsDark();
 
-        auto &colors = ImGui::GetStyle().Colors;
 
-        /*
-         * constexpr auto colorFromBytes = [](const uint8_t r, const uint8_t g, const uint8_t b) { return ImVec4(static_cast<float>(r) / 255.0f, static_cast<float>(g) / 255.0f, static_cast<float>(b) / 255.0f, 1.0f); };
-        */
+        //constexpr auto colorFromBytes = [](const uint8_t r, const uint8_t g, const uint8_t b) { return ImVec4(static_cast<float>(r) / 255.0f, static_cast<float>(g) / 255.0f, static_cast<float>(b) / 255.0f, 1.0f); };
 
-        colors[ImGuiCol_WindowBg] = ImVec4{0.1f, 0.105f, 0.11f, 1.0f};
-
-        // Headers
-        colors[ImGuiCol_Header] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
-        colors[ImGuiCol_HeaderHovered] = ImVec4{0.3f, 0.305f, 0.31f, 1.0f};
-        colors[ImGuiCol_HeaderActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
-
-        // Buttons
-        colors[ImGuiCol_Button] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
-        colors[ImGuiCol_ButtonHovered] = ImVec4{0.3f, 0.305f, 0.31f, 1.0f};
-        colors[ImGuiCol_ButtonActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
-
-        // Frame BG
-        colors[ImGuiCol_FrameBg] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
-        colors[ImGuiCol_FrameBgHovered] = ImVec4{0.3f, 0.305f, 0.31f, 1.0f};
-        colors[ImGuiCol_FrameBgActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
-
-        // Tabs
-        colors[ImGuiCol_Tab] = ImVec4{0.20f, 0.2005f, 0.201f, 1.0f};
-        colors[ImGuiCol_TabHovered] = ImVec4{0.38f, 0.3805f, 0.381f, 1.0f};
-        colors[ImGuiCol_TabActive] = ImVec4{0.28f, 0.2805f, 0.281f, 1.0f};
-        colors[ImGuiCol_TabUnfocused] = ImVec4{0.20f, 0.2005f, 0.201f, 1.0f};
-        colors[ImGuiCol_TabUnfocusedActive] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
-
-        // Title
-        colors[ImGuiCol_TitleBg] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
-        colors[ImGuiCol_TitleBgActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
-        colors[ImGuiCol_TitleBgCollapsed] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
 
         ImGui_ImplGlfw_InitForVulkan(window.get_GLFWwindow(), true);
         ImGui_ImplVulkan_InitInfo init_info = {

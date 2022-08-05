@@ -1,7 +1,5 @@
 #pragma once
 
-#include <yaml-cpp/yaml.h>
-
 #include "../data/scene.h"
 #include "../data/entity.h"
 

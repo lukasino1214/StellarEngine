@@ -24,14 +24,12 @@ namespace Engine {
 
         IDComponent() = default;
         IDComponent(const UUID &uuid) : ID(uuid) {}
-        IDComponent(const IDComponent &) = default;
     };
 
     struct TagComponent {
         std::string tag;
 
         TagComponent() = default;
-        TagComponent(const TagComponent &) = default;
         TagComponent(const std::string &_tag) : tag(_tag) {}
     };
 
@@ -43,7 +41,6 @@ namespace Engine {
         bool is_dirty = true;
 
         TransformComponent() = default;
-        TransformComponent(const TransformComponent &) = default;
         TransformComponent(const glm::vec3 &_translation) : translation(_translation) {}
 
         void set_translation(const glm::vec3 &_translation) { translation = _translation; is_dirty = true; }
@@ -92,12 +89,12 @@ namespace Engine {
         CameraComponent() = default;
 
         glm::mat4 calculate_view(glm::vec3 position, glm::vec3 rotation) {
-            glm::mat4 view = glm::lookAt(position, (position + glm::vec3(0.0f, 0.0f, -1.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
-            view = glm::rotate(view, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-            view = glm::rotate(view, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-            view = glm::rotate(view, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+            glm::mat4 _view = glm::lookAt(position, (position + glm::vec3(0.0f, 0.0f, -1.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
+            _view = glm::rotate(_view, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+            _view = glm::rotate(_view, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+            _view = glm::rotate(_view, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
-            return view;
+            return _view;
         }
 
         glm::mat4 calculate_projection(glm::vec2 size) {

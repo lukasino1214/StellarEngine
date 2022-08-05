@@ -16,7 +16,7 @@ namespace Engine {
 
     class OffScreenSystem {
     public:
-        OffScreenSystem(std::shared_ptr<Device> _device, uint32_t _width, uint32_t _height);
+        OffScreenSystem(std::shared_ptr<Device> _device, i32 _width, i32 _height);
         ~OffScreenSystem();
 
         OffScreenSystem(const OffScreenSystem &) = delete;
@@ -26,7 +26,7 @@ namespace Engine {
         VkImageView get_image_view() { return color->image_view->vk_image_view; }
         VkRenderPass get_renderpass() { return renderpass->vk_renderpass; }
 
-        void resize(u32 _width, u32 _height) { width = _width; height = _height; create_images(); create_framebuffer(); }
+        void resize(i32 _width, i32 _height);
         void start(FrameInfo frame_info);
         void end(FrameInfo frame_info);
 
@@ -37,7 +37,7 @@ namespace Engine {
         inline void create_framebuffer();
 
         bool first = true;
-        uint32_t width, height;
+        i32 width, height;
         Framebuffer* framebuffer;
         FrameBufferAttachment* color;
         FrameBufferAttachment* depth;

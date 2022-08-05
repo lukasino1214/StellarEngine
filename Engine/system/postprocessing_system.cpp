@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 
 namespace Engine {
-    PostProcessingSystem::PostProcessingSystem(std::shared_ptr<Device> _device, uint32_t _width, uint32_t _height) : width{_width}, height{_height}, device{_device} {
+    PostProcessingSystem::PostProcessingSystem(std::shared_ptr<Device> _device, i32 _width, i32 _height) : width{_width}, height{_height}, device{_device} {
         create_images();
 
         renderpass = new RenderPass(device, {
@@ -41,6 +41,13 @@ namespace Engine {
                 .vertex = "assets/shaders/post_processing.vert",
                 .fragment = "assets/shaders/post_processing.frag"
         });
+    }
+
+    void PostProcessingSystem::resize(i32 _width, i32 _height) {
+         width = _width;
+         height = _height;
+         create_images();
+         create_framebuffer();
     }
 
     void PostProcessingSystem::create_framebuffer() {

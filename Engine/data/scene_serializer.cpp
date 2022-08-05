@@ -1,6 +1,8 @@
 #include "scene_serializer.h"
 #include "../pgepch.h"
 
+#include <yaml-cpp/yaml.h>
+
 namespace YAML {
     template<>
     struct convert<glm::vec3> {

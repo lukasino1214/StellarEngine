@@ -35,7 +35,7 @@ namespace Engine {
 
         ImGui::Columns(2);
         if (start) {
-            ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() * 0.16);
+            ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() * 0.16f);
             start = false;
         }
 
@@ -58,7 +58,7 @@ namespace Engine {
         float cell_size = thumbnail_size + padding;
 
         float panelWidth = ImGui::GetContentRegionAvail().x;
-        int column_count = (int) (panelWidth / cell_size);
+        i32 column_count = static_cast<i32>(panelWidth / cell_size);
         if (column_count < 1)
             column_count = 1;
 

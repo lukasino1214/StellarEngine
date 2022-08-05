@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
 
+set(WARNINGS_AS_ERRORS TRUE)
 include(cmake/warnings.cmake)
 
-project(All)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_TOOLCHAIN_FILE /home/lukas/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
+
+project(All)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

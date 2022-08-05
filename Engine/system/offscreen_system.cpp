@@ -5,7 +5,7 @@
 #include <vulkan/vulkan_core.h>
 
 namespace Engine {
-    OffScreenSystem::OffScreenSystem(std::shared_ptr<Device> _device, uint32_t _width, uint32_t _height) : width{_width}, height{_height}, device{_device} {
+    OffScreenSystem::OffScreenSystem(std::shared_ptr<Device> _device, i32 _width, i32 _height) : width{_width}, height{_height}, device{_device} {
         create_images();
 
         renderpass = new RenderPass(device, {
@@ -13,6 +13,13 @@ namespace Engine {
                 { .frameBufferAttachment = depth, .loadOp = LoadOp::CLEAR, .storeOp = StoreOp::STORE }
         }, { { .renderTargets = { 0, 1 }, .subpassInputs = {} } });
 
+        create_framebuffer();
+    }
+
+    void OffScreenSystem::resize(i32 _width, i32 _height) {
+        width = _width;
+        height = _height;
+        create_images();
         create_framebuffer();
     }
 

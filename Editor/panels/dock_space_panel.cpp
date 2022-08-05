@@ -42,6 +42,13 @@ namespace Engine {
                 ImGui::EndMenu();
             }
 
+            if (ImGui::BeginMenu("View")) {
+                    if(ImGui::MenuItem("Close All Documents")) {
+                        is_preferences_panel_enabled = !is_preferences_panel_enabled;
+                    }
+                ImGui::EndMenu();
+            }
+
             ImGui::EndMenuBar();
         }
         ImGui::End();

@@ -65,7 +65,7 @@ namespace Engine {
 
         ImGuiTreeNodeFlags flags = ((selection_context == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
         flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
-        bool opened = ImGui::TreeNodeEx((void *) (uint64_t) (uint32_t) entity, flags, "%s", tag.c_str());
+        bool opened = ImGui::TreeNodeEx(reinterpret_cast<void *>(static_cast<uint64_t>(static_cast<uint32_t>(entity))), flags, "%s", tag.c_str());
         if (ImGui::IsItemClicked()) {
             selection_context = entity;
         }
@@ -194,7 +194,7 @@ namespace Engine {
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{4, 4});
             float line_height = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
             ImGui::Separator();
-            bool open = ImGui::TreeNodeEx((void *) typeid(T).hash_code(), tree_node_flags, "%s", name.c_str());
+            bool open = ImGui::TreeNodeEx(reinterpret_cast<void*>(typeid(T).hash_code()), tree_node_flags, "%s", name.c_str());
             ImGui::PopStyleVar();
             ImGui::SameLine(content_region_available.x - line_height * 0.5f);
             if (ImGui::Button("+", ImVec2{line_height, line_height})) {

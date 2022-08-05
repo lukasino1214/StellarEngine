@@ -8,6 +8,11 @@
 namespace Engine {
     class ShaderIncluder : public shaderc::CompileOptions::IncluderInterface {
         shaderc_include_result* GetInclude(const char* requested_source, shaderc_include_type type, const char* requesting_source, size_t include_depth) override {
+            //BS
+            std::string msg = std::string(requesting_source);
+            msg += std::to_string(type);
+            msg += static_cast<char>(include_depth);
+
             const std::string name = std::string(requested_source);
             const std::string contents = readFile(name);
 
@@ -38,8 +43,8 @@ namespace Engine {
             std::ifstream in(filepath, std::ios::in | std::ios::binary);
             if (in) {
                 in.seekg(0, std::ios::end);
-                size_t size = in.tellg();
-                if (size != -1) {
+                u32 size = static_cast<u32>(in.tellg());
+                if (size != 0) {
                     code.resize(size);
                     in.seekg(0, std::ios::beg);
                     in.read(&code[0], size);
@@ -76,9 +81,9 @@ namespace Engine {
     };
 
     struct ShaderFilepaths {
-        std::string vertex = "";
-        std::string fragment = "";
-        std::string geometry = "";
+        std::string vertex;
+        std::string fragment;
+        std::string geometry;
     };
 
     class Pipeline {

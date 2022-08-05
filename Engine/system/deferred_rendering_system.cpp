@@ -8,7 +8,7 @@ namespace Engine {
         glm::mat4 normal_matrix{1.0f};
     };
 
-    DeferredRenderingSystem::DeferredRenderingSystem(std::shared_ptr<Device> _device, u32 _width, u32 _height) : device{_device}, width{_width}, height{_height} {
+    DeferredRenderingSystem::DeferredRenderingSystem(std::shared_ptr<Device> _device, i32 _width, i32 _height) : device{_device}, width{_width}, height{_height} {
         sampler = new Sampler(device, {
                 .min_filter = Filter::LINEAR,
                 .mag_filter = Filter::LINEAR,
@@ -318,7 +318,7 @@ namespace Engine {
                 .build(device, vk_composition_descriptor_set);
     }
 
-    void DeferredRenderingSystem::resize(u32 _width, u32 _height) {
+    void DeferredRenderingSystem::resize(i32 _width, i32 _height) {
         width = _width;
         height = _height;
         create_images();

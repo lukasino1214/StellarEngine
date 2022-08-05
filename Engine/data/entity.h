@@ -11,7 +11,6 @@ namespace Engine {
     public:
         Entity() = default;
         Entity(entt::entity _handle, Scene *_scene);
-        Entity(const Entity &other) = default;
 
         template<typename T, typename... Args>
         T &add_component(Args &&... args) {
@@ -36,7 +35,7 @@ namespace Engine {
 
         operator bool() const { return handle != entt::null; }
         operator entt::entity() const { return handle; }
-        operator uint32_t() const { return (uint32_t) handle; }
+        operator uint32_t() const { return static_cast<uint32_t>(handle); }
 
         UUID GetUUID() { return get_component<IDComponent>().ID; }
 

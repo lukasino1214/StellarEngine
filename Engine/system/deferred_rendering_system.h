@@ -10,13 +10,13 @@
 namespace Engine {
     class DeferredRenderingSystem {
     public:
-        DeferredRenderingSystem(std::shared_ptr<Device> _device, u32 _width, u32 _height);
+        DeferredRenderingSystem(std::shared_ptr<Device> _device, i32 _width, i32 _height);
         ~DeferredRenderingSystem();
 
         void start(FrameInfo &frame_info, const std::shared_ptr<Scene> &scene);
         void end(FrameInfo &frame_info);
 
-        void resize(u32 _width, u32 _height);
+        void resize(i32 _width, i32 _height);
 
         VkDescriptorSet& get_present_descriptor_set() { return vk_present_descriptor_set; }
         VkDescriptorSet& get_emissive_descriptor_set() { return vk_emissive_descriptor_set; }
@@ -28,7 +28,7 @@ namespace Engine {
         void write_composition_descriptor();
 
         bool first = true;
-        u32 width, height;
+        i32 width, height;
 
         RenderPass* renderpass;
 

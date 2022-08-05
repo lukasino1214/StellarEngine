@@ -16,8 +16,8 @@ namespace Engine {
         sampler = new Sampler(device, {
                 .min_filter = Filter::LINEAR,
                 .mag_filter = Filter::LINEAR,
+                .max_anistropy = 4.0,
                 .address_mode = SamplerAddressMode::CLAMP_TO_EDGE,
-                .max_anistropy = 4.0
         });
 
         cube = std::make_unique<Model>(device, "assets/models/cube.gltf");
@@ -91,6 +91,7 @@ namespace Engine {
         pipeline_config.vk_pipeline_layout = vk_skybox_pipeline_layout;
         pipeline_config.subpass = 2;
         pipeline_config.color_blend_info = color_blend_info;
+        pipeline_config.attribute_descriptions = Model::Vertex::getAttributeDescriptionsOnlyPosition();
 
         skybox_pipeline = std::make_unique<Pipeline>(device, pipeline_config, ShaderFilepaths {
                 .vertex = "assets/shaders/skybox.vert",
@@ -310,6 +311,7 @@ namespace Engine {
         Pipeline::default_pipeline_config_info(pipeline_config);
         pipeline_config.vk_renderpass = renderpass.vk_renderpass;
         pipeline_config.vk_pipeline_layout = vk_pipeline_layout;
+        pipeline_config.attribute_descriptions = Model::Vertex::getAttributeDescriptionsOnlyPosition();
 
         Pipeline pipeline(device, pipeline_config, {
                 .vertex = "assets/shaders/equirectangular_to_cubemap.vert",
@@ -472,6 +474,7 @@ namespace Engine {
         Pipeline::default_pipeline_config_info(pipeline_config);
         pipeline_config.vk_renderpass = renderpass.vk_renderpass;
         pipeline_config.vk_pipeline_layout = vk_pipeline_layout;
+        pipeline_config.attribute_descriptions = Model::Vertex::getAttributeDescriptionsOnlyPosition();
 
         Pipeline pipeline(device, pipeline_config, {
                 .vertex = "assets/shaders/irradiancecube.vert",
@@ -635,6 +638,7 @@ namespace Engine {
         Pipeline::default_pipeline_config_info(pipeline_config);
         pipeline_config.vk_renderpass = renderpass.vk_renderpass;
         pipeline_config.vk_pipeline_layout = vk_pipeline_layout;
+        pipeline_config.attribute_descriptions = Model::Vertex::getAttributeDescriptionsOnlyPosition();
 
         Pipeline pipeline(device, pipeline_config, {
                 .vertex = "assets/shaders/prefilterenv.vert",

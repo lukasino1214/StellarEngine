@@ -33,7 +33,7 @@ namespace Engine {
         void SetProjection(int width, int height) {
             m_Width = width;
             m_Height = height;
-            m_Projection = glm::perspective(glm::radians(m_FOV), (float) m_Width / m_Height, nearPlane, farPlane);
+            m_Projection = glm::perspective(glm::radians(m_FOV), static_cast<float>(m_Width / m_Height), nearPlane, farPlane);
         }
 
         // Updates and exports the camera matrix to the Vertex Shader

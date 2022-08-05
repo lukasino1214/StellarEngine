@@ -1,12 +1,9 @@
 #include "texture.h"
 #include "buffer.h"
-#include "core.h"
 #include "vk_types.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-
 #include <stb_image.h>
-#include <iostream>
 
 namespace Engine {
     Texture::Texture(std::shared_ptr<Device> _device, const std::string &path, ImageFormat format, int components) : device{_device} {

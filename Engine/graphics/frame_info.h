@@ -26,7 +26,7 @@ namespace Engine {
         float screen_height;
     };
     struct FrameInfo {
-        int frame_index;
+        uint32_t frame_index;
         float frame_time;
         VkCommandBuffer command_buffer;
         VkDescriptorSet vk_global_descriptor_set;
