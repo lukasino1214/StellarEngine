@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
 #include "../graphics/device.h"
 #include "../pgepch.h"
 #include "../graphics/frame_info.h"

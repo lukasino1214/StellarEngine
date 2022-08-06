@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../graphics/framebuffer_attachment.h"
-#include <vulkan/vulkan.h>
 #include "../data/scene.h"
 #include "../data/entity.h"
 #include "../graphics/pipeline.h"
@@ -33,7 +32,7 @@ namespace Engine {
         RenderPass* renderpass;
 
         std::unique_ptr<Pipeline> pipeline;
-        VkPipelineLayout vk_pipeline_layout;
+        VkPipelineLayout vk_pipeline_layout = {};
 
         std::shared_ptr<Device> device;
     };

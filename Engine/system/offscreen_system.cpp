@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <glm/glm.hpp>
-#include <vulkan/vulkan_core.h>
 
 namespace Engine {
     OffScreenSystem::OffScreenSystem(std::shared_ptr<Device> _device, i32 _width, i32 _height) : width{_width}, height{_height}, device{_device} {

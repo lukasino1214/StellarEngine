@@ -4,6 +4,7 @@
 #include "../core/window.h"
 
 // libs
+#define VK_NO_PROTOTYPES
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
@@ -19,7 +20,7 @@ namespace Engine {
         void new_frame();
         void render(VkCommandBuffer command_buffer);
 
-        VkDescriptorPool get_descriptor_pool() { return vk_descriptor_pool; }
+        [[maybe_unused]] VkDescriptorPool get_descriptor_pool() { return vk_descriptor_pool; }
 
     private:
         VkDescriptorPool vk_descriptor_pool;

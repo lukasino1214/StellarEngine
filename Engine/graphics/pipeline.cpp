@@ -4,9 +4,10 @@
 #include "core.h"
 #include <cstdint>
 #include <shaderc/shaderc.hpp>
+#include <utility>
 
 namespace Engine {
-    Pipeline::Pipeline(std::shared_ptr<Device> _device, const PipelineConfigInfo &config_info, const ShaderFilepaths &paths) : device{_device}, shader_filepaths{paths} {
+    Pipeline::Pipeline(std::shared_ptr<Device> _device, const PipelineConfigInfo &config_info, ShaderFilepaths paths) : device{std::move(_device)}, shader_filepaths{std::move(paths)} {
         assert(config_info.vk_pipeline_layout != VK_NULL_HANDLE && "Cannot create graphics pipeline: no pipelineLayout provided in configInfo");
         assert(config_info.vk_renderpass != VK_NULL_HANDLE && "Cannot create graphics pipeline: no renderPass provided in configInfo");
 
@@ -15,13 +16,13 @@ namespace Engine {
         //options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
 
         u32 num_shaders = 0;
-        if(shader_filepaths.vertex != "") {
+        if(!shader_filepaths.vertex.empty()) {
             num_shaders += 1;
             auto code = compile_shader(shader_filepaths.vertex, shaderc_vertex_shader);
             create_shader_module(code, &vk_vertex_shader_module);
         }
 
-        if(shader_filepaths.fragment != "") {
+        if(!shader_filepaths.fragment.empty()) {
             num_shaders += 1;
             auto code = compile_shader(shader_filepaths.fragment, shaderc_fragment_shader);
             create_shader_module(code, &vk_fragment_shader_module);
@@ -29,7 +30,7 @@ namespace Engine {
 
         VkPipelineShaderStageCreateInfo shader_stages[num_shaders];
 
-        if(shader_filepaths.vertex != "") {
+        if(!shader_filepaths.vertex.empty()) {
             shader_stages[0] = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                     .pNext = nullptr,
@@ -41,7 +42,7 @@ namespace Engine {
             };
         }
 
-        if(shader_filepaths.fragment != "") {
+        if(!shader_filepaths.fragment.empty()) {
             shader_stages[1] = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                     .pNext = nullptr,
@@ -94,11 +95,11 @@ namespace Engine {
     }
 
     Pipeline::~Pipeline() {
-        if(shader_filepaths.vertex != "") {
+        if(!shader_filepaths.vertex.empty()) {
             vkDestroyShaderModule(device->vk_device, vk_vertex_shader_module, nullptr);
         }
 
-        if(shader_filepaths.fragment != "") {
+        if(!shader_filepaths.fragment.empty()) {
             vkDestroyShaderModule(device->vk_device, vk_fragment_shader_module, nullptr);
         }
 

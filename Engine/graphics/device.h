@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
 #include "../core/window.h"
 #include "../pgepch.h"
 

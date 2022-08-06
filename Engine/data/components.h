@@ -47,8 +47,8 @@ namespace Engine {
         void set_rotation(const glm::vec3 &_rotation) { rotation = _rotation; is_dirty = true; }
         void set_scale(const glm::vec3 &_scale) { scale = _scale; is_dirty = true; }
 
-        glm::mat4 calculate_matrix();
-        glm::mat3 calculate_normal_matrix();
+        glm::mat4 calculate_matrix() const;
+        glm::mat3 calculate_normal_matrix() const;
     };
 
     struct ModelComponent {

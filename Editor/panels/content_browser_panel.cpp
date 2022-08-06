@@ -1,5 +1,6 @@
 #include "content_browser_panel.h"
 
+#define VK_NO_PROTOTYPES
 #include <imgui.h>
 #include <imgui_impl_vulkan.h>
 

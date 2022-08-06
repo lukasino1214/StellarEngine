@@ -1,9 +1,7 @@
 #include "scene_hierarchy_panel.h"
 
-#include "../../Vendor/imgui/imgui.h"
-#include "../../Vendor/imgui/imgui_internal.h"
-
-#include <glm/gtc/type_ptr.hpp>
+#include <imgui.h>
+#include <imgui_internal.h>
 
 #include <cstring>
 #include <iostream>

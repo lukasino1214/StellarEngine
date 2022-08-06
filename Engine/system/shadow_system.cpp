@@ -1,5 +1,6 @@
 #include "shadow_system.h"
-#include "../pgepch.h"
+
+#include <utility>
 #include "../graphics/core.h"
 
 namespace Engine {
@@ -8,7 +9,7 @@ namespace Engine {
         glm::mat4 normal_matrix{1.0f};
     };
 
-    ShadowSystem::ShadowSystem(std::shared_ptr<Device> _device) : device{_device} {
+    ShadowSystem::ShadowSystem(std::shared_ptr<Device> _device) : device{std::move(_device)} {
 
         depth = new FrameBufferAttachment(device, {
                 .format = ImageFormat::D16_UNORM,

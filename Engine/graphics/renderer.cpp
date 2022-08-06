@@ -1,9 +1,11 @@
 #include "renderer.h"
+
+#include <utility>
 #include "core.h"
 
 namespace Engine {
 
-    Renderer::Renderer(std::shared_ptr<Window> _window, std::shared_ptr<Device> _device) : window{_window}, device{_device} {
+    Renderer::Renderer(std::shared_ptr<Window> _window, std::shared_ptr<Device> _device) : window{std::move(_window)}, device{std::move(_device)} {
         recreate_swapchain();
         create_command_buffers();
     }
@@ -24,7 +26,7 @@ namespace Engine {
             std::shared_ptr<SwapChain> old_swapchain = std::move(swapchain);
             swapchain = std::make_unique<SwapChain>(device, extent, old_swapchain);
 
-            if (!old_swapchain->compare_swap_formats(*swapchain.get())) {
+            if (!old_swapchain->compare_swap_formats(*swapchain)) {
                 throw std::runtime_error("Swap chain image(or depth) format has changed!");
             }
         }
@@ -143,7 +145,7 @@ namespace Engine {
         vkCmdSetScissor(command_buffer, 0, 1, &scissor);
     }
 
-    void Renderer::end_swapchain_renderpass(VkCommandBuffer command_buffer) {
+    void Renderer::end_swapchain_renderpass(VkCommandBuffer command_buffer) const {
         assert(is_frame_started && "Can't call endSwapChainRenderPass if frame is not in progress");
         assert(command_buffer == get_current_command_buffer() && "Can't end render pass on command buffer from a different frame");
         vkCmdEndRenderPass(command_buffer);

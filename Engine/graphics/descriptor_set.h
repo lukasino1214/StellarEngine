@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "device.h"
 #include "../pgepch.h"
 
@@ -8,7 +10,7 @@ namespace Engine {
     public:
         class Builder {
         public:
-            Builder(std::shared_ptr<Device> _device) : device{_device} {}
+            explicit Builder(std::shared_ptr<Device> _device) : device{std::move(_device)} {}
 
             Builder &add_binding(uint32_t binding, VkDescriptorType descriptor_type, VkShaderStageFlags stage_flags, uint32_t count = 1);
 
@@ -29,7 +31,7 @@ namespace Engine {
         VkDescriptorSetLayout get_descriptor_set_layout() const { return vk_descriptor_set_layout; }
 
     private:
-        VkDescriptorSetLayout vk_descriptor_set_layout;
+        VkDescriptorSetLayout vk_descriptor_set_layout = {};
         std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings;
         std::shared_ptr<Device> device;
 
@@ -40,14 +42,15 @@ namespace Engine {
     public:
         class Builder {
         public:
-            Builder(std::shared_ptr<Device> _device) : device{_device} {}
+            explicit Builder(std::shared_ptr<Device> _device) : device{std::move(_device)} {}
 
             Builder &add_pool_size(VkDescriptorType descriptor_type, uint32_t count);
-            Builder &set_pool_flags(VkDescriptorPoolCreateFlags flags);
+
+            [[maybe_unused]] [[nodiscard]] Builder &set_pool_flags(VkDescriptorPoolCreateFlags flags);
             Builder &set_max_sets(uint32_t count);
 
-            std::unique_ptr<DescriptorPool> build_unique() const;
-            std::shared_ptr<DescriptorPool> build_shared() const;
+            [[maybe_unused]] [[nodiscard]] std::unique_ptr<DescriptorPool> build_unique() const;
+            [[maybe_unused]] [[nodiscard]] std::shared_ptr<DescriptorPool> build_shared() const;
 
         private:
             std::vector<VkDescriptorPoolSize> pool_sizes{};
@@ -62,13 +65,14 @@ namespace Engine {
         DescriptorPool(const DescriptorPool &) = delete;
         DescriptorPool &operator=(const DescriptorPool &) = delete;
 
-        bool allocate_descriptor_set(const VkDescriptorSetLayout descriptor_set_layout, VkDescriptorSet &descriptor_set) const;
-        void free_descriptor_sets(std::vector<VkDescriptorSet> &descriptors) const;
+        bool allocate_descriptor_set(const VkDescriptorSetLayout& descriptor_set_layout, VkDescriptorSet &descriptor_set) const;
 
-        void reset_pool();
+        [[maybe_unused]] void free_descriptor_sets(std::vector<VkDescriptorSet> &descriptors) const;
+
+        [[maybe_unused]] [[maybe_unused]] void reset_pool();
 
     private:
-        VkDescriptorPool vk_descriptor_pool;
+        VkDescriptorPool vk_descriptor_pool = {};
         std::shared_ptr<Device> device;
 
         friend class DescriptorWriter;
@@ -80,9 +84,9 @@ namespace Engine {
         DescriptorWriter &write_buffer(uint32_t binding, VkDescriptorBufferInfo *buffer_info);
         DescriptorWriter &write_image(uint32_t binding, VkDescriptorImageInfo *image_info);
 
-        bool build(std::shared_ptr<Device> device, VkDescriptorSet &descriptor_set);
+        bool build(const std::shared_ptr<Device>& device, VkDescriptorSet &descriptor_set);
 
-        void overwrite(std::shared_ptr<Device> device, VkDescriptorSet &descriptor_set);
+        void overwrite(const std::shared_ptr<Device>& device, VkDescriptorSet &descriptor_set);
 
     private:
         DescriptorSetLayout &descriptor_set_layout;

@@ -1,7 +1,8 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
+
+#include "device.h"
 
 namespace Engine {
     struct DirectionalLight {
@@ -21,15 +22,15 @@ namespace Engine {
         PointLight point_lights[10];
         DirectionalLight directional_lights[10];
         int num_point_lights;
-        int num_directional_lights;
-        float screen_width;
-        float screen_height;
+        [[maybe_unused]] int num_directional_lights;
+        [[maybe_unused]] float screen_width;
+        [[maybe_unused]] float screen_height;
     };
     struct FrameInfo {
-        uint32_t frame_index;
-        float frame_time;
-        VkCommandBuffer command_buffer;
-        VkDescriptorSet vk_global_descriptor_set;
-        GlobalUbo ubo;
+        [[maybe_unused]] uint32_t frame_index{};
+        [[maybe_unused]] float frame_time{};
+        VkCommandBuffer command_buffer{};
+        VkDescriptorSet vk_global_descriptor_set{};
+        GlobalUbo ubo{};
     };
 }

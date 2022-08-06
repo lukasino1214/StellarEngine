@@ -1,9 +1,9 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#define VK_NO_PROTOTYPES
+#include <volk.h>
 
-#define GLFW_INCLUDE_VULKAN
-
+#define VK_NO_PROTOTYPES
 #include <GLFW/glfw3.h>
 
 #include <string>

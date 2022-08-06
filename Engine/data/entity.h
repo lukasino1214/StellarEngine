@@ -37,9 +37,8 @@ namespace Engine {
         operator entt::entity() const { return handle; }
         operator uint32_t() const { return static_cast<uint32_t>(handle); }
 
-        UUID GetUUID() { return get_component<IDComponent>().ID; }
-
-        entt::entity get_handle() { return handle; }
+        [[maybe_unused]] UUID get_UUID() { return get_component<IDComponent>().ID; }
+        [[maybe_unused]] entt::entity get_handle() { return handle; }
 
         bool operator==(const Entity &other) const {
             return handle == other.handle && scene == other.scene;

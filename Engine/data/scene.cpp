@@ -3,13 +3,10 @@
 #include "entity.h"
 
 #include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
 
 namespace Engine {
-
-    Scene::Scene() {}
-
-    Scene::~Scene() {}
+    Scene::Scene() = default;
+    Scene::~Scene() = default;
 
     Entity Scene::create_entity(const std::string &name) {
         return create_entity_with_UUID(UUID(), name);

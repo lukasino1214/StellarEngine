@@ -1,11 +1,11 @@
 #include "components.h"
 
 namespace Engine {
-    glm::mat4 TransformComponent::calculate_matrix() {
+    glm::mat4 TransformComponent::calculate_matrix() const {
         return glm::translate(glm::mat4(1.0f), translation) * glm::toMat4(glm::quat(rotation)) * glm::scale(glm::mat4(1.0f), scale);
     }
 
-    glm::mat3 TransformComponent::calculate_normal_matrix() {
+    glm::mat3 TransformComponent::calculate_normal_matrix() const {
         const float c3 = glm::cos(rotation.z);
         const float s3 = glm::sin(rotation.z);
         const float c2 = glm::cos(rotation.x);

@@ -1,6 +1,5 @@
 #include "image.h"
 #include <cstddef>
-#include <vulkan/vulkan_core.h>
 
 namespace Engine {
     Image::Image(std::shared_ptr<Device> _device, const ImageDescription& _description) : device{_device}, description{_description}  {

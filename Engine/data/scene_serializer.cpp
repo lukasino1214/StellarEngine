@@ -1,5 +1,4 @@
 #include "scene_serializer.h"
-#include "../pgepch.h"
 
 #include <yaml-cpp/yaml.h>
 
@@ -67,7 +66,7 @@ namespace Engine {
 
     static void serialize_entity(YAML::Emitter &out, Entity entity) {
         out << YAML::BeginMap; // Entity
-        out << YAML::Key << "Entity" << YAML::Value << entity.GetUUID(); // TODO: Entity ID goes here
+        out << YAML::Key << "Entity" << YAML::Value << entity.get_UUID();
 
         if (entity.has_component<TagComponent>()) {
             out << YAML::Key << "TagComponent";
@@ -148,24 +147,24 @@ namespace Engine {
         fout << out.c_str();
     }
 
-    bool SceneSerializer::deserialize(std::shared_ptr<Device> device, const std::string &filepath) {
+    bool SceneSerializer::deserialize(const std::shared_ptr<Device>& device, const std::string &filepath) {
         YAML::Node data;
         try {
             data = YAML::LoadFile(filepath);
         }
-        catch (YAML::ParserException e) {
+        catch (YAML::ParserException& e) {
             return false;
         }
 
         if (!data["Scene"])
             return false;
 
-        std::string sceneName = data["Scene"].as<std::string>();
+        auto sceneName = data["Scene"].as<std::string>();
 
         auto entities = data["Entities"];
         if (entities) {
             for (auto entity : entities) {
-                uint64_t uuid = entity["Entity"].as<uint64_t>(); // TODO
+                auto uuid = entity["Entity"].as<uint64_t>();
 
                 std::string name;
                 auto tag_component = entity["TagComponent"];

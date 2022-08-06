@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <vector>
-#include <vulkan/vulkan_core.h>
 
 namespace Engine {
     RenderPass::RenderPass(std::shared_ptr<Device> device, std::vector<Attachment> attachments, std::vector<SubpassInfo> subpassInfos) : m_Device{device} {

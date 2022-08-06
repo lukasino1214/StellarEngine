@@ -16,6 +16,8 @@
     "spdlog",
     "stb",
     "meshoptimizer",
-    "physx"
+    "physx",
+    "volk",
+    "vulkan-memory-allocator"
   ]
 }

@@ -1,20 +1,17 @@
 #include "swapchain.h"
-#include "core.h"
 
 #include <array>
-#include <cstdlib>
 #include <cstring>
-#include <iostream>
 #include <limits>
-#include <set>
 #include <stdexcept>
+#include <utility>
 
 namespace Engine {
-    SwapChain::SwapChain(std::shared_ptr<Device> _device, VkExtent2D extent) : vk_window_extent{extent}, device{_device} {
+    SwapChain::SwapChain(std::shared_ptr<Device> _device, VkExtent2D extent) : vk_window_extent{extent}, device{std::move(_device)} {
         init();
     }
 
-    SwapChain::SwapChain(std::shared_ptr<Device> _device, VkExtent2D extent, std::shared_ptr<SwapChain> previous) : vk_window_extent{extent}, old_swapchain{previous}, device{_device} {
+    SwapChain::SwapChain(std::shared_ptr<Device> _device, VkExtent2D extent, std::shared_ptr<SwapChain> previous) : vk_window_extent{extent}, old_swapchain{std::move(previous)}, device{std::move(_device)} {
         init();
         old_swapchain = nullptr;
     }
@@ -66,7 +63,7 @@ namespace Engine {
         return result;
     }
 
-    VkResult SwapChain::submit_command_buffers(const VkCommandBuffer *buffers, uint32_t *image_index) {
+    VkResult SwapChain::submit_command_buffers(const VkCommandBuffer *buffers, const uint32_t *image_index) {
         if (vk_images_in_flight[*image_index] != VK_NULL_HANDLE) {
             vkWaitForFences(device->vk_device, 1, &vk_images_in_flight[*image_index], VK_TRUE, UINT64_MAX);
         }

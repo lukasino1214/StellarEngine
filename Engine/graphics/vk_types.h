@@ -2,8 +2,6 @@
 
 #include "../core/types.h"
 
-#include <vulkan/vulkan.h>
-
 namespace Engine {
     enum class ImageFormat {
         UNDEFINED = 0,

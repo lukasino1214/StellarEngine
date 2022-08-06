@@ -64,17 +64,17 @@ namespace Engine {
         PipelineConfigInfo(const PipelineConfigInfo &) = delete;
         PipelineConfigInfo &operator=(const PipelineConfigInfo &) = delete;
 
-        std::vector<VkVertexInputBindingDescription> binding_descriptions;
-        std::vector<VkVertexInputAttributeDescription> attribute_descriptions;
-        VkPipelineViewportStateCreateInfo viewport_info;
-        VkPipelineInputAssemblyStateCreateInfo input_assembly_info;
-        VkPipelineRasterizationStateCreateInfo rasterization_info;
-        VkPipelineMultisampleStateCreateInfo multisample_info;
-        VkPipelineColorBlendAttachmentState color_blend_attachment;
-        VkPipelineColorBlendStateCreateInfo color_blend_info;
-        VkPipelineDepthStencilStateCreateInfo depth_stencil_info;
-        std::vector<VkDynamicState> dynamic_state_enables;
-        VkPipelineDynamicStateCreateInfo dynamic_state_info;
+        std::vector<VkVertexInputBindingDescription> binding_descriptions = {};
+        std::vector<VkVertexInputAttributeDescription> attribute_descriptions = {};
+        VkPipelineViewportStateCreateInfo viewport_info = {};
+        VkPipelineInputAssemblyStateCreateInfo input_assembly_info = {};
+        VkPipelineRasterizationStateCreateInfo rasterization_info = {};
+        VkPipelineMultisampleStateCreateInfo multisample_info = {};
+        VkPipelineColorBlendAttachmentState color_blend_attachment = {};
+        VkPipelineColorBlendStateCreateInfo color_blend_info = {};
+        VkPipelineDepthStencilStateCreateInfo depth_stencil_info = {};
+        std::vector<VkDynamicState> dynamic_state_enables = {};
+        VkPipelineDynamicStateCreateInfo dynamic_state_info = {};
         VkPipelineLayout vk_pipeline_layout = nullptr;
         VkRenderPass vk_renderpass = nullptr;
         uint32_t subpass = 0;
@@ -88,7 +88,7 @@ namespace Engine {
 
     class Pipeline {
     public:
-        Pipeline(std::shared_ptr<Device> _device, const PipelineConfigInfo &config_info, const ShaderFilepaths &paths);
+        Pipeline(std::shared_ptr<Device> _device, const PipelineConfigInfo &config_info, ShaderFilepaths paths);
         ~Pipeline();
 
         Pipeline(const Pipeline &) = delete;

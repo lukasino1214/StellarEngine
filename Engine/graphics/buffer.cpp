@@ -1,5 +1,6 @@
 #include "buffer.h"
-#include "core.h"
+
+#include <utility>
 
 namespace Engine {
     VkDeviceSize Buffer::get_alignment(VkDeviceSize _instance_size, VkDeviceSize min_offset_alignment) {
@@ -14,7 +15,7 @@ namespace Engine {
               instance_count{_instance_count},
               usage_flags{_usage_flags},
               memory_property_flags{_memory_property_flags},
-              device{_device} {
+              device{std::move(_device)} {
         alignment_size = get_alignment(instance_size, min_offset_alignment);
         buffer_size = alignment_size * instance_count;
         device->create_buffer(buffer_size, usage_flags, memory_property_flags, vk_buffer, vk_device_memory);

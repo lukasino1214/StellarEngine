@@ -5,8 +5,8 @@
 
 #include <glm/glm.hpp>
 
+#define VK_NO_PROTOTYPES
 #define GLFW_INCLUDE_VULKAN
-
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <limits>
@@ -15,7 +15,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/vector_angle.hpp>
-#include <GLFW/glfw3.h>
 
 namespace Engine {
     class Camera {

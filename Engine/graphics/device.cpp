@@ -62,11 +62,13 @@ namespace Engine {
     }
 
     void Device::create_instance() {
+        volkInitialize();
+
         if (enable_validation_layers && !check_validation_layer_support()) {
             throw std::runtime_error("validation layers requested, but not available!");
         }
 
-        VkApplicationInfo vk_application_info = {
+        const VkApplicationInfo vk_application_info = {
                 .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
                 .pNext = nullptr,
                 .pApplicationName = "Stellar Engine App",
@@ -99,6 +101,8 @@ namespace Engine {
         if (vkCreateInstance(&vk_instance_create_info, nullptr, &vk_instance) != VK_SUCCESS) {
             throw std::runtime_error("failed to create instance!");
         }
+
+        volkLoadInstance(vk_instance);
 
         has_gflw_required_instance_extensions();
     }
@@ -171,6 +175,8 @@ namespace Engine {
         if (vkCreateDevice(vk_physical_device, &vk_device_create_info, nullptr, &vk_device) != VK_SUCCESS) {
             throw std::runtime_error("failed to create logical device!");
         }
+
+        volkLoadDevice(vk_device);
 
         vkGetDeviceQueue(vk_device, indices.graphics_family, 0, &vk_graphics_queue);
         vkGetDeviceQueue(vk_device, indices.present_family, 0, &vk_present_queue);

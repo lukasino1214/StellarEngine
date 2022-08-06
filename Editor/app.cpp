@@ -7,9 +7,7 @@
 #include <glm/glm.hpp>
 #include <chrono>
 #include <imgui.h>
-#include <backends/imgui_impl_vulkan.h>
 #include "helmet_script.h"
-#include "../Engine/pgepch.h"
 
 
 namespace Engine {
@@ -40,19 +38,19 @@ namespace Engine {
 
         preferences_panel = std::make_unique<PreferencesPanel>();
 
-        //auto helmet = std::make_shared<Model>(device, "assets/models/SciFiHelmet/glTF/SciFiHelmet.gltf");
-        //auto damaged_helmet = std::make_shared<Model>(device, "assets/models/DamagedHelmet/glTF/DamagedHelmet.gltf");
+        auto helmet = std::make_shared<Model>(device, "assets/models/SciFiHelmet/glTF/SciFiHelmet.gltf");
+        auto damaged_helmet = std::make_shared<Model>(device, "assets/models/DamagedHelmet/glTF/DamagedHelmet.gltf");
 
-        /*auto entity = editor_scene->create_entity("HELP");
+        auto entity = editor_scene->create_entity("HELP");
         auto script = std::make_shared<HelmetScript>(entity.get_handle(), editor_scene);
         entity.get_component<TransformComponent>().translation = {10, 8, 0};
         entity.add_component<ModelComponent>(helmet);
-        entity.add_component<ScriptComponent>(script);*/
+        entity.add_component<ScriptComponent>(script);
 
-        /*auto test = editor_scene->create_entity("Test");
+        auto test = editor_scene->create_entity("Test");
         test.get_component<TransformComponent>().set_translation(glm::vec3{10.0f, 5.0f, 0.0f});
         test.add_component<ModelComponent>(damaged_helmet);
-        test.get_component<ModelComponent>().transparent = true;*/
+        test.get_component<ModelComponent>().transparent = true;
 
         /*auto test1 = editor_scene->create_entity("Test 1");
         test1.get_component<RelationshipComponent>().parent = test;

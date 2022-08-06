@@ -17,8 +17,7 @@ namespace Engine {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
         ImGui::Begin("Viewport");
         ImVec2 viewport_panel_size = ImGui::GetContentRegionAvail();
-        if (viewport_size != *(reinterpret_cast<glm::ivec2*>(&viewport_panel_size))) {
-        //if (viewport_size != *((glm::vec2 *) &viewport_panel_size)) {
+        if (viewport_size.x != static_cast<i32>(viewport_panel_size.x) || viewport_size.y != static_cast<i32>(viewport_panel_size.y)) {
             should_resize = true;
             viewport_size = {viewport_panel_size.x, viewport_panel_size.y};
             camera->SetProjection(viewport_size.x, viewport_size.y);
