@@ -481,4 +481,14 @@ namespace Engine {
         NONE_EXT = VK_ATTACHMENT_STORE_OP_NONE,
         MAX_ENUM = 0x7FFFFFFF
     };
+
+    using MemoryFlags = u32;
+    struct MemoryFlagBits {
+        static inline constexpr MemoryFlags DEDICATED_MEMORY = 0x00000001;
+        static inline constexpr MemoryFlags CAN_ALIAS = 0x00000200;
+        static inline constexpr MemoryFlags HOST_ACCESS_SEQUENTIAL_WRITE = 0x00000400;
+        static inline constexpr MemoryFlags HOST_ACCESS_RANDOM = 0x00000800;
+        static inline constexpr MemoryFlags STRATEGY_MIN_MEMORY = 0x00010000;
+        static inline constexpr MemoryFlags STRATEGY_MIN_TIME = 0x00020000;
+    };
 }

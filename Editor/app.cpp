@@ -76,7 +76,7 @@ namespace Engine {
     void App::run() {
         std::vector<std::unique_ptr<Buffer>> ubo_buffers(SwapChain::MAX_FRAMES_IN_FLIGHT);
         for (auto &uboBuffer: ubo_buffers) {
-            uboBuffer = std::make_unique<Buffer>(device, sizeof(GlobalUbo), 1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+            uboBuffer = std::make_unique<Buffer>(device, sizeof(GlobalUbo), 1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, MemoryFlagBits::HOST_ACCESS_SEQUENTIAL_WRITE);
             uboBuffer->map();
         }
 

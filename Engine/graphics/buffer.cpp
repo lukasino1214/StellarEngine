@@ -10,7 +10,7 @@ namespace Engine {
         return _instance_size;
     }
 
-    Buffer::Buffer(std::shared_ptr<Device> _device, VkDeviceSize _instance_size, uint32_t _instance_count, VkBufferUsageFlags _usage_flags, VkMemoryPropertyFlags _memory_property_flags, VkDeviceSize min_offset_alignment)
+    Buffer::Buffer(std::shared_ptr<Device> _device, VkDeviceSize _instance_size, uint32_t _instance_count, VkBufferUsageFlags _usage_flags, MemoryFlags _memory_property_flags, VkDeviceSize min_offset_alignment)
             : instance_size{_instance_size},
               instance_count{_instance_count},
               usage_flags{_usage_flags},
@@ -18,23 +18,22 @@ namespace Engine {
               device{std::move(_device)} {
         alignment_size = get_alignment(instance_size, min_offset_alignment);
         buffer_size = alignment_size * instance_count;
-        device->create_buffer(buffer_size, usage_flags, memory_property_flags, vk_buffer, vk_device_memory);
+        device->create_buffer(buffer_size, usage_flags, memory_property_flags, vk_buffer, vma_allocation);
     }
 
     Buffer::~Buffer() {
         unmap();
-        vkDestroyBuffer(device->vk_device, vk_buffer, nullptr);
-        vkFreeMemory(device->vk_device, vk_device_memory, nullptr);
+        vmaDestroyBuffer(device->vma_allocator, vk_buffer, vma_allocation);
     }
 
     VkResult Buffer::map(VkDeviceSize size, VkDeviceSize offset) {
-        assert(vk_buffer && vk_device_memory && "Called map on buffer before create");
-        return vkMapMemory(device->vk_device, vk_device_memory, offset, size, 0, &mapped);
+        // TODO: size and offset
+        return vmaMapMemory(device->vma_allocator, vma_allocation, &mapped);
     }
 
     void Buffer::unmap() {
         if (mapped) {
-            vkUnmapMemory(device->vk_device, vk_device_memory);
+            vmaUnmapMemory(device->vma_allocator, vma_allocation);
             mapped = nullptr;
         }
     }
@@ -52,27 +51,11 @@ namespace Engine {
     }
 
     VkResult Buffer::flush(VkDeviceSize size, VkDeviceSize offset) {
-        VkMappedMemoryRange mapped_range = {
-                .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
-                .pNext = nullptr,
-                .memory = vk_device_memory,
-                .offset = offset,
-                .size = size
-        };
-
-        return vkFlushMappedMemoryRanges(device->vk_device, 1, &mapped_range);
+        return vmaFlushAllocation(device->vma_allocator, vma_allocation, offset, size);
     }
 
     VkResult Buffer::invalidate(VkDeviceSize size, VkDeviceSize offset) {
-        VkMappedMemoryRange mapped_range = {
-                .sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
-                .pNext = nullptr,
-                .memory = vk_device_memory,
-                .offset = offset,
-                .size = size
-        };
-
-        return vkInvalidateMappedMemoryRanges(device->vk_device, 1, &mapped_range);
+        return vmaInvalidateAllocation(device->vma_allocator, vma_allocation, offset, size);
     }
 
     VkDescriptorBufferInfo Buffer::get_descriptor_info(VkDeviceSize size, VkDeviceSize offset) {

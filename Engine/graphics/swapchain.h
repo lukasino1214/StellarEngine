@@ -57,7 +57,7 @@ namespace Engine {
         std::vector<VkFramebuffer> vk_swapchain_framebuffers = {};
 
         std::vector<VkImage> vk_depth_images = {};
-        std::vector<VkDeviceMemory> vk_depth_image_device_memories = {};
+        std::vector<VmaAllocation> vma_depth_image_allocation = {};
         std::vector<VkImageView> vk_depth_image_views = {};
         std::vector<VkImage> vk_swapchain_images = {};
         std::vector<VkImageView> vk_swapchain_image_views = {};

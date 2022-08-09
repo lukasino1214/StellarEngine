@@ -204,7 +204,7 @@ namespace Engine {
 
         u32 mip_levels_hdr = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 
-        Buffer stagingBuffer{device, 4 * sizeof(u16), static_cast<uint32_t>(width * height), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT};
+        Buffer stagingBuffer{device, 4 * sizeof(u16), static_cast<uint32_t>(width * height), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, MemoryFlagBits::HOST_ACCESS_SEQUENTIAL_WRITE};
 
         stagingBuffer.map();
         stagingBuffer.write_to_buffer(data);

@@ -47,9 +47,54 @@ namespace Engine {
         pick_physical_device();
         create_logical_device();
         create_command_pool();
+
+        VmaVulkanFunctions vma_vulkan_functions = {
+                .vkGetInstanceProcAddr = vkGetInstanceProcAddr,
+                .vkGetDeviceProcAddr = vkGetDeviceProcAddr,
+                .vkGetPhysicalDeviceProperties = vkGetPhysicalDeviceProperties,
+                .vkGetPhysicalDeviceMemoryProperties = vkGetPhysicalDeviceMemoryProperties,
+                .vkAllocateMemory = device_table.vkAllocateMemory,
+                .vkFreeMemory = device_table.vkFreeMemory,
+                .vkMapMemory = device_table.vkMapMemory,
+                .vkUnmapMemory = device_table.vkUnmapMemory,
+                .vkFlushMappedMemoryRanges = device_table.vkFlushMappedMemoryRanges,
+                .vkInvalidateMappedMemoryRanges = device_table.vkInvalidateMappedMemoryRanges,
+                .vkBindBufferMemory = device_table.vkBindBufferMemory,
+                .vkBindImageMemory = device_table.vkBindImageMemory,
+                .vkGetBufferMemoryRequirements = device_table.vkGetBufferMemoryRequirements,
+                .vkGetImageMemoryRequirements = device_table.vkGetImageMemoryRequirements,
+                .vkCreateBuffer = device_table.vkCreateBuffer,
+                .vkDestroyBuffer = device_table.vkDestroyBuffer,
+                .vkCreateImage = device_table.vkCreateImage,
+                .vkDestroyImage = device_table.vkDestroyImage,
+                .vkCmdCopyBuffer = device_table.vkCmdCopyBuffer,
+                .vkGetBufferMemoryRequirements2KHR = device_table.vkGetBufferMemoryRequirements2KHR,
+                .vkGetImageMemoryRequirements2KHR = device_table.vkGetImageMemoryRequirements2KHR,
+                .vkBindBufferMemory2KHR = device_table.vkBindBufferMemory2KHR,
+                .vkBindImageMemory2KHR = device_table.vkBindImageMemory2KHR,
+                .vkGetPhysicalDeviceMemoryProperties2KHR = vkGetPhysicalDeviceMemoryProperties2KHR,
+                .vkGetDeviceBufferMemoryRequirements = device_table.vkGetDeviceBufferMemoryRequirements,
+                .vkGetDeviceImageMemoryRequirements = device_table.vkGetDeviceImageMemoryRequirements,
+        };
+
+        VmaAllocatorCreateInfo vma_allocator_create_info{
+                .flags = {},
+                .physicalDevice = vk_physical_device,
+                .device = vk_device,
+                .preferredLargeHeapBlockSize = 0, // Sets it to lib internal default (256MiB).
+                .pAllocationCallbacks = nullptr,
+                .pDeviceMemoryCallbacks = nullptr,
+                .pHeapSizeLimit = nullptr,
+                .pVulkanFunctions = &vma_vulkan_functions,
+                .instance = vk_instance,
+                .vulkanApiVersion = VK_API_VERSION_1_0,
+        };
+
+        vmaCreateAllocator(&vma_allocator_create_info, &this->vma_allocator);
     }
 
     Device::~Device() {
+        vmaDestroyAllocator(vma_allocator);
         vkDestroyCommandPool(vk_device, vk_command_pool, nullptr);
         vkDestroyDevice(vk_device, nullptr);
 
@@ -177,6 +222,7 @@ namespace Engine {
         }
 
         volkLoadDevice(vk_device);
+        volkLoadDeviceTable(&device_table, vk_device);
 
         vkGetDeviceQueue(vk_device, indices.graphics_family, 0, &vk_graphics_queue);
         vkGetDeviceQueue(vk_device, indices.present_family, 0, &vk_present_queue);
@@ -395,7 +441,7 @@ namespace Engine {
         throw std::runtime_error("failed to find suitable memory type!");
     }
 
-    void Device::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &buffer_memory) {
+    void Device::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, MemoryFlags memory_flags, VkBuffer &vk_buffer, VmaAllocation &vma_allocation) {
         VkBufferCreateInfo vk_buffer_create_info = {
                 .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
                 .pNext = nullptr,
@@ -407,25 +453,16 @@ namespace Engine {
                 .pQueueFamilyIndices = nullptr
         };
 
-        if (vkCreateBuffer(vk_device, &vk_buffer_create_info, nullptr, &buffer) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create vertex buffer!");
-        }
-
-        VkMemoryRequirements vk_memory_requirements;
-        vkGetBufferMemoryRequirements(vk_device, buffer, &vk_memory_requirements);
-
-        VkMemoryAllocateInfo vk_memory_allocate_info = {
-                .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-                .pNext = nullptr,
-                .allocationSize = vk_memory_requirements.size,
-                .memoryTypeIndex = find_memory_type(vk_memory_requirements.memoryTypeBits, properties)
+        VmaAllocationCreateInfo vma_allocation_create_info = {
+            .flags = static_cast<VmaAllocationCreateFlags>(memory_flags),
+            .usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+            .memoryTypeBits = std::numeric_limits<u32>::max(),
+            .pool = nullptr,
+            .pUserData = nullptr,
+            .priority = 0.5f,
         };
 
-        if (vkAllocateMemory(vk_device, &vk_memory_allocate_info, nullptr, &buffer_memory) != VK_SUCCESS) {
-            throw std::runtime_error("failed to allocate vertex buffer memory!");
-        }
-
-        vkBindBufferMemory(vk_device, buffer, buffer_memory, 0);
+        vmaCreateBuffer(vma_allocator, &vk_buffer_create_info, &vma_allocation_create_info, &vk_buffer, &vma_allocation, nullptr);
     }
 
     VkCommandBuffer Device::begin_single_time_command_buffer() {
@@ -507,28 +544,16 @@ namespace Engine {
         end_single_time_command_buffer(command_buffer);
     }
 
-    void Device::create_image_with_info(const VkImageCreateInfo &image_info, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &image_memory) {
-        if (vkCreateImage(vk_device, &image_info, nullptr, &image) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create image!");
-        }
-
-        VkMemoryRequirements memory_requirements;
-        vkGetImageMemoryRequirements(vk_device, image, &memory_requirements);
-
-        VkMemoryAllocateInfo vk_memory_allocate_info = {
-                .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-                .pNext = nullptr,
-                .allocationSize = memory_requirements.size,
-                .memoryTypeIndex = find_memory_type(memory_requirements.memoryTypeBits, properties),
+    void Device::create_image_with_info(const VkImageCreateInfo &vk_image_create_info, MemoryFlags memory_flags, VkImage &vk_image, VmaAllocation &vma_allocation) {
+        VmaAllocationCreateInfo vma_allocation_create_info{
+            .flags = static_cast<VmaAllocationCreateFlags>(memory_flags),
+            .usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+            .memoryTypeBits = std::numeric_limits<u32>::max(),
+            .pool = nullptr,
+            .pUserData = nullptr,
+            .priority = 0.5f,
         };
 
-        if (vkAllocateMemory(vk_device, &vk_memory_allocate_info, nullptr, &image_memory) != VK_SUCCESS) {
-            throw std::runtime_error("failed to allocate image memory!");
-        }
-
-        if (vkBindImageMemory(vk_device, image, image_memory, 0) != VK_SUCCESS) {
-            throw std::runtime_error("failed to bind image memory!");
-        }
+        vmaCreateImage(this->vma_allocator, &vk_image_create_info, &vma_allocation_create_info, &vk_image, &vma_allocation, nullptr);
     }
-
 }

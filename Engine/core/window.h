@@ -18,7 +18,7 @@ namespace Engine {
         Window &operator=(const Window &) = delete;
 
         bool should_close() { return glfwWindowShouldClose(window); }
-        VkExtent2D get_extent() { return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)}; }
+        VkExtent2D get_extent() { return { static_cast<uint32_t>(width), static_cast<uint32_t>(height) }; }
         bool was_window_resized() { return framebuffer_resized; }
         void reset_window_resized_flag() { framebuffer_resized = false; }
         GLFWwindow *get_GLFWwindow() const { return window; }

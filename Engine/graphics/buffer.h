@@ -6,7 +6,7 @@
 namespace Engine {
     class Buffer {
     public:
-        Buffer(std::shared_ptr<Device> _device, VkDeviceSize _instance_size, uint32_t _instance_count, VkBufferUsageFlags _usage_flags, VkMemoryPropertyFlags _memory_property_flags, VkDeviceSize min_offset_alignment = 1);
+        Buffer(std::shared_ptr<Device> _device, VkDeviceSize _instance_size, uint32_t _instance_count, VkBufferUsageFlags _usage_flags, MemoryFlags _memory_property_flags, VkDeviceSize min_offset_alignment = 1);
         ~Buffer();
 
         Buffer(const Buffer &) = delete;
@@ -31,7 +31,7 @@ namespace Engine {
         VkDeviceSize get_instance_size() const { return instance_size; }
         VkDeviceSize get_alignment_size() const { return alignment_size; }
         VkBufferUsageFlags get_usage_flags() const { return usage_flags; }
-        VkMemoryPropertyFlags get_memory_property_flags() const { return memory_property_flags; }
+        MemoryFlags get_memory_property_flags() const { return memory_property_flags; }
         VkDeviceSize get_buffersize() const { return buffer_size; }
 
     private:
@@ -39,14 +39,15 @@ namespace Engine {
 
         void *mapped = nullptr;
         VkBuffer vk_buffer = {};
-        VkDeviceMemory vk_device_memory = {};
+        //VkDeviceMemory vk_device_memory = {};
+        VmaAllocation vma_allocation = {};
 
         VkDeviceSize buffer_size;
         uint32_t instance_count;
         VkDeviceSize instance_size;
         VkDeviceSize alignment_size;
         VkBufferUsageFlags usage_flags;
-        VkMemoryPropertyFlags memory_property_flags;
+        MemoryFlags memory_property_flags;
         std::shared_ptr<Device> device;
     };
 

@@ -26,7 +26,7 @@ namespace Engine {
                              vertexSize,
                              vertexCount,
                              VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+                             MemoryFlagBits::HOST_ACCESS_SEQUENTIAL_WRITE
         };
 
         stagingBuffer.map();
@@ -36,7 +36,7 @@ namespace Engine {
                                                 vertexSize,
                                                 vertexCount,
                                                 VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                                                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                                                MemoryFlagBits::DEDICATED_MEMORY);
 
         m_Device->copy_buffer(stagingBuffer.get_buffer(), vertexBuffer->get_buffer(), bufferSize);
     }
@@ -56,7 +56,7 @@ namespace Engine {
                              indexSize,
                              indexCount,
                              VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+                             MemoryFlagBits::HOST_ACCESS_SEQUENTIAL_WRITE
         };
 
         stagingBuffer.map();
@@ -66,7 +66,7 @@ namespace Engine {
                                                indexSize,
                                                indexCount,
                                                VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                                               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+                                               MemoryFlagBits::DEDICATED_MEMORY
         );
 
         m_Device->copy_buffer(stagingBuffer.get_buffer(), indexBuffer->get_buffer(), bufferSize);
@@ -280,7 +280,7 @@ namespace Engine {
                                      sizeof(PBRParameters),
                                      1,
                                      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+                                     MemoryFlagBits::HOST_ACCESS_SEQUENTIAL_WRITE
                 };
 
                 stagingBuffer.map();
@@ -290,7 +290,7 @@ namespace Engine {
                                                        sizeof(PBRParameters),
                                                        1,
                                                        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                                                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+                                                       MemoryFlagBits::DEDICATED_MEMORY
                 );
 
                 m_Device->copy_buffer(stagingBuffer.get_buffer(), material.pbr_parameters_buffer->get_buffer(), sizeof(PBRParameters));

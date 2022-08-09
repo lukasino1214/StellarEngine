@@ -38,8 +38,9 @@ namespace Engine {
 
         for (int i = 0; i < vk_depth_images.size(); i++) {
             vkDestroyImageView(device->vk_device, vk_depth_image_views[i], nullptr);
-            vkDestroyImage(device->vk_device, vk_depth_images[i], nullptr);
-            vkFreeMemory(device->vk_device, vk_depth_image_device_memories[i], nullptr);
+            /*vkDestroyImage(device->vk_device, vk_depth_images[i], nullptr);
+            vkFreeMemory(device->vk_device, vk_depth_image_device_memories[i], nullptr);*/
+            vmaDestroyImage(device->vma_allocator, vk_depth_images[i], vma_depth_image_allocation[i]);
         }
 
         for (auto vk_framebuffer : vk_swapchain_framebuffers) {
@@ -297,7 +298,7 @@ namespace Engine {
         VkExtent2D swapchain_extent = get_swapchain_extent();
 
         vk_depth_images.resize(get_image_count());
-        vk_depth_image_device_memories.resize(get_image_count());
+        vma_depth_image_allocation.resize(get_image_count());
         vk_depth_image_views.resize(get_image_count());
 
         for (int i = 0; i < vk_depth_images.size(); i++) {
@@ -323,7 +324,7 @@ namespace Engine {
                     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
             };
 
-            device->create_image_with_info(vk_image_create_info, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vk_depth_images[i], vk_depth_image_device_memories[i]);
+            device->create_image_with_info(vk_image_create_info, MemoryFlagBits::DEDICATED_MEMORY, vk_depth_images[i], vma_depth_image_allocation[i]);
 
             VkImageViewCreateInfo vk_image_view_create_info = {
                     .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,

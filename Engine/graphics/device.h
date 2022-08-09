@@ -3,6 +3,13 @@
 #include "../core/window.h"
 #include "../pgepch.h"
 
+#define VMA_STATIC_VULKAN_FUNCTIONS 0
+#define VMA_DYNAMIC_VULKAN_FUNCTIONS 0
+#define VK_NO_PROTOTYPES
+#include <vk_mem_alloc.h>
+
+#include "../graphics/vk_types.h"
+
 namespace Engine {
     struct SwapChainSupportDetails {
         VkSurfaceCapabilitiesKHR capabilities;
@@ -42,13 +49,13 @@ namespace Engine {
         VkFormat find_supported_format(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
 
         // Buffer Helper Functions
-        void create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &buffer_memory);
+        void create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, MemoryFlags memory_flags, VkBuffer &vk_buffer, VmaAllocation &vma_allocation);
         VkCommandBuffer begin_single_time_command_buffer();
         void end_single_time_command_buffer(VkCommandBuffer command_buffer) const;
         void copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size);
         void copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layer_count);
 
-        void create_image_with_info(const VkImageCreateInfo &image_info, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &image_memory);
+        void create_image_with_info(const VkImageCreateInfo &vk_image_create_info, MemoryFlags memory_flags, VkImage &vk_image, VmaAllocation &vma_allocation);
 
         VkPhysicalDeviceProperties properties;
 
@@ -59,6 +66,7 @@ namespace Engine {
         VkPhysicalDevice vk_physical_device = {};
         VkCommandPool vk_command_pool = {};
         VkInstance vk_instance = {};
+        VmaAllocator vma_allocator = {};
     private:
         void create_instance();
         void setup_debug_messenger();
@@ -79,6 +87,8 @@ namespace Engine {
 
         VkDebugUtilsMessengerEXT vk_debug_messenger;
         Window* window;
+
+        VolkDeviceTable device_table = {};
 
         const std::vector<const char *> validation_layers = {"VK_LAYER_KHRONOS_validation"};
         const std::vector<const char *> device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
