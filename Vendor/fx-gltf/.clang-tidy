@@ -1,0 +1,24 @@
+HeaderFilterRegex: .*
+
+Checks: >
+ -*,
+
+ bugprone-*,
+
+ cppcoreguidelines-*,
+ -cppcoreguidelines-avoid-magic-numbers,
+ -cppcoreguidelines-non-private-member-variables-in-classes,
+ -cppcoreguidelines-pro-type-reinterpret-cast,
+ -cppcoreguidelines-macro-usage,
+
+ modernize-*,
+ -modernize-use-auto,
+ -modernize-use-trailing-return-type,
+
+ misc-*,
+ -misc-non-private-member-variables-in-classes,
+
+ readability-*,
+ -readability-magic-numbers,
+ -readability-named-parameter,
+ -readability-uppercase-literal-suffix,

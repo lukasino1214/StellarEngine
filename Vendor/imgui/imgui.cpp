@@ -13512,7 +13512,7 @@ void ImGui::DestroyPlatformWindows()
 // Docking: ImGuiDockContext Docking/Undocking functions
 // Docking: ImGuiDockNode
 // Docking: ImGuiDockNode Tree manipulation functions
-// Docking: Public Functions (SetWindowDock, DockSpace, DockSpaceOverViewport)
+// Docking: Public Functions (SetWindowDock, DockSpacePanel, DockSpaceOverViewport)
 // Docking: Builder Functions
 // Docking: Begin/End Support Functions (called from Begin/End)
 // Docking: Settings
@@ -13549,7 +13549,7 @@ void ImGui::DestroyPlatformWindows()
 //    |   - BeginDockableDragDropTarget()
 //    |      - DockNodeUpdate()               - recurse into child nodes...
 //-----------------------------------------------------------------------------
-// - DockSpace()                              user submit a dockspace into a window
+// - DockSpacePanel()                              user submit a dockspace into a window
 //    | Begin(Child)                          - create a child window
 //    | DockNodeUpdate()                      - call main dock node update function
 //    | End(Child)
@@ -13968,7 +13968,7 @@ static void ImGui::DockContextPruneUnusedSettingsNodes(ImGuiContext* ctx)
     }
 
     // Count reference to dock ids from dockspaces
-    // We track the 'auto-DockNode <- manual-Window <- manual-DockSpace' in order to avoid 'auto-DockNode' being ditched by DockContextPruneUnusedSettingsNodes()
+    // We track the 'auto-DockNode <- manual-Window <- manual-DockSpacePanel' in order to avoid 'auto-DockNode' being ditched by DockContextPruneUnusedSettingsNodes()
     for (int settings_n = 0; settings_n < dc->NodesSettings.Size; settings_n++)
     {
         ImGuiDockNodeSettings* settings = &dc->NodesSettings[settings_n];
@@ -14430,7 +14430,7 @@ static void ImGui::DockNodeAddWindow(ImGuiDockNode* node, ImGuiWindow* window, b
     ImGuiContext& g = *GImGui; (void)g;
     if (window->DockNode)
     {
-        // Can overwrite an existing window->DockNode (e.g. pointing to a disabled DockSpace node)
+        // Can overwrite an existing window->DockNode (e.g. pointing to a disabled DockSpacePanel node)
         IM_ASSERT(window->DockNode->ID != node->ID);
         DockNodeRemoveWindow(window->DockNode, window, 0);
     }
@@ -14828,7 +14828,7 @@ static void DockNodeSetupHostWindow(ImGuiDockNode* node, ImGuiWindow* host_windo
     // This can happen if a user mistakenly does (see #4295 for details):
     //  - N+0: DockBuilderAddNode(id, 0)    // missing ImGuiDockNodeFlags_DockSpace
     //  - N+1: NewFrame()                   // will create floating host window for that node
-    //  - N+1: DockSpace(id)                // requalify node as dockspace, moving host window
+    //  - N+1: DockSpacePanel(id)                // requalify node as dockspace, moving host window
     if (node->HostWindow && node->HostWindow != host_window && node->HostWindow->DockNodeAsHost == node)
         node->HostWindow->DockNodeAsHost = NULL;
 
@@ -15036,7 +15036,7 @@ static void ImGui::DockNodeUpdate(ImGuiDockNode* node)
         // We add a little padding to match the "resize from edges" behavior and allow grabbing the splitter easily.
         // (But we only add it if there's something else on the other side of the hole, otherwise for e.g. fullscreen
         // covering passthru node we'd have a gap on the edge not covered by the hole)
-        IM_ASSERT(node->IsDockSpace()); // We cannot pass this flag without the DockSpace() api. Testing this because we also setup the hole in host_window->ParentNode
+        IM_ASSERT(node->IsDockSpace()); // We cannot pass this flag without the DockSpacePanel() api. Testing this because we also setup the hole in host_window->ParentNode
         ImGuiDockNode* root_node = DockNodeGetRootNode(central_node);
         ImRect root_rect(root_node->Pos, root_node->Pos + root_node->Size);
         ImRect hole_rect(central_node->Pos, central_node->Pos + central_node->Size);
@@ -16230,10 +16230,10 @@ ImGuiDockNode* ImGui::DockNodeTreeFindVisibleNodeByPos(ImGuiDockNode* node, ImVe
 }
 
 //-----------------------------------------------------------------------------
-// Docking: Public Functions (SetWindowDock, DockSpace, DockSpaceOverViewport)
+// Docking: Public Functions (SetWindowDock, DockSpacePanel, DockSpaceOverViewport)
 //-----------------------------------------------------------------------------
 // - SetWindowDock() [Internal]
-// - DockSpace()
+// - DockSpacePanel()
 // - DockSpaceOverViewport()
 //-----------------------------------------------------------------------------
 
@@ -16276,7 +16276,7 @@ void ImGui::SetWindowDock(ImGuiWindow* window, ImGuiID dock_id, ImGuiCond cond)
 
 // Create an explicit dockspace node within an existing window. Also expose dock node flags and creates a CentralNode by default.
 // The Central Node is always displayed even when empty and shrink/extend according to the requested size of its neighbors.
-// DockSpace() needs to be submitted _before_ any window they can host. If you use a dockspace, submit it early in your app.
+// DockSpacePanel() needs to be submitted _before_ any window they can host. If you use a dockspace, submit it early in your app.
 ImGuiID ImGui::DockSpace(ImGuiID id, const ImVec2& size_arg, ImGuiDockNodeFlags flags, const ImGuiWindowClass* window_class)
 {
     ImGuiContext* ctx = GImGui;
@@ -16296,20 +16296,20 @@ ImGuiID ImGui::DockSpace(ImGuiID id, const ImVec2& size_arg, ImGuiDockNodeFlags 
     ImGuiDockNode* node = DockContextFindNodeByID(ctx, id);
     if (!node)
     {
-        IMGUI_DEBUG_LOG_DOCKING("DockSpace: dockspace node 0x%08X created\n", id);
+        IMGUI_DEBUG_LOG_DOCKING("DockSpacePanel: dockspace node 0x%08X created\n", id);
         node = DockContextAddNode(ctx, id);
         node->SetLocalFlags(ImGuiDockNodeFlags_CentralNode);
     }
     if (window_class && window_class->ClassId != node->WindowClass.ClassId)
-        IMGUI_DEBUG_LOG_DOCKING("DockSpace: dockspace node 0x%08X: setup WindowClass 0x%08X -> 0x%08X\n", id, node->WindowClass.ClassId, window_class->ClassId);
+        IMGUI_DEBUG_LOG_DOCKING("DockSpacePanel: dockspace node 0x%08X: setup WindowClass 0x%08X -> 0x%08X\n", id, node->WindowClass.ClassId, window_class->ClassId);
     node->SharedFlags = flags;
     node->WindowClass = window_class ? *window_class : ImGuiWindowClass();
 
-    // When a DockSpace transitioned form implicit to explicit this may be called a second time
-    // It is possible that the node has already been claimed by a docked window which appeared before the DockSpace() node, so we overwrite IsDockSpace again.
+    // When a DockSpacePanel transitioned form implicit to explicit this may be called a second time
+    // It is possible that the node has already been claimed by a docked window which appeared before the DockSpacePanel() node, so we overwrite IsDockSpace again.
     if (node->LastFrameActive == g.FrameCount && !(flags & ImGuiDockNodeFlags_KeepAliveOnly))
     {
-        IM_ASSERT(node->IsDockSpace() == false && "Cannot call DockSpace() twice a frame with the same ID");
+        IM_ASSERT(node->IsDockSpace() == false && "Cannot call DockSpacePanel() twice a frame with the same ID");
         node->SetLocalFlags(node->LocalFlags | ImGuiDockNodeFlags_DockSpace);
         return id;
     }
@@ -16402,7 +16402,7 @@ ImGuiID ImGui::DockSpaceOverViewport(const ImGuiViewport* viewport, ImGuiDockNod
     Begin(label, NULL, host_window_flags);
     PopStyleVar(3);
 
-    ImGuiID dockspace_id = GetID("DockSpace");
+    ImGuiID dockspace_id = GetID("DockSpacePanel");
     DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags, window_class);
     End();
 
@@ -16940,7 +16940,7 @@ void ImGui::BeginDocked(ImGuiWindow* window, bool* p_open)
 #endif
 
     // Undock if our dockspace node disappeared
-    // Note how we are testing for LastFrameAlive and NOT LastFrameActive. A DockSpace node can be maintained alive while being inactive with ImGuiDockNodeFlags_KeepAliveOnly.
+    // Note how we are testing for LastFrameAlive and NOT LastFrameActive. A DockSpacePanel node can be maintained alive while being inactive with ImGuiDockNodeFlags_KeepAliveOnly.
     if (node->LastFrameAlive < g.FrameCount)
     {
         // If the window has been orphaned, transition the docknode to an implicit node processed in DockContextNewFrameUpdateDocking()
@@ -17043,7 +17043,7 @@ void ImGui::BeginDockableDragDropTarget(ImGuiWindow* window)
     ImGuiContext* ctx = GImGui;
     ImGuiContext& g = *ctx;
 
-    //IM_ASSERT(window->RootWindowDockTree == window); // May also be a DockSpace
+    //IM_ASSERT(window->RootWindowDockTree == window); // May also be a DockSpacePanel
     IM_ASSERT((window->Flags & ImGuiWindowFlags_NoDocking) == 0);
     if (!g.DragDropActive)
         return;
@@ -17216,7 +17216,7 @@ static void ImGui::DockSettingsHandler_ReadLine(ImGuiContext* ctx, ImGuiSettings
     ImGuiDockNodeSettings node;
     line = ImStrSkipBlank(line);
     if      (strncmp(line, "DockNode", 8) == 0)  { line = ImStrSkipBlank(line + strlen("DockNode")); }
-    else if (strncmp(line, "DockSpace", 9) == 0) { line = ImStrSkipBlank(line + strlen("DockSpace")); node.Flags |= ImGuiDockNodeFlags_DockSpace; }
+    else if (strncmp(line, "DockSpacePanel", 9) == 0) { line = ImStrSkipBlank(line + strlen("DockSpacePanel")); node.Flags |= ImGuiDockNodeFlags_DockSpace; }
     else return;
     if (sscanf(line, "ID=0x%08X%n",      &node.ID, &r) == 1)            { line += r; } else return;
     if (sscanf(line, " Parent=0x%08X%n", &node.ParentNodeId, &r) == 1)  { line += r; if (node.ParentNodeId == 0) return; }
@@ -17291,7 +17291,7 @@ static void ImGui::DockSettingsHandler_WriteAll(ImGuiContext* ctx, ImGuiSettings
     {
         const int line_start_pos = buf->size(); (void)line_start_pos;
         const ImGuiDockNodeSettings* node_settings = &dc->NodesSettings[node_n];
-        buf->appendf("%*s%s%*s", node_settings->Depth * 2, "", (node_settings->Flags & ImGuiDockNodeFlags_DockSpace) ? "DockSpace" : "DockNode ", (max_depth - node_settings->Depth) * 2, "");  // Text align nodes to facilitate looking at .ini file
+        buf->appendf("%*s%s%*s", node_settings->Depth * 2, "", (node_settings->Flags & ImGuiDockNodeFlags_DockSpace) ? "DockSpacePanel" : "DockNode ", (max_depth - node_settings->Depth) * 2, "");  // Text align nodes to facilitate looking at .ini file
         buf->appendf(" ID=0x%08X", node_settings->ID);
         if (node_settings->ParentNodeId)
         {

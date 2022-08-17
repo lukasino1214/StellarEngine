@@ -1,9 +1,4 @@
-//
-// Created by lukas on 06.11.21.
-//
-
-#ifndef ENGINE_PGEPCH_H
-#define ENGINE_PGEPCH_H
+#pragma once
 
 #include <iostream>
 #include <memory>
@@ -13,13 +8,16 @@
 
 #include <string>
 #include <sstream>
+#include <fstream>
 #include <array>
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <set>
+#include <initializer_list>
 
-#include "Core/Base.h"
+#include <cassert>
+#include <stdexcept>
 
-#include "Core/Log.h"
-
-#endif //ENGINE_PGEPCH_H
+#include "core/logger.h"
+#include "core/types.h"

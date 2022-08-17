@@ -1450,7 +1450,7 @@ enum ImGuiDockNodeFlagsPrivate_
     ImGuiDockNodeFlags_NoDockingSplitOther      = 1 << 18,  // [EXPERIMENTAL] Prevent this node from splitting another window/node.
     ImGuiDockNodeFlags_NoDockingOverMe          = 1 << 19,  // [EXPERIMENTAL] Prevent another window/node to be docked over this node.
     ImGuiDockNodeFlags_NoDockingOverOther       = 1 << 20,  // [EXPERIMENTAL] Prevent this node to be docked over another window or non-empty node.
-    ImGuiDockNodeFlags_NoDockingOverEmpty       = 1 << 21,  // [EXPERIMENTAL] Prevent this node to be docked over an empty node (e.g. DockSpace with no other windows)
+    ImGuiDockNodeFlags_NoDockingOverEmpty       = 1 << 21,  // [EXPERIMENTAL] Prevent this node to be docked over an empty node (e.g. DockSpacePanel with no other windows)
     ImGuiDockNodeFlags_NoResizeX                = 1 << 22,  // [EXPERIMENTAL]
     ImGuiDockNodeFlags_NoResizeY                = 1 << 23,  // [EXPERIMENTAL]
     ImGuiDockNodeFlags_SharedFlagsInheritMask_  = ~0,
@@ -1501,7 +1501,7 @@ struct IMGUI_API ImGuiDockNode
     ImGuiDockNode*          CentralNode;                // [Root node only] Pointer to central node.
     ImGuiDockNode*          OnlyNodeWithWindows;        // [Root node only] Set when there is a single visible node within the hierarchy.
     int                     CountNodeWithWindows;       // [Root node only]
-    int                     LastFrameAlive;             // Last frame number the node was updated or kept alive explicitly with DockSpace() + ImGuiDockNodeFlags_KeepAliveOnly
+    int                     LastFrameAlive;             // Last frame number the node was updated or kept alive explicitly with DockSpacePanel() + ImGuiDockNodeFlags_KeepAliveOnly
     int                     LastFrameActive;            // Last frame number the node was updated.
     int                     LastFrameFocused;           // Last frame number the node was focused.
     ImGuiID                 LastFocusedNodeId;          // [Root node only] Which of our child docking node (any ancestor in the hierarchy) was last focused.
@@ -2952,7 +2952,7 @@ namespace ImGui
     // Docking - Builder function needs to be generally called before the node is used/submitted.
     // - The DockBuilderXXX functions are designed to _eventually_ become a public API, but it is too early to expose it and guarantee stability.
     // - Do not hold on ImGuiDockNode* pointers! They may be invalidated by any split/merge/remove operation and every frame.
-    // - To create a DockSpace() node, make sure to set the ImGuiDockNodeFlags_DockSpace flag when calling DockBuilderAddNode().
+    // - To create a DockSpacePanel() node, make sure to set the ImGuiDockNodeFlags_DockSpace flag when calling DockBuilderAddNode().
     //   You can create dockspace nodes (attached to a window) _or_ floating nodes (carry its own window) with this API.
     // - DockBuilderSplitNode() create 2 child nodes within 1 node. The initial node becomes a parent node.
     // - If you intend to split the node immediately after creation using DockBuilderSplitNode(), make sure
