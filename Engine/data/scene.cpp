@@ -51,7 +51,7 @@ namespace Engine {
                 return;
 
             if (entity.has_component<ScriptComponent>()) {
-                auto script = entity.get_component<ScriptComponent>();
+                auto& script = entity.get_component<ScriptComponent>();
                 script.script->update(deltaTime);
             }
         });

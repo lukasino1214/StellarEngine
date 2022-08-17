@@ -6,12 +6,7 @@ add_subdirectory(fx-gltf)
 #add_subdirectory(VulkanMemoryAllocator)
 add_subdirectory(imgui)
 add_subdirectory(ImGuizmo)
-#add_subdirectory(JoltPhysics/Build)
-
-link_libraries(LINK_PUBLIC IMGUI)
-link_libraries(LINK_PUBLIC IMGUIZMO)
-link_libraries(LINK_PUBLIC fx-gltf)
-link_libraries(LINK_PUBLIC Jolt)
+add_subdirectory(JoltPhysics/Build)
 
 #if (DEFINED VULKAN_SDK_PATH)
 #    set(Vulkan_INCLUDE_DIRS "${VULKAN_SDK_PATH}/Include") # 1.1 Make sure this include path is correct

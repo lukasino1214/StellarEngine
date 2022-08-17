@@ -37,5 +37,6 @@ namespace Engine {
         friend class DeferredRenderingSystem;
         friend class ShadowSystem;
         friend class App;
+        friend class PhysicsSystem;
     };
 }

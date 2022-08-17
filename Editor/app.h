@@ -52,6 +52,7 @@ namespace Engine {
         std::unique_ptr<DockSpacePanel> dock_space_panel;
         std::shared_ptr<SceneHierarchyPanel> scene_hierarchy_panel;
         std::shared_ptr<ViewportPanel> viewport_panel;
+        std::shared_ptr<PhysicsSystem> physics_system;
 
         //VkDescriptorSet vk_post_processing_descriptor_set;
     };

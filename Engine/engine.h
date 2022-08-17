@@ -34,4 +34,6 @@
 
 #include "scripting/native_script.h"
 
+#include "physics/physics_system.h"
+
 #include "math/math.h"

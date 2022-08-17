@@ -1,5 +1,6 @@
 #include "app.h"
 #include "glm/ext/matrix_transform.hpp"
+#include <memory>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -38,6 +39,8 @@ namespace Engine {
 
         preferences_panel = std::make_unique<PreferencesPanel>();
 
+        physics_system = std::make_shared<PhysicsSystem>(editor_scene);
+
         auto helmet = std::make_shared<Model>(device, "assets/models/SciFiHelmet/glTF/SciFiHelmet.gltf");
         auto damaged_helmet = std::make_shared<Model>(device, "assets/models/DamagedHelmet/glTF/DamagedHelmet.gltf");
 
@@ -52,7 +55,23 @@ namespace Engine {
         test.add_component<ModelComponent>(damaged_helmet);
         test.get_component<ModelComponent>().transparent = true;
 
-        /*auto test1 = editor_scene->create_entity("Test 1");
+        auto sphere_1 = editor_scene->create_entity("sphere_1");
+        sphere_1.get_component<TransformComponent>().translation = { 0 , 10, 0 };
+        sphere_1.add_component<PhysicsComponent>();
+        sphere_1.add_component<ModelComponent>(helmet);
+        sphere_1.get_component<PhysicsComponent>().inverse_mass = 1.0f;
+        sphere_1.get_component<PhysicsComponent>().elasticity = 0.5f;
+        sphere_1.get_component<PhysicsComponent>().shape = std::make_unique<Sphere>(1.0f);
+
+        auto sphere_2 = editor_scene->create_entity("sphere_2");
+        sphere_2.get_component<TransformComponent>().translation = { 0 , -1010, 0 };
+        sphere_2.add_component<PhysicsComponent>();
+        sphere_2.get_component<PhysicsComponent>().inverse_mass = 0.0f;
+        sphere_2.get_component<PhysicsComponent>().elasticity = 1.0f;
+        sphere_2.get_component<PhysicsComponent>().shape = std::make_unique<Sphere>(1000.0f);
+
+
+        auto test1 = editor_scene->create_entity("Test 1");
         test1.get_component<RelationshipComponent>().parent = test;
         test1.get_component<TransformComponent>().set_translation(glm::vec3{5.0f, 3.0f, 0.0f});
         test1.add_component<ModelComponent>(helmet);
@@ -63,10 +82,10 @@ namespace Engine {
         test2.add_component<ModelComponent>(helmet);
 
         test.get_component<RelationshipComponent>().children.push_back(test1);
-        test.get_component<RelationshipComponent>().children.push_back(test2);*/
+        test.get_component<RelationshipComponent>().children.push_back(test2);
 
         SceneSerializer serializer(editor_scene);
-        //serializer.deserialize(device, "assets/Example.scene");
+        serializer.deserialize(device, "assets/Example.scene");
 
         scene_hierarchy_panel->set_context(editor_scene);
     }
@@ -146,6 +165,7 @@ namespace Engine {
                 ubo.screen_width = static_cast<float>(viewport_panel->get_viewport_size().x);
                 ubo.screen_height = static_cast<float>(viewport_panel->get_viewport_size().y);
 
+                physics_system->update(frame_time);
                 editor_scene->update_lights_ubo(ubo);
                 editor_scene->update(frame_time);
                 editor_scene->update_transforms();
